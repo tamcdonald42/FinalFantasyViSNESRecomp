@@ -188,3 +188,46 @@ banks.
 State: `main` is back to the verified tree (4 roots, 521/521 frames pixel-identical to the
 pre-authority baseline, re-checked after the restore). The experiment lives on
 `exp/c0-aot-roots` with its root list at `recomp/roots/c0.toml`.
+
+## Step 3b — bisection: what actually breaks (2026-11-12)
+
+Harness: `tools/bisect/trial.sh` promotes a TOML fragment, regenerates, rebuilds,
+replays frames 480–670 and byte-compares them against the pre-authority capture.
+`tools/bisect/bisect2.py` classes each outcome — PASS / MILD (some frames differ after
+the first) / BLACK (nothing renders) — and recurses only towards MILD, because the
+plain bisect's assumption (a failing subset stays failing when narrowed) is false here.
+
+| promoted roots | analysis | frames differing |
+| --- | --- | --- |
+| none (4 vectors) | 4 roots / 4 variants | 0 |
+| `Rand`, `HexToDec`, `UpdateBattleRng`, `UpdateMaxHP`, `OptimizeCharEquip` | 1 each | 0 each |
+| `Decompress` | 12 / 12 | 0 |
+| `InitNPCs` | 12 / 22 | 0 |
+| `RestartGame` (`emit = true`) | 20 / 309 | **11**, first 660 |
+| `RestartGame` (`emit = false`) | 4 / 4 | 0 |
+| first half of C0 (133 roots) | — | **191, screen black** |
+| second half of C0 (134) | — | 11, first 660 |
+| all 267 | 2708 / 1362 AOT | 11, first 660 |
+| all 267 minus 15 fade/palette/PPU functions | — | 11, first 660 |
+
+Two distinct failure modes, and neither is "the fade code is wrong":
+
+1. **Black screen.** Promoting the low-address half (boot, `InitPPU`, sprite/palette
+   transfer) leaves the display off for the whole window while the game still runs at
+   60 fps — rendering is never enabled, not a crash. Separate ticket.
+2. **One fade step ahead.** From frame 660 every colour is uniformly one step darker
+   (1:1 remap), then content diverges structurally. Excluding the fade/palette/PPU
+   functions from the promotion does *not* fix it, so the fade code being AOT is not
+   the cause.
+
+The mild mode narrows to one function, `C0:C4B3 RestartGame` — and the 1405-frame
+coverage capture contains no reference to `C0C4B3` at all, i.e. it is never entered
+during the intro. `emit = false` for the same symbol is pixel-identical, so it is the
+promotion, not the cfg entry: promoting it pulls in a 20-function / 309-variant
+closure (`LoadSavedGame_ext` and friends). Neighbours and other multi-root promotions
+(`Decompress`, `InitNPCs`) stay clean, so it is not "promoting anything moves the
+clock".
+
+Next: get per-frame `master_cycles` for baseline vs the `RestartGame` promotion
+(`docs/COSIM.md` is the tool meant for this) and bisect inside that 20-function
+closure; the black-screen class is its own ticket in the PPU init path.
