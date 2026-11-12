@@ -149,3 +149,42 @@ installed — **521/521 captured frames (480–1000: title, Start, fade, intro) 
 pixel-identical** to the pre-authority build. Installing the authority is a no-op on
 the observed route, which is the correct result for an LLE-first tree.
 
+
+## Step 3 — analysis roots, first AOT promotion (2026-11-12, branch `exp/c0-aot-roots`)
+
+Authority constrains nothing until analysis has roots, so `tools/gen_symbols.py` derives
+them from both byte-verified sources: `sym ... type=lab, seg=` records in the `.dbg`
+(47,310 labels) filtered to addresses that the authority says are instruction starts, and
+a scan of the instruction list for `jsr abs` / `jsl long` (2,430 distinct targets, 2,410
+with a label). Local labels (`@0000`) and duplicates get address-based C identifiers,
+because a cfg name must be a C identifier.
+
+First slice, bank `C0` (field code), `emit = true`:
+
+```
+symbols: 269 function labels (267 AOT requests)
+analysis: 2708 roots -> 2872 exact variants, 1633 edges
+analysis: 1362 AOT-eligible, 1510 LLE-only          (20 s end to end)
+audit:    observed 1362, invalid 0,
+          covered_authority_instructions 19717 (was 0),
+          instruction instances match 61921 / unknown 10679
+```
+
+It boots and runs: **1405 frames at 59.6 fps, no tripwires, no fallback warnings** — and
+the picture is *almost* right. First divergence is frame 660, the intro fade-out: the
+entire frame is a **uniform 1:1 palette remap**, every channel 17 lower (255→238, 239→223,
+24→22), five colours in five colours out. That is the AOT build sitting exactly **one fade
+step ahead**, not corrupted arithmetic. By frame 700 the mapping is many-to-one, i.e. the
+content itself is shifted, which is what a persistent one-step phase error looks like once
+the scene changes.
+
+So wholesale promotion of a bank is the wrong instrument: something frame-level advanced.
+Prime suspect is the NMI-wait / idle-poll path (`docs/IDLE_POLL.md`): a `WaitForNMI` spin
+loop that the runner HLEs as an idle poll becomes ordinary recompiled code, and the frame
+it yields on moves. Next move is to bisect the 267 roots — promote in halves, or check
+whether the poll loop is in the promoted set and pin it LLE — before promoting any more
+banks.
+
+State: `main` is back to the verified tree (4 roots, 521/521 frames pixel-identical to the
+pre-authority baseline, re-checked after the restore). The experiment lives on
+`exp/c0-aot-roots` with its root list at `recomp/roots/c0.toml`.
