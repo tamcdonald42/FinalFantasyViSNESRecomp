@@ -87,10 +87,63 @@ sites are the promotion worklist, and the 76 WRAM routines are FF6 copying code 
 
 1. Turn the `.dbg` into analysis authority: a ca65 adapter for
    `snesrecomp/tools/export_disassembly_authority.py` (it speaks asar/smwdisx/usdasm
-   today; ca65's `.dbg` line spans are a cleaner input than any of them).
+   today; ca65's `.dbg` line spans are a cleaner input than any of them). **Done — see below.**
 2. Ingest the authority into `recomp/bank*.cfg`, regenerate, and compare the emitted
-   decode against the disassembly (`tools/audit_disassembly.py`).
-3. Promote the 278 captured sites / 200 targets by name from `symbols.toml`
-   (`emit = true`), then re-run the same script and diff frames against a reference
-   emulator capture.
-4. Push past the intro: name entry, first field map, menu, first battle.
+   decode against the disassembly (`tools/audit_disassembly.py`). **Done — see below.**
+3. Seed analysis roots from the disassembly so the authority actually governs code:
+   `recomp/symbols.toml` from the 13,928 labels, `emit = true` where the analyzer
+   proves the variant safe. This is what moves `covered_authority_instructions` off 0.
+4. Promote the 278 captured sites / 200 targets by name, then re-run the same script
+   and diff frames against a reference emulator capture.
+5. Push past the intro: name entry, first field map, menu, first battle.
+
+## Step 2 — disassembly authority installed (2026-11-12)
+
+`tools/ingest_ff6_disasm.py` is a ca65 backend for the framework's exporter: it plugs
+the generic 65816 path with cc65's `.dbg` (`ld65 --dbgfile`) instead of an assembler
+symbol file. Lengths come from the linker's own span records, so the authority is
+byte-verified, never decoder-derived.
+
+```bash
+python snesrecomp/tools/export_disassembly_authority.py --format asar65816 \
+  --source <ff6-disassembly> --rom <rom> --assembled-rom <ff6>/build/en/rom/ff6-en.sfc \
+  --assembler <cc65>/bin/ca65 --classifier tools/ingest_ff6_disasm.py \
+  --symbols <ff6>/build/en/rom/ff6-en.dbg --source-commit 8130132 \
+  --out _authority/ff6-authority.json          # never committed: contains ROM bytes
+
+python snesrecomp/tools/ingest_disassembly_authority.py --rom <rom> \
+  --authority _authority/ff6-authority.json --cfg-dir recomp --out-dir _authority/cfg-overlay
+
+python snesrecomp/tools/disassembly_layout.py --authority _authority/ff6-authority.json \
+  --out recomp/disassembly-layout.json         # committed: boundaries + hashes, no bytes
+```
+
+Result: **101,321 instructions (226,811 bytes), 1,938 data regions (2,688,670 bytes),
+16,834 unknown spans (50,231 bytes)** — 94% of the ROM classified, up from 3%/0.1%/66%
+for the naive `.dbg` read (93,057 / 2,966 / 322,067).
+
+Four things the naive read got wrong, in order of cost:
+
+1. cc65 writes `.mac`/`.endmac`, not `.macro`/`.endmacro` — the definition regexes
+   missed every FF6 macro, so 113k invocation lines fell through as unknown.
+2. An anonymous span (macro-expanded bytes) has no `line` record; it must inherit the
+   line of the span containing it, or every expansion is an unconstrained hole.
+3. Macros in FF6 *are* languages: `shorta0`/`clr_ax` expand to instructions,
+   `obj_script`/`ptr_tbl`/`move`/`dlg` to script or table bytes. Classification has to
+   be a fixpoint over the macro graph (bodies invoke other macros), with a fourth
+   outcome — `none`, emits nothing — so helpers like `set_script_mode` don't poison a
+   data macro into `unknown`.
+4. `name := expr` / `name .set expr` lines emit nothing; without that they classify as
+   unknown and cascade into every macro that uses a computed pointer.
+
+Audit (`tools/audit_disassembly.py --disassembly-entry-modes`): **0 invalid variants**,
+`covered_authority_instructions: 0`. That zero is the honest state, not a failure: the
+seed scaffold has 4 AOT roots (the vectors), so the emitter never decodes the game and
+the authority constrains nothing yet. 192 bank cfgs materialise — the constraints are
+in place, waiting for roots.
+
+Regression check: rebuilt and replayed the same 1405-frame route with the layout
+installed — **521/521 captured frames (480–1000: title, Start, fade, intro) are
+pixel-identical** to the pre-authority build. Installing the authority is a no-op on
+the observed route, which is the correct result for an LLE-first tree.
+
