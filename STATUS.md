@@ -119,10 +119,12 @@ python snesrecomp/tools/disassembly_layout.py --authority _authority/ff6-authori
 ```
 
 Result: **101,321 instructions (226,811 bytes), 1,938 data regions (2,688,670 bytes),
-16,834 unknown spans (50,231 bytes)** — 94% of the ROM classified, up from 3%/0.1%/66%
-for the naive `.dbg` read (93,057 / 2,966 / 322,067).
+16,834 unknown spans (50,231 bytes)** — 92.7% of the 3 MiB image is now either
+byte-verified code or an explicit data exclusion, and 1.6% is explicitly unknown.
+(The first naive pass gave 93,057 / 2,966 / 322,067 — the same instruction count to
+within 8%, but only ~8% of the image as data and 66% of spans unconstrained.)
 
-Four things the naive read got wrong, in order of cost:
+Four things that pass got wrong, in order of cost:
 
 1. cc65 writes `.mac`/`.endmac`, not `.macro`/`.endmacro` — the definition regexes
    missed every FF6 macro, so 113k invocation lines fell through as unknown.
