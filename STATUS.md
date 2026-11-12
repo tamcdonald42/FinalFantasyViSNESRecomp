@@ -17,22 +17,37 @@ and sha256). It emits `build/en/rom/ff6-en.dbg` — 400,869 address→source-lin
 and 13,928 named labels. That is the analysis authority this port should be built
 against; nothing of it is committed here.
 
-**Toolchain:** VS2022 BuildTools (`cmake -G "Visual Studio 17 2022" -A x64`),
-CMake 4.4.5 at `C:\Tools\cmake`, rustc 1.97.1 `x86_64-pc-windows-gnu`,
-python 3.13 (miniconda), ninja at `C:\Users\Admin\bin`.
+**Toolchain:** VS2022 BuildTools, CMake 4.4.5 at `C:\Tools\cmake`, rustc 1.97.1
+`x86_64-pc-windows-gnu`, python 3.13 (miniconda), ninja at `C:\Users\Admin\bin`,
+winlibs gcc 16.2 at `C:\Tools\mingw64`.
 
-### Build
+### Build — canonical: MSVC
 
 ```powershell
 cmake -S . -B build-msvc -G "Visual Studio 17 2022" -A x64
 cmake --build build-msvc --config Release --parallel 12
+# -> build-msvc\Release\FinalFantasyViSNESRecomp.exe
 ```
 
-**Trap:** the MinGW path (gcc 16.2.0 UCRT + Ninja) configures fine but fails at the
-link with `ld.exe: .rsrc merge failure: multiple non-default manifests` — SDL3's
-`version.rc` and the framework's generated `snesrecomp_utf8_manifest.rc` both embed a
-manifest and GNU ld refuses to merge them. `runner.cmake` already branches: MSVC gets
-the manifest as a source, everyone else gets an RC. Use the MSVC generator on Windows.
+### The MinGW path: an error that is not a failure
+
+`gcc 16.2` + Ninja configures and compiles all 414 targets, then the link prints
+
+```
+ld.exe: .rsrc merge failure: multiple non-default manifests
+```
+
+SDL3's `version.rc` and the framework's generated `snesrecomp_utf8_manifest.rc` both
+embed a manifest and GNU ld refuses to merge them. **It still writes a working
+executable and cmake exits 0.** Verified: that binary boots the title screen at
+60 fps (frame 480 identical: mean 45.7, 5 colours) and contains `activeCodePage`, so
+the UTF-8 manifest is present; the discarded one is presumably SDL3's DPI manifest.
+It is 10.9 MB against MSVC's 4.8 MB.
+
+Treat it as a silent-CI hazard, not a toolchain block: a job keyed on exit status
+would ship a binary whose build logged a linker error. `build\` (the MinGW tree) was
+removed so there is exactly one executable to run; `runner.cmake` branches on `MSVC`
+for this reason.
 
 ### Headless run
 
