@@ -231,3 +231,39 @@ clock".
 Next: get per-frame `master_cycles` for baseline vs the `RestartGame` promotion
 (`docs/COSIM.md` is the tool meant for this) and bisect inside that 20-function
 closure; the black-screen class is its own ticket in the PPU init path.
+
+## Step 3c — it is the scale of AOT coverage, not one function (2026-11-12)
+
+The plan was "find which closure function actually runs and promote it alone". That question
+dissolved: promoting `RestartGame` does not AOT 20 functions, it AOTs **286 variants across ~275
+entry points** (`v2_emit: 20 roots, 286 exact AOT variants`), i.e. most of bank C0's entry points.
+The analysis follows calls, so a root with a wide call graph sweeps in the bank.
+
+So the experiment became: does divergence track the *size* of the AOT set? Same harness, one root
+each, same 190-frame window:
+
+| promoted root | analysis | outcome |
+| --- | --- | --- |
+| `UpdateObjFrame` | 12 roots / 12 variants | 0 diffs |
+| `Decompress` | 12 / 12 | 0 |
+| `DrawObjSprites` | 12 / 18 | 0 |
+| `InitNPCs` | 12 / 22 | 0 |
+| `ExecBattle` | 20 / 77 | **MSVC `CL.exe` crashed (0xC0000005) compiling the generated C** |
+| `LoadWorldMap` | 12 / **118** | **191 diffs — screen never renders** |
+| `RestartGame` | 20 / **286** | 11 diffs — fade one step ahead |
+
+Small AOT sets are exact; large ones are not, and they fail in two different ways. That rules out a
+single bad routine and points at AOT execution itself — cycle/timing accounting, or a width/flag
+convention that only shows when a critical mass of per-frame code runs natively. The two failure
+classes (blank display, one-step-early fade) look like two different manifestations of the same
+systemic split.
+
+New bug banked separately: the emitted C for the `ExecBattle` config kills the compiler
+(`error MSB6006: CL.exe exited with code -1073741819`). Regenerating and building again is fine, so
+it is specific to that configuration's generated code — likely one oversized generated function.
+
+Co-simulation is in-tree after all (`cosim/`, `tools/snes_cosim.py`, `tools/cosim_align.py`,
+`tools/cosim_fbdump.py`) — `docs/COSIM.md` names a worktree that does not exist on this machine, but
+the sources ship in the pinned framework. That is the next instrument: it steps the recompiled build
+against a reference interpreter with full CPU/APU/PPU state hashing and reports the first
+instruction that splits, which is precisely the question this step could not answer by probing.
