@@ -267,3 +267,34 @@ Co-simulation is in-tree after all (`cosim/`, `tools/snes_cosim.py`, `tools/cosi
 the sources ship in the pinned framework. That is the next instrument: it steps the recompiled build
 against a reference interpreter with full CPU/APU/PPU state hashing and reports the first
 instruction that splits, which is precisely the question this step could not answer by probing.
+
+## Step 4 — a second, independent execution of the same ROM (2026-11-12)
+
+`tools/cosim/` builds the co-simulation **B side** for this title: the framework's game-neutral
+reference driver (`snesrecomp/cosim/ref_driver.c`) linked against the runner's device sources and
+interp816, with no recompiled C at all. Two adjustments were needed versus the framework's SMW/MMX
+targets: the game's `src/variables.h` has to be on the include path, and three device sources
+reference symbols that only the recompiled runtime defines, so `tools/cosim/ref_glue.c` supplies
+`g_interp_apu_driving`, the HD-frame builders and the tier-2 capture hooks as inert stubs.
+
+```bash
+cmake -S tools/cosim -B tools/cosim/build -G "Visual Studio 17 2022" -A x64
+cmake --build tools/cosim/build --config Release --parallel 12
+tools/cosim/build/Release/ff6_cosim_ref.exe "<rom>" --frames 620 \
+    --final-frame-dump C:\Temp\refframes\final620.ppm
+```
+
+Result: 620 frames in about a minute, `PASS`, and its frame 620 is **pixel-identical to the port's
+frame 620** (0 of 57,344 pixels differ). An execution path that shares no recompiled code with our
+port — interp816 driving its own copy of the devices — reproduces the picture exactly. That validates
+the ROM handling, the device wiring and the frame model independently of the AOT work.
+
+Open item: the reference reports `audio_active_frames=0` (`audio_peak=0`) over 620 frames while the
+port produces audio, so `ref_driver`'s own liveness gate fails at >=120 frames even though the run and
+the frame dump are fine. Since the APU is inside the co-sim state hash, that needs understanding
+before an A-vs-B comparison is meaningful.
+
+Remaining for a full A-vs-B run: an A-side harness (the reference's `harness_smw.c` equivalent —
+register `kGameInfo`, own `g_spc_player`, scripted Start at frame 504 so both sides see identical
+input), a `-DSNES_COSIM=ON` build of the port, and the coordinator
+(`tools/snes_cosim.py --a-cmd ... --b-cmd ...`) with gates 1-4 from `docs/COSIM.md`.
