@@ -345,3 +345,26 @@ at checkpoint 2 says the APU boot path differs, not that AOT broke. Options are 
 `cart`/`ppu`/`ram` with `--transient-grace`, or — the real fix — make the A side's APU boot faithful
 instead of HLE, which is a framework-level change and the prerequisite for using co-sim as the
 instrument this investigation wanted.
+
+## Step 6 — the reference interpreter as a frame oracle: the answer (2026-11-16)
+
+No co-sim needed: `ff6_cosim_ref` dumps a final frame for any N, and the port dumps a frame range, so
+the two can be compared pixel-for-pixel. Three-way comparison at the intro fade (frame dumps:
+`C:\Temp\oracle\{ref,port2,port3,port_c0}`):
+
+| comparison | result |
+|---|---|
+| ref vs port (4-root baseline) | **identical content**, offset by a constant 11 frames (ref 680 = base 669, ref 684 = base 673, ref 688 = base 677) — the real IPL handshake boots ~11 frames later |
+| ref vs port (267-root C0 build) | offset by 20 frames (ref 680 = c0 660, ref 684 = c0 664, ref 688 = c0 668) |
+| baseline vs C0, same frame | **identical through frame 659, every pixel different from 660 onward** |
+
+So outcome 1 from the plan, with a correction to the earlier finding. Interpretation is faithful: the
+independent interp816 build reproduces the port's baseline sequence exactly, with only a constant
+boot-time offset. The AOT build is the outlier — and it is not "one fade step ahead". The fade runs
+659→682 in the baseline (mean luma 43.9 → 0.0) and 650→673 in the C0 build: same duration, **started 9
+frames earlier**. That is a *phase shift*, not a per-step lead, which means it is injected before 660 —
+the last frame where the two builds still agree pixel-for-pixel.
+
+This replaces co-sim as the working instrument: a ~4-minute loop (regen 20 s, incremental build, 24 s
+headless run) with a binary, unambiguous oracle ("does frame 660 differ?") instead of a hash that
+splits for APU boot-path reasons.
