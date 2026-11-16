@@ -134,3 +134,40 @@ target_include_directories(FinalFantasyViSNESRecomp PRIVATE
 
 # Netplay is not built into this target.
 # No multitap: two seats, one controller per port.
+
+# ── Co-simulation A side (DEV/DIAGNOSTICS ONLY, docs/COSIM.md) ───────────────
+# Headless build of this game for differential co-simulation: the same runner
+# and the same generated banks, but the entry point is tools/cosim/harness_ff6.c
+# instead of the SDL desktop host. No SDL_Init, no window, no audio device, no
+# worker threads -- Gate-1 determinism by construction. The desktop host cannot
+# be used for this: it forces audio on, and the audio callback thread advances
+# the APU on wall-clock time, so two identical processes diverge in the APU/DSP
+# sub-hashes within three checkpoints (measured).
+#
+#   cmake -S . -B build-cosim -DSNESRECOMP_FF6_COSIM_A=ON -DSNES_COSIM=ON
+#
+# Never part of a release build.
+option(SNESRECOMP_FF6_COSIM_A "Build the headless co-simulation A side (DEV ONLY)" OFF)
+if(SNESRECOMP_FF6_COSIM_A)
+    add_executable(ff6_cosim
+        ${SNESRECOMP_RUNNER_SOURCES}
+        tools/cosim/harness_ff6.c
+        ${SNESRECOMP_ROOT}/cosim/harness_glue.c   # Die, APU lock, WRAM hooks
+        tools/cosim/a_glue.c                      # block-enter hook
+        src/game_rtl.c
+        src/gen_stubs.c
+    )
+    snesrecomp_target_generated_code(ff6_cosim ${CMAKE_SOURCE_DIR}/src/gen)
+    target_include_directories(ff6_cosim PRIVATE
+        ${SNESRECOMP_RUNNER_INCLUDE_DIRS}
+        ${SNESRECOMP_ROOT}/runner/src/desktop
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/recomp
+    )
+    target_link_libraries(ff6_cosim PRIVATE ${SNESRECOMP_RUNNER_LIBRARIES})
+    target_compile_definitions(ff6_cosim PRIVATE
+        SNES_GAME_VERSION="dev"
+        SNES_GAME_TITLE="Final Fantasy VI"
+    )
+    snesrecomp_target_sdl(ff6_cosim)
+endif()

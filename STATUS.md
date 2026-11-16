@@ -298,3 +298,50 @@ Remaining for a full A-vs-B run: an A-side harness (the reference's `harness_smw
 register `kGameInfo`, own `g_spc_player`, scripted Start at frame 504 so both sides see identical
 input), a `-DSNES_COSIM=ON` build of the port, and the coordinator
 (`tools/snes_cosim.py --a-cmd ... --b-cmd ...`) with gates 1-4 from `docs/COSIM.md`.
+
+## Step 5 — the co-simulation A side, and what A-vs-B can actually compare (2026-11-16)
+
+`ff6_cosim` (`-DSNESRECOMP_FF6_COSIM_A=ON`, DEV only) is the A side: the same runner and the same
+generated banks with `tools/cosim/harness_ff6.c` as the entry point instead of the SDL desktop host.
+No `SDL_Init`, no window, no audio device, no worker threads — Gate-1 determinism by construction.
+
+The desktop host **cannot** be used for co-sim, and this was measured, not assumed: two instances of
+`build-cosim/Release/FinalFantasyViSNESRecomp.exe` given identical input diverged in the APU and DSP
+sub-hashes at checkpoint 2. `g_config.enable_audio = true; /* always on */` in `host_main.c` means the
+SDL audio callback thread advances the APU on wall-clock time, and `SDL_AUDIODRIVER=nonexistent`
+does not help because `SDL_Init` then fails outright.
+
+Gates:
+
+| gate | what | result |
+|---|---|---|
+| 1 | A vs A, headless harness, stride 60, 12 cps | **PASS** — no divergence (7 s) |
+| 2 | B vs B, coordinated ref (no `--frames`, which would make it standalone) | **PASS** — no divergence in 8 cps |
+| 3/4 | A vs B | not yet meaningful, see below |
+
+`ref_driver` has to be launched *without* `--frames` for co-sim: passing it sets `standalone_frames`,
+which skips `cosim_init()` entirely and free-runs (the first attempt ran 100,000 frames and exited).
+
+A-vs-B does not line up as-is. `tools/cosim_align.py` (A free-running 200 frames, B 320) reports the
+post-boot phase offset and the per-subsystem agreement at it:
+
+```
+BEST WRAM offset O=1: 159/200 frames with IDENTICAL ram hash
+  cpu 137/200   ram 159/200   ppu 173/200   cart 200/200
+  apu   0/200   dsp   0/200   spc  10/200   dma 35/200   sio 0/200
+```
+
+`O=1` is structural: the port parks at the start of `RtlRunFrame` (through `common_rtl.c`) while the
+ref parks after `run_one_frame()`, so B is exactly one frame ahead. `tools/cosim/cosim_run.py` is the
+coordinator with a `--b-head N` option that cancels this by advancing B before the first checkpoint.
+
+What O=1 shows is the real obstacle: the two sides boot the APU differently (the port HLE-boots it,
+the ref runs the actual IPL handshake over many hardware frames), so `apu`/`dsp`/`spc` agree on
+**0/200** frames and `sio`/`dma` are close behind. Even `cpu` (137/200) and `ram` (159/200) are not
+clean at the best offset, because the two execution models carry different cycle currency.
+
+So an A-vs-B hash comparison over the full chain is not yet a usable oracle for FF6: a "divergence"
+at checkpoint 2 says the APU boot path differs, not that AOT broke. Options are to compare only
+`cart`/`ppu`/`ram` with `--transient-grace`, or — the real fix — make the A side's APU boot faithful
+instead of HLE, which is a framework-level change and the prerequisite for using co-sim as the
+instrument this investigation wanted.
