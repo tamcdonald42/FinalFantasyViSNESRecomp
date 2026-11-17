@@ -368,3 +368,38 @@ the last frame where the two builds still agree pixel-for-pixel.
 This replaces co-sim as the working instrument: a ~4-minute loop (regen 20 s, incremental build, 24 s
 headless run) with a binary, unambiguous oracle ("does frame 660 differ?") instead of a hash that
 splits for APU boot-path reasons.
+
+## Step 7 — bisecting with the frame oracle: two independent defects (2026-11-16)
+
+Harness: `C:\Temp\bisect\{gen_trial.py,cmp.py,trial.sh}` — select a contiguous slice of
+`_authority/roots.toml`, append it after the four vectors, `regen`, incremental build of `build-c0`,
+24 s headless run dumping frames 640-662, compare against the baseline dump. ~3.5 min per trial.
+
+| slice (root indices) | AOT variants | first differing frame | class |
+|---|---|---|---|
+| 0:133 | 680 | 640 | **black** (1 colour, luma 0.0 — never renders) |
+| 133:200 | 312 | 640 | black |
+| 200:233 | 205 | 640 | black |
+| 233:267 | 576 | 660 | phase shift (fade 9 frames early) |
+| 200:267 | 751 | 660 | phase shift |
+| 133:267 | 929 | 660 | phase shift |
+| 0:267 (full) | 1362 | 660 | phase shift |
+
+Two disjoint slices produce **different failure modes**, so there are at least two independent
+defects, not one:
+
+1. **Blackout** — the frame is a single colour from at least frame 640 (probably frame 0). The game
+   still runs at ~55 fps and reports no error; it simply never draws. Reachable from slices 0:133,
+   133:200 and 200:233. The 200:233 set is `InitEvent`, `ExecEvent`, `PushEventPtr`,
+   `InitPalAnim`/`UpdatePalAnim` (all six), `TfrDlgTextGfx`, `DrawLetter`, `CalcCharPtr`,
+   `UpdateAbilities`/`UpdateExp`/`InitMaxHP` — the event VM and the palette-animation path.
+2. **9-frame phase shift** — reachable from 233:267, which is `DecTimers`, `CheckTimer`,
+   `DecTimersMenuBattle`, `InitNewGame`, `RestartGame`, `OpenMenu`, `ExecBattle`, the overlay
+   routines and the debug draws. The timer routines are the obvious suspects for a fade that starts
+   early with unchanged duration.
+
+The mild class wins when both slices are present (full set = phase shift, not black), which means the
+blackout is masked by whatever the phase-shift slice changes — the two defects interact.
+
+Next: bisect 200:233 down to the smallest blackout set (8 trials, ~30 min), and separately promote
+the three timer routines alone.
