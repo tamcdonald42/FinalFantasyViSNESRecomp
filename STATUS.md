@@ -403,3 +403,15 @@ blackout is masked by whatever the phase-shift slice changes — the two defects
 
 Next: bisect 200:233 down to the smallest blackout set (8 trials, ~30 min), and separately promote
 the three timer routines alone.
+
+## Offsite backup
+
+The project now mirrors to a private GitHub repo (`tamcdonald42/FinalFantasyViSNESRecomp`): source,
+configs, tools, docs and the 267-root candidate list. Not in git, by design: the ROM, `src/gen`
+(regenerable in ~20 s), `_authority/ff6-authority.json` (69 MB, regenerable in ~10 min plus the
+exporter run) and every build tree.
+
+`tools/backup_push.sh` republishes the branches. The credential on this machine carries
+`gist, read:org, repo` but not `workflow`, so a plain push is rejected for the commit that adds
+`.github/workflows/release.yml`; the script pushes a rewritten copy with that one path stripped and
+leaves local history alone. Grant the token the `workflow` scope and it becomes a plain `git push`.
