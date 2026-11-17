@@ -415,3 +415,39 @@ exporter run) and every build tree.
 `gist, read:org, repo` but not `workflow`, so a plain push is rejected for the commit that adds
 `.github/workflows/release.yml`; the script pushes a rewritten copy with that one path stripped and
 leaves local history alone. Grant the token the `workflow` scope and it becomes a plain `git push`.
+
+## Step 8 — the blackout is one function: `ExecEvent` (2026-11-17)
+
+Ten trials, bisecting 200:233 by halves against the frame oracle:
+
+```
+200:233 (205 variants) black      216:233 (121) black      216:225 (65) black
+200:216 (104) clean               225:233 (60)  clean      216:221 (41) clean
+221:225 (28)  black               221:223 (12)  clean      223:225 (20) black
+223:224 (12)  BLACK    <-- ExecEvent alone      224:225 (12) clean  <-- PushEventPtr alone
+```
+
+`ExecEvent` ($C0:9A5A) promoted on its own, with nothing else from the slice, blacks the screen. It is
+the first single function in this project that fails on its own: the earlier five single-root tests
+(UpdateObjFrame, Decompress, DrawObjSprites, InitNPCs, ExecBattle) were all frame-identical, which is
+why "failure tracks set size" looked true.
+
+What the generated code looks like: the alias emits one exact AOT variant, `ExecEvent_M1X0`
+(3,257 lines), and routes every other flag state to `interp_tier_dispatch` — with 36 further
+mid-function bail-outs to LLE, most of them the RTS/RTL dispatch plumbing
+(`interp_tier_dispatch_rewritten_return`, `cpu_dispatch_pc_from`, `..._popped_return`). An event VM is
+exactly the shape that lives on computed returns, so this is the risky path.
+
+Co-simulation finally earns its keep, comparing **two port builds** instead of port vs reference —
+same runner, same APU boot path, so Gate-1 determinism applies and the APU noise disappears:
+
+```
+python tools/cosim/cosim_run.py --a-cmd "<baseline>" --b-cmd "<ExecEvent>" \
+    --compare cpu,ram,ppu --stride 1 --max 420
+=== FIRST DIVERGENCE at checkpoint 22 ===   (frame 22)
+  A: A=433E X=FB44 Y=00F7 P=25   B: A=FB00 X=FB47 Y=FB46 P=A4
+```
+
+So the break is at **frame 22**, not at the fade: the boot path runs through `ExecEvent` and the two
+builds part within the first third of a second. Every earlier "first bad frame 660" reading was the
+downstream consequence of this.
