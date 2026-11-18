@@ -471,3 +471,23 @@ does not behave like the interpreted one -> game state diverges at frame 22 -> n
 
 Next test (4 min): promote ExecEvent but demote `C0:714A` to `emit = false`. If the blackout goes away,
 the defect is in that one function's generated code and `ExecEvent` was only the door that pulled it in.
+
+## Step 10 — confirmed: the defect is `C0:714A`'s generated code (2026-11-17)
+
+Demotion test: promote `ExecEvent`, force `C0:714A` to `emit = false` (name `_714a`, bank `0xC0`).
+Regen then reports 20 roots / 8 exact AOT variants / 16 LLE variants and `bank_C0_714A_M1X0` is absent.
+
+```
+FIRST_DIFF none (identical through 660)
+```
+
+So with the same `ExecEvent` promotion and that one function left to the interpreter, the build is
+pixel-identical to the baseline across the whole window. `ExecEvent` is cleared; **the generated code
+for `C0:714A` is the defect** — 1,298 lines of C emitted for it, and the compiled version does not
+behave like the interpreted one from frame 21 onward.
+
+This is the first time the project has isolated a single function whose AOT output is provably wrong:
+one function, one call site, one frame, and a four-minute reproduction.
+
+Next: disassemble `C0:714A` from the authority JSON with the framework's own decoder
+(`snesrecomp/recompiler/snes65816.py`) and walk it against the generated C line by line.
