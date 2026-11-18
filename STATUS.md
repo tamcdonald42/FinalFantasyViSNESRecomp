@@ -451,3 +451,23 @@ python tools/cosim/cosim_run.py --a-cmd "<baseline>" --b-cmd "<ExecEvent>" \
 So the break is at **frame 22**, not at the fade: the boot path runs through `ExecEvent` and the two
 builds part within the first third of a second. Every earlier "first bad frame 660" reading was the
 downstream consequence of this.
+
+## Step 9 — the first divergent call: `C0:BEF8` -> `C0:714A` at frame 21 (2026-11-17)
+
+Tier-2 coverage needs `SNESRECOMP_TIER2_CAPTURE=1` as well as `SNESRECOMP_COVERAGE_DIR`; with only the
+directory set nothing is written and the run looks silently uncaptured. Both builds, first 30 frames:
+
+| build | fallback sites | sites not in the other |
+|---|---|---|
+| baseline (4 roots) | 37 | `C0:BEF8 -> C0:714A`, `missing_entry`, frame 21, 1 hit |
+| ExecEvent promoted | 36 | none |
+
+One difference, and it is exactly at the divergence: the baseline *interprets* `C0:714A` through the
+LLE bridge; the ExecEvent build has it compiled (`bank_C0_714A_M1X0`, 1,298 lines of C) and calls it
+directly. Co-sim says the two builds part at frame 22 — one frame after that call site.
+
+So the chain is now: promote `ExecEvent` -> its closure compiles `C0:714A` -> the compiled `C0:714A`
+does not behave like the interpreted one -> game state diverges at frame 22 -> nothing ever draws.
+
+Next test (4 min): promote ExecEvent but demote `C0:714A` to `emit = false`. If the blackout goes away,
+the defect is in that one function's generated code and `ExecEvent` was only the door that pulled it in.
