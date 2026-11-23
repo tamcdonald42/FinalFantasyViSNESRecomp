@@ -15,6 +15,11 @@ cd "$(dirname "$0")/.."
 REMOTE=${REMOTE:-origin}
 BRANCHES=${*:-"main exp/c0-aot-roots"}
 ORIG=$(git rev-parse --abbrev-ref HEAD)
+# Never come back to a leftover push-* branch: the loop below resets its own
+# target branch, so running this from push-* silently publishes the wrong tree.
+case "$ORIG" in
+  push-*) ORIG=${BRANCHES%% *}; git checkout -q "$ORIG" ;;
+esac
 
 for br in $BRANCHES; do
   tmp="push-$(printf '%s' "$br" | tr '/' '-')"
