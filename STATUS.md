@@ -917,28 +917,91 @@ pixel", which is what non-mosaic drawing is.
   register write the field engine does constantly.
 - The Step-14 prologue halt is untouched and still parked.
 
+## Step 18 — battles run: three C1 dispatches authorized, the fight resolves (2026-11-23)
+
+Step 17 made the field walkable, so the first random encounter finally happened. It exposed the
+next layer: battle code is built almost entirely from **computed jump tables**, and every unresolved
+one freezes the battle in a counter handshake.
+
+### The stall, and what it was
+
+- `C1:0000` is a dispatcher: `PHA / TDC / PLA / ASL A / TAX / JMP ($0008,X)` — A selects one of four
+  handlers (`$01EC $01FB $0257 $024C`). The recompiler never resolved it, so the port *skipped the
+  handler's side effects* (`[unresolved-abandon] site=$C10005 ... hrv=3`).
+- `C1:1A24` is the handshake the battle waits on: `INC $47 / LDA $47 / BNE $1A26` — bump DP `$47`,
+  spin until something zeroes it. With the handler skipped, nothing did.
+- Measured: DP `$47` = 1 in the dump, the branch taken **999,997 times** per capture window, and
+  the run crawling at **~1.5 s/frame** (38 minutes for ~1,500 frames) until it was killed.
+- This is the same authorization gap as Step 12's `C0:9B59` and the sound driver's `C5:0160` — it
+  only appeared now because battle code had never executed before (C1: 0 hits on every prior route).
+
+### The fixes — three directives, found one run at a time
+
+`recomp/bankc1.cfg`, above the regen marker:
+
+```
+bank = c1
+indirect_dispatch 5E4E 32 idx:X tables:5E51
+indirect_dispatch 450F 48 idx:X tables:4514
+indirect_dispatch 0005 4 idx:X tables:0008
+```
+
+- Sites arrive one per run, as the documented loop says: authorizing `0005` removed the 38-minute
+  crawl but exposed `450F` (frame 5860) and `5E4E` (frame 7348).
+- Counts come from the tables themselves: entries are two-byte code pointers, so scan until a value
+  stops landing in the bank's code (`450F` → 48 entries, `5E4E` → 32, `0005` → 4, each a clean break).
+- Emit stats moved with every authorization, which is how a directive is confirmed applied:
+  exact AOT variants **12,229 → 12,273 → 12,391**, LLE 17,275 → 17,497.
+
+### Verification
+
+| | before | after |
+|---|---|---|
+| `unresolved-abandon` | 1, then 2 | **0** |
+| walk+battle route | 38 min for ~1,500 frames | **8,481 frames in 143 s** (~17 ms/frame) |
+| DP `$47` (handshake) | stuck at 1 | moves again (49 mid-fight) |
+| crashes | none | none |
+
+Behaviour: the encounter is fought to a finish — `f50` (frame 7749) is the **field map**, i.e. the
+victory sequence ran and the game returned to Narshe's mines; the final dump is a *second* encounter
+triggered by walking on. Battle start, battle execution, victory and return-to-field all execute.
+
+### The route that reaches it
+
+`tools/oracle/battle_route.sh`: save slot → field → 12 alternating direction taps (encounter) →
+50 × `wait 30 / press a 8` → walk on. Two lessons are baked in:
+
+- **Once the fight starts, press A only.** Direction presses walk the command cursor, and the fight
+  then sits in a menu forever looking exactly like a hang.
+- **Kill the old process before rebuilding.** A killed run leaves `FinalFantasyViSNESRecomp.exe`
+  holding its own image, and the next build dies with `LNK1104: cannot open file ...exe`.
+
 ## Resume here (new session)
 
-**Head:** the Step-17 commit on `main`, tree clean, mirrored.
-**Verified state:** C0+C1+C2+C3 promoted — **2,293 funcs, 25,668 roots / 12,229 exact AOT variants** —
-pixel-identical to the C0 control across the boot window (611/611) and the save route (5/5 points,
-`abandons=0`, `BRK=0`). C3 interpretation 8.94M → 6.65M. The **walking crash is fixed** (Step 17:
-stale mosaic run length in the PPU renderer, `/Zi`-less Release hid it for three sessions).
-`build-c1/Release/...` is the full binary, `build-c0/Release/...` the C0-only control,
-`build-dbg/RelWithDebInfo/...` the symbolized build for crash work.
+**Head:** the Step-18 commit on `main`, tree clean, mirrored.
+**Verified state:** C0+C1+C2+C3 promoted — 2,293 funcs, 25,668 roots / **12,391 exact AOT variants** /
+17,497 LLE. Field, menu, **battle, victory and return-to-field all run with `abandons=0`**: the battle
+route covers 8,481 frames in 143 s, the fight resolves (dump `f50` is the field again), and a second
+encounter triggers. `build-c1/Release/...` is the full binary, `build-c0/Release/...` the C0-only
+control, `build-dbg/RelWithDebInfo/...` the symbolized build for crash work.
+
+**Routes:** `tools/oracle/srm_route.sh <save.srm>` (field + menu, 5 dump points) and
+`tools/oracle/battle_route.sh <save.srm>` (encounter + fight to victory). Use both as oracles; they
+cover different banks.
 
 **The next actions, in order:**
 
-1. **Battles are now on the bench.** `C:/Temp/c1/walkf.txt` (Start → save slot → menu → 20 alternating
-   direction presses) reaches a Were-Rat encounter at ~frame 5000. Capture coverage over that route
-   and find where C1/C2 interpretation concentrates — that is the first data anyone has had on battle
-   code. Then promote the hot residues the same way Step 16 did.
-2. **Widen the battle route.** One encounter is one sample; extend the script to fight, win, and walk
-   on, so victory/EXP/return-to-field code (not just battle start) is covered.
-3. **Mode 7 remains untested** — the opening only pokes `$211B`/`$211C`; a world-map save is what
-   exercises the perspective path. Do it now that crash diagnosis works (`symdump.py` + `build-dbg`).
-4. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
-5. **C0 still interprets ~18-19M instructions** — root extension is the cheapest AOT win left.
+1. **Measure the battle route.** Coverage before any further promotion: C1/C2 volumes, which sites are
+   still interpreted, whether the battle side is now AOT-heavy or dominant-by-wait-loops. Promote the
+   hot residues exactly as Step 16 did for C3.
+2. **Mode 7 is still untested.** The world map is the path that exercises it; the opening only pokes
+   `$211B`/`$211C`. Crash diagnosis now works (`symdump.py` + `build-dbg`), so this is cheap to try.
+3. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
+4. **C0 still interprets ~18-19M instructions** — root extension is the cheapest AOT win left.
+5. **Expect more dispatch authorizations.** Battle code is built from computed jump tables; each
+   newly-reachable scene can expose another site. The loop is: run → read
+   `[unresolved-abandon] site=$XXnnnn` → size the table → add `indirect_dispatch` above the regen
+   marker → regen → rebuild → rerun.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
@@ -967,3 +1030,15 @@ stale mosaic run length in the PPU renderer, `/Zi`-less Release hid it for three
   interpretation (~97% interp) and the numbers mean nothing.
 - The mosaic cell run length is computed independently in three draw paths (widescreen 4bpp, plain
   4bpp, mode 7). Guarding one leaves the other two able to walk the zbuffer backwards.
+- **Kill the exe before rebuilding.** A killed or timed-out run leaves `FinalFantasyViSNESRecomp.exe`
+  alive holding its own image; the next link dies with
+  `LNK1104: cannot open file ...FinalFantasyViSNESRecomp.exe`. `taskkill //F //IM` first — a 38-minute
+  "slow run" and a failed build are the same mistake made twice.
+- **In a battle, press A and nothing else.** Direction presses walk the command cursor into a submenu,
+  and the fight then waits on input forever while enemies keep chipping HP — a screen that is
+  indistinguishable from a hang. A route that "hangs mid-battle" should be re-run with A-only before
+  suspecting the port.
+- **Battle code is computed jump tables; expect an authorization per newly reachable scene.** FF6's
+  `C1:0000` (`PHA/TDC/PLA/ASL A/TAX/JMP ($0008,X)`), `C1:450F` and `C1:5E4E` all resolved to 2-byte
+  code-pointer tables (4, 48 and 32 entries) that the analysis could not see. One abandoned handler
+  freezes the caller's `INC $47 / LDA $47 / BNE` handshake, so the symptom is a *stall*, not a crash.
