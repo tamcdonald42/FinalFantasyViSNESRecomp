@@ -61,7 +61,7 @@ for b in build-c0 build-c1; do
   grep -E 'SEH CRASH|last recomp func' "$DIR/$b.log" | head -2
 done
 
-"${PYTHON:-python3}" - "$DIR" <<'PY'
+"${PYTHON:-python}" - "$DIR" <<'PY'
 import hashlib, json, os, sys
 root = sys.argv[1]
 tags = [f[: -len('.fb.bmp')] for f in sorted(os.listdir(os.path.join(root, 'build-c1')))

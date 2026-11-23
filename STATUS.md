@@ -848,30 +848,97 @@ AOT and the field engine's main loop is not one of them; C5 interprets **5.86M**
 of the game AOT as possible", extending C0's root list is the single largest win available, and it needs
 no new bank work.
 
+## Step 17 — the walk crash is the mosaic renderer, and battles now run (2026-11-23)
+
+Steps 14–16 left a walking crash (`0xC0000005`) that reproduced in both builds with identical
+emulated-CPU state (`A=0000 X=0029 S=15F9 P=22`), an address ending `0xCDA8` every time, and
+`last recomp func: (none)`. Three sessions read that state as a signature of the game's own code.
+It was the arithmetic of a renderer bug.
+
+### The instrument that was missing
+
+- `Release` is built without `/Zi`, so `build-c1/Release/` has **no PDB** and the faulting address
+  had no name. That is why the crash stayed anonymous.
+- `build-dbg` (Visual Studio generator, `RelWithDebInfo` = `/Zi /O2 /Ob1`) reproduces the fault
+  identically — same CpuState, same fault-address pattern — so symbolization is valid for the
+  Release binary's behaviour.
+- `tools/oracle/symdump.py` (new) parses the minidump directly: exception stream for the faulting
+  address, module list for the load base (→ RVA), `CONTEXT_AMD64` for RIP/RSP/argument registers,
+  then a stack scan for code-pointer candidates. Everything is symbolized through
+  `llvm-symbolizer --relative-address ... --pdb=`.
+- Result: **`PpuDrawBackground_4bpp_mosaic`, `snesrecomp/runner/src/snes/ppu.c:1830`.**
+
+### Root cause
+
+```c
+int w = mosaic_size - (sx - PpuMosaicAt(ppu, sx));   // run length of this mosaic cell
+...
+do {
+  if (VIEWPORT_ALLOWED(i) && z > dstz[i])            // <- crash
+    dstz[i] = pixel + z;
+} while (++i != w);
+```
+
+`mosaicModulo` (which `PpuMosaicAt` reads) is rebuilt by `PpuPrepareMosaic` only when
+`PPU_mosaicSize` changes at line start. FF6 writes **`$2106` by HDMA on every scanline** in the
+Narshe mines — 2,568 HDMA writes of `0x00` across 20 field dumps, i.e. mosaic size 1 — while the
+table can still describe a larger cell. `w` then goes **negative**, `while (++i != w)` can never
+terminate (`i` counts up through every integer and never equals a negative `w`), and `dstz += w`
+walks the zbuffer pointer *backwards* until it reads unmapped memory.
+
+The crash context proves it: `Rbp = 0xFFFFFFFA` = **-6** = `w`, `Rdi = 0xFFFFFFF8` = **-8** =
+`8 - 0` = the cell offset. The guard's own diagnostic agrees: `sx=8 size=2 cell=0 -> 1`, and
+`2 - 8 = -6`.
+
+### Fix
+
+`PpuMosaicRunLength()` clamps a non-positive run length to one pixel (plus a diagnostic capped at
+eight prints), applied at all three mosaic draw sites: the widescreen/`WsShadow` 4bpp path, the plain
+4bpp path, and the mode-7 mosaic path. Carried as a local `snesrecomp` submodule commit plus an
+exported patch under `patches/framework/`. **Upstream-worthy:** any game that HDMA-writes `$2106`
+mid-line can trip it. The mosaic effect itself is unaffected — a run length of 0 means "draw one
+pixel", which is what non-mosaic drawing is.
+
+### Verification
+
+- Walk route (the exact route that died): `rc=0`, **20/20 dumps** (previously 12 then `0xC0000005`),
+  no crash, guard fired 8× (cap reached).
+- The 12 pre-crash frames are **byte-identical** to the unpatched run — the fix changed no pixels.
+- Canonical oracle `srm_route.sh <srm>`: **5/5 dump points identical** between the unpatched C0
+  control and the patched build over 4,301 frames.
+- Behaviour: walking past the old crash point now triggers a random encounter — three Were-Rats vs
+  Terra (`?????`) and Wedge in magitek armor, enemy-name and HP windows live.
+
+### What this changes
+
+- **Battles are reachable.** C1 and C2 battle code — promoted in Step 13 with zero observed execution
+  — now runs. This is the first route that executes it.
+- The crash was never about the game. It is a renderer robustness bug, and the trigger is an HDMA
+  register write the field engine does constantly.
+- The Step-14 prologue halt is untouched and still parked.
+
 ## Resume here (new session)
 
-**Head:** the Step-14 commit on `main`, tree clean, mirrored.
+**Head:** the Step-17 commit on `main`, tree clean, mirrored.
 **Verified state:** C0+C1+C2+C3 promoted — **2,293 funcs, 25,668 roots / 12,229 exact AOT variants** —
-and pixel-identical to the C0 control across the boot window (611/611 frames) and across the whole save
-route: map, menu, cursor, submenu, post-menu-close, `abandons=0`, `BRK=0`. C3's interpreted instructions
-fell 8.94M -> 6.65M and its new-code entries 52,626 -> 6,887; what is left in C3 is three idle wait loops
-(Step 16). C1 still executes nothing (battle-side). `build-c1/Release/...` is the full binary,
-`build-c0/Release/...` the C0-only control.
+pixel-identical to the C0 control across the boot window (611/611) and the save route (5/5 points,
+`abandons=0`, `BRK=0`). C3 interpretation 8.94M → 6.65M. The **walking crash is fixed** (Step 17:
+stale mosaic run length in the PPU renderer, `/Zi`-less Release hid it for three sessions).
+`build-c1/Release/...` is the full binary, `build-c0/Release/...` the C0-only control,
+`build-dbg/RelWithDebInfo/...` the symbolized build for crash work.
 
-**The blocker, and the next action:**
+**The next actions, in order:**
 
-1. **A route exists and runs gameplay + menu** — `tools/oracle/srm_route.sh <save.srm>` (Step 15). Use it
-   for every oracle from now on: it is 40x more useful than the boot route because it executes C3.
-2. **Promote C3 next.** It is the top executed un-promoted bank (8.94M interpreted instructions, 2,869
-   sites, 52,626 new-code hits on a 4,209-frame route). Generate roots with
-   `tools/gen_symbols.py --bank C3 --emit --stats`, promote, rebuild, and require the `srm_route.sh`
-   oracle to stay identical. Then C0 root extension (19.7M interpreted instructions still).
-3. **The walk crash is the battle gate.** ~150-300 frames of field movement segfaults both builds
-   (`0xC0000005`, `last recomp func: (none)`); battles cannot be validated until it is fixed. Bisect
-   between the `r_closed` dump and the fault with `tools/oracle/srm_route.sh <save> walk`, and read the
-   minidump already written to `build-c*/Release/`.
-4. **The prologue halt (Step 14) is now parked, not solved** — it does not block the campaign any more.
-   Chase it only if the intro itself matters.
+1. **Battles are now on the bench.** `C:/Temp/c1/walkf.txt` (Start → save slot → menu → 20 alternating
+   direction presses) reaches a Were-Rat encounter at ~frame 5000. Capture coverage over that route
+   and find where C1/C2 interpretation concentrates — that is the first data anyone has had on battle
+   code. Then promote the hot residues the same way Step 16 did.
+2. **Widen the battle route.** One encounter is one sample; extend the script to fight, win, and walk
+   on, so victory/EXP/return-to-field code (not just battle start) is covered.
+3. **Mode 7 remains untested** — the opening only pokes `$211B`/`$211C`; a world-map save is what
+   exercises the perspective path. Do it now that crash diagnosis works (`symdump.py` + `build-dbg`).
+4. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
+5. **C0 still interprets ~18-19M instructions** — root extension is the cheapest AOT win left.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
@@ -891,3 +958,12 @@ fell 8.94M -> 6.65M and its new-code entries 52,626 -> 6,887; what is left in C3
   simply not have been run. Check the cost histogram's bank mix before calling a promotion validated.
 - Do not trust an ssh call's exit status for a long build — the channel dies first and the build keeps
   going (or is killed). Poll `cl.exe`/`link.exe` from a host script.
+- A crash report's `CpuState` is the last *emulated* CPU state, not the faulting code. With
+  `last recomp func: (none)` it is noise — get symbols instead of reading the game out of it.
+- `Release` is built without `/Zi`, so there is no PDB and every fault address is anonymous. Build
+  `RelWithDebInfo` (`build-dbg`) and run `tools/oracle/symdump.py <dmp> <exe> <pdb>` before theorising.
+- `python3` does not exist on the Windows host — tool scripts must use `"${PYTHON:-python}"`.
+- Never read AOT/interpreted share from a `SNESRECOMP_TIER2_CAPTURE` run: capture forces
+  interpretation (~97% interp) and the numbers mean nothing.
+- The mosaic cell run length is computed independently in three draw paths (widescreen 4bpp, plain
+  4bpp, mode 7). Guarding one leaves the other two able to walk the zbuffer backwards.
