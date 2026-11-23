@@ -641,27 +641,109 @@ Three things that cost time here:
   vectors, so a build tree and `src/gen` can disagree with the branch; always regenerate before a build
   whose result you intend to quote.
 
+## Step 14 — the route dies at frame ~5088, and the reference dies with it (2026-11-23)
+
+The goal was a route to the in-game menu and the first battle so that C1 and C3 would actually execute.
+It cannot get there. With input, and with none at all, the game forces blank about 85 seconds in
+(~frame 5088) and never comes back: frames 5390, 11390 and 17390 of a no-input run are the same
+single-colour frame, and the state dump at any of them shows `inidisp=0x80` (forced blank).
+
+**It is not the AOT work.** `build-c0` (C0 promoted, Step 12) and `build-c1` (C0+C1+C2, 13,564 analysis
+roots) produce byte-identical framebuffers at the stall — same md5 — and both report `abandons=0`,
+`brk=0`. Removing the SRAM directory changes nothing either.
+
+**The reference interpreter reproduces it exactly.** `ff6_cosim_ref` at `--frames 8000 / 12000 / 20000`
+with `--input 2100:4:8` reports `video_active_frames=4022` and `video_frozen_max=911` at every one of
+them: its picture also stops at ~frame 5089 — and its own final PC is `C0:B7A0`, which is the hottest
+site in the port's coverage:
+
+```
+C0:B7A0: AD 10 42   LDA $4210      ; RDNMI
+C0:B7A3: 10 FB      BPL C0:B7A0    ; spin until the NMI flag sets
+C0:B7A5: A9 02      LDA #$02
+C0:B7A7: 4C 5C 9B   JMP C0:9B5C    ; continue (event dispatcher)
+```
+
+**What the game is doing while stuck** — from a per-frame WRAM dump of frames 4950-5400:
+
+| measure | value |
+|---|---|
+| last frame a large state write happens | 5078 (694 bytes for the last time), 5082 (65 more) |
+| bytes that still change per frame after 5082 | 6: `$0045`, `$0046`, `$0055`, `$021D`, `$021E`, `$15EE` (the NMI indicator) |
+| per-frame code, coverage differential 5000→5400 on the all-interpreted build | `C0:B7A0/B7A3` 1.14M each, `$7E:7206/7208` 558k each, `C0:0566/0568` 26.8k, event-VM loop `$7E:7528`/`$7E:7699` 11.4k |
+
+`C0:0566` is `LDA $55 / BEQ` — another frame-tick latch, satisfied every frame. `$7E:7206` is the WRAM
+copy of the same NMI wait (`LDA $17 / BNE`). So the event VM runs every frame, the frame ticks arrive,
+and the script advances nothing. It is waiting on a **flag**, not a countdown (no counter decrements)
+and not input (the joypad variables never change again — input processing is not running).
+
+**Last thing before the freeze:** at frames 5078-5083 the event dispatcher at `C0:9B59` runs its biggest
+batch yet (69 first-time targets) and two of those calls go to bank C5 — `C5:0004`, the sound driver. The
+last APU port traffic anywhere in the trace is at frame 4924 (write `F0` to port 0, echoed back, then
+`00`).
+
+### Two hypotheses, and the instrument needed to separate them
+
+1. **The game waits on the SPC700 sound driver.** Bank C5 is the last thing called, the sound driver is
+   the one subsystem whose state the game can wait on indefinitely, and the blackout begins at a scene
+   transition where the music changes.
+2. **A shared device-model deviation.** The reference links the runner's *own* device sources, so
+   port-vs-reference agreement rules out generated code and nothing else — a bug in the CPU bus, DMA/
+   HDMA, PPU register or APU port model would appear in both. Everything FF6 does that SMW and MMX never
+   did (its HDMA-heavy intro, its decompression DMA, its sound driver) is still suspect.
+
+Separating them needs a view the project does not have yet: the debug server. `debug_server.c` is
+compiled in and `host_main.c` calls `debug_server_init(port)`, but setting `SNESRECOMP_DEBUG_PORT=9123`
+opens **no listener** in either build (0 LISTEN sockets over 6 s, no `failed to bind` line either), so
+that path is either not reached in this host or stubbed. Once it answers, `call_stack`, `read_ram`,
+`spc_dump`, `trace_addr` and `break_add` answer both hypotheses directly; the fallback experiment is a
+build with `g_config.enable_audio = false` (forced `true` at `host_main.c:3127`) to see whether the
+stall is audio-coupled.
+
+### Instruments worth keeping (all verified today)
+
+- **`dump <tag>` in the input script** writes a full state dump to `$SNESRECOMP_DUMP_DIR`:
+  `.fb.bmp`, `.fb.bgrx`, `.regs.json` (inidisp/bgmode/tm/ts/hdmaen/dma), `.info.json` (frame, vpos,
+  master_clock), `.wram.bin` (128 KB), `.vram.bin`, `.oam.bin`, `.cgram.bin`, `.sram.bin`,
+  `.ppuw.tsv` (PPU register writes with the writing PC), `.dma.tsv`, `.apu.tsv` (APU port traffic,
+  ring). Zero frames consumed.
+- **The rest of the DSL**: `turbo on` (runs faster than real time), `until <addr> <op> <hex> <timeout>`
+  (block on a WRAM byte/word), `poke`/`pokefor`/`forcepoke`, `savestate`/`loadstate <slot>`,
+  `press <buttons> <frames>` with `+` combinations and `p2:` prefixes.
+- **Per-frame WRAM dumping** (`SNESRECOMP_FRAMEDUMP_START/END`, no `PIXELS`) is the cheapest way to see
+  *what stops*: diff consecutive `_wram.bin` files and count which bytes change per frame.
+- **Coverage differential**: capture the same route twice, ending at frame A and frame B, and subtract
+  per-`(site,target)` instruction counts — the remainder is the code that ran in (A,B] even when the
+  bank is mostly AOT.
+- **`tools/oracle/probe.sh <script> <tag> [build]`** runs an input script and collects the state
+  dumps; **`tools/oracle/wdump.sh`** dumps WRAM every frame over a window for the change-count analysis.
+- **The reference's tail counters** (`final_pc`, `pc_tail`, `video_frozen_max`, `audio_active_frames`,
+  `joy_reads`) are a free timeline of what the other implementation is doing at its last frame.
+
 ## Resume here (new session)
 
-**Head:** the Step-13 commit on `main` (STATUS, the generator patch, the C1/C2 root lists), tree clean
-(after the autocrlf fix) and mirrored.
-**Verified state:** C0 + C1 + C2 promoted — 13,564 analysis roots / 7,618 exact AOT variants,
-`abandons=0`, `BRK=0`, frames 390-1000 pixel-identical to the C0 control (611 frames). C2 is genuinely
-exercised by the route; C1 is not (Step 13). Two dispatch sites authorized (Step 11).
-`build-c1/Release/FinalFantasyViSNESRecomp.exe` is the C0+C1+C2 binary; `build-c0/...` is the C0 control.
+**Head:** the Step-14 commit on `main`, tree clean, mirrored.
+**Verified state:** C0+C1+C2 promoted (13,564 analysis roots / 7,618 exact AOT variants) and
+pixel-identical to the C0 control across frames 390-1000 (611/611), `abandons=0`, `BRK=0`. C2 is
+genuinely exercised by that window; C1 is not (it is the menu/animation bank).
+`build-c1/Release/FinalFantasyViSNESRecomp.exe` is the C0+C1+C2 binary; `build-c0/...` the C0 control.
 
-**Next action, in order:**
+**The blocker, and the next action:**
 
-1. **Extend the route past the intro** — this is the gate, not another promotion. The script DSL
-   (`wait`, `press`, `until`, `dump`, `quit`) has to carry the game through name entry, the first field
-   map and the in-game menu; then re-run `tools/oracle/capture.sh` and require C1 and C3 samples to appear
-   in the cost histogram before believing any promotion of them.
-2. Re-verify C0+C1+C2 on that longer route (`tools/gen_roots.py --done C0,C1 --bank C2 --hi 0`, regen,
-   build, `tools/oracle/runonly.sh`).
-3. Then the remaining banks in order of *observed* execution, not size: C5 (sound, 536 samples) first,
-   then C3, EE, D4/E5 once the route reaches a menu / a battle animation / the ending.
-4. C1 will want the same treatment as C0 in Step 11 — the first `[unresolved-abandon]` it produces will
-   name a dispatch in `anim_cmd`/`menu`, most likely a `JMP (tbl,X)` over its command table.
+1. **The game halts ~85 s into the boot (~frame 5088) and so does the reference interpreter** — see
+   Step 14. Until that is understood, no route reaches the field map, the menu or a battle, and C1/C3
+   stay unvalidated. Everything below is downstream of this.
+2. Get the debug server answering (`SNESRECOMP_DEBUG_PORT` opens no listener today) — `call_stack`,
+   `read_ram`, `spc_dump`, `trace_addr` and `break_add` are the instruments that separate
+   "waiting on the sound driver" from "shared device-model bug". If it stays dead, the fallback is a
+   build with `g_config.enable_audio = false` and a `C5:0004` breakpoint.
+3. Then the route itself: name entry is not used on the SNES version, so `press start` at the title
+   (~frame 2100), through the intro, to the Narshe snowfield; `press x` opens the in-game menu the
+   moment the player controls Terra; the first battle follows the magitek walk. Re-run
+   `tools/oracle/capture.sh` and require C1 and C3 samples in the cost histogram before believing any
+   promotion of them.
+4. Re-verify C0+C1+C2 on that longer route, then continue the campaign in order of *observed*
+   execution (C5 first, then C3, EE, D4/E5).
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
