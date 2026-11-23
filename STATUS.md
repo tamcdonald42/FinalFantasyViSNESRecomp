@@ -531,3 +531,42 @@ Two traps cost time here and are worth remembering: regen silently reuses cached
 a failed regen still lets the build succeed against stale generated code (assert on the abandon site
 disappearing, not just on `REGEN=0`); and `SNESRECOMP_WRITE_WATCH` only instruments WRAM fast paths, so
 it cannot observe writes to I/O ports like `$2180`.
+
+## Step 12 — full bank C0 promotion is clean (2026-11-17)
+
+All 267 C0 roots promoted (1,362 exact AOT variants over 2,708 analysed functions, the configuration
+that used to black the screen):
+
+```
+REGEN=0  BUILD=0  RUN=0
+abandons=0  BRK=0
+FIRST_DIFF none (identical through 660)
+```
+
+Pixel-identical to the baseline across the window, with no abandoned dispatches and no CPU
+derailment. The two cfg directives from Step 11 are the entire fix.
+
+### What the investigation actually concluded
+
+There was no codegen defect. `ExecEvent`, `C0:714A` and every function the bisection implicated compile
+correctly. What looked like "failure at critical mass" was coverage-driven: bigger promotions reach
+more unresolved indirect dispatches, `cpu_unresolved_abandon_balanced` skips their handler side
+effects by design, and the resulting state decay surfaces later — as a shifted palette fade, then as
+`BRK` at `$7E:0001`. The 9-frame fade shift was the same failure observed downstream.
+
+### Where the campaign stands
+
+| bank | known instructions | share | state |
+|---|---|---|---|
+| C0 | 18,469 | 18.2% | promoted, oracle-clean, 2 dispatch sites authorized |
+| C1 | 27,340 | 27.0% | not started |
+| C2 | 16,634 | 16.4% | not started |
+| C3 | 23,083 | 22.8% | not started |
+| C5 | 762 | 0.8% | one dispatch site authorized (C5:0160) |
+| D4 / E5 / EE | 15,033 | 14.8% | not started (EE holds the event scripts) |
+
+Per-bank loop: promote roots -> regen -> build -> oracle -> read `[unresolved-abandon]` -> authorize
+the site -> repeat until `abandons=0` and `FIRST_DIFF none`.
+
+Reproduce the full-C0 state: `recomp/candidate-roots-c0.toml` (267 roots) appended to `recomp/symbols.toml`
+after the four vectors, plus the two bank cfgs.
