@@ -720,6 +720,82 @@ stall is audio-coupled.
 - **The reference's tail counters** (`final_pc`, `pc_tail`, `video_frozen_max`, `audio_active_frames`,
   `joy_reads`) are a free timeline of what the other implementation is doing at its last frame.
 
+## Step 15 — the route works: battery save to field map to in-game menu (2026-11-23)
+
+The Step-14 halt blocks the *prologue*, not the game. An FF6 (US) battery save skips it entirely and lands
+in the Narshe mines with Terra, Wedge and Vicks: field map, in-game menu, everything downstream of it.
+
+### The save, and the timings that actually work
+
+- Source: fantasyanime.com's FF6 save set, `saves/ff6save01Perfect_NarsheMine.zip` ->
+  `01-Narshe Mines.srm` (8192 bytes, 760 non-zero). Drop it at `<build>/Release/saves/save.srm`; the port
+  loads it as-is, no conversion, no patching. Keep it out of the repo (it is third-party save data) —
+  `tools/oracle/srm_route.sh` takes the path as an argument.
+- The slot screen renders the name as `?????` while everything else resolves (LV 4, party HP/MP, `0:23`,
+  steps 301, and the donor save's maxed GP). The data loads and plays.
+- Measured on a 256x224 dump sweep with a press every 150 frames: `press start` at 2100 -> slot list
+  ~2400 -> next press selects the slot and shows "This data?" ~2550 -> next press confirms and the map
+  loads, gameplay from **~2700**. `press x` on the field opens the in-game menu, `b` closes it.
+  Extra presses are harmless, so the robust form is the loop in `tools/oracle/srm_route.sh`: twelve
+  `wait 140 / press a 8` entries after `press start`, whatever lands, gameplay arrives by ~2700.
+  Do not hand-schedule individual presses — the slot list appears ~300 frames after Start and an earlier
+  press is simply swallowed, which is what made the first four attempts look like the confirm press
+  "not working".
+
+### Frame oracle: clean over gameplay and menu code
+
+Eight dump points across the route (map, menu, cursor, submenu, closed, walk, post-walk) are all
+byte-identical between `build-c0` and `build-c1` (C0+C1+C2), `abandons=0` in both logs. The C1/C2
+promotion now has an oracle window over *gameplay and menu* code, not just boot and title.
+
+### Coverage: C3 is now the top target, C1 is still untouched
+
+`build-c1`, 4,209 frames, 2,869 interpreted C3 sites:
+
+| bank | interpreted instructions | sites | new-code hits |
+|---|---|---|---|
+| 7E | 27.8M | 1,514 | 93,946 |
+| C0 | 19.7M | 2,713 | 17,552 |
+| C3 | 8.94M | 2,869 | 52,626 |
+| C5 | 5.86M | 636 | - |
+| C2 | 670K | 64 | 0 |
+| C1 | 0 | 0 | 0 |
+
+Top C3 targets: `C3:12FC` (24,320 hits, the menu's main loop), `C3:1203`, `C3:1227`, `C3:0B12`,
+`C3:1221`, `C3:0B2A`. Two things fall out of this:
+
+- **C3 is the next promotion, and it is now provably exercised** — 23% of the remaining campaign, and the
+  menu runs it millions of instructions per route.
+- **C0 still interprets 19.7M instructions** because only its 267 roots are AOT and the field engine's
+  main loop is not one of them. Extending C0 roots is cheaper per instruction than any new bank.
+- **C1 runs zero instructions** — it is `anim_cmd`/`gfx_cmd`, i.e. battle-side, and no battle happens yet.
+  `ram_routines_overflow: 40,662`: FF6 runs enough code out of WRAM that the coverage tool's RAM-routine
+  table overflows, so all `7E` attribution is lossy.
+
+### New defect: walking the field crashes both builds
+
+About 150-300 frames of movement (five direction presses) segfaults:
+
+```
+*** SEH CRASH code=0xC0000005 at 00007FF6F87F60C5, last recomp func: (none) ***
+    access violation: read at 0x0000022FD705CDA8
+  CpuState: A=0000 X=0029 Y=0000 S=15F9 D=0000 DB=00 PB=C0 P=22 m=1 x=0 e=0
+```
+
+- identical crash, identical frame, in `build-c0` and `build-c1`, `abandons=0` — not the promotions;
+- `last recomp func: (none)` and a wild 44-bit read address put the fault in host/interpreter code, not in
+  a generated function;
+- reproducible: five direction presses crash it, two short taps (96 frames of movement) and a
+  1,000-frame idle do not — the shape of a random encounter, though the trigger is not proven. A minidump
+  lands in `<build>/Release/crash_minidump_*.dmp` and the coverage JSON survives the crash, so the window
+  between the `r_closed` dump and the fault is where to bisect.
+- Consequence: **battle code (C1, C2 battle paths) still cannot be validated.** C3 can.
+
+Measurement caveat worth keeping: during gameplay the dump's register snapshot reads `inidisp=0x80`
+(forced blank) while the framebuffer has full content (`luma~23`, ~97 colours). The dumps agree with each
+other and across builds, so this is snapshot timing in the dump, not a rendering difference — but never
+read `inidisp` alone as "blank" when the picture has content.
+
 ## Resume here (new session)
 
 **Head:** the Step-14 commit on `main`, tree clean, mirrored.
@@ -730,20 +806,18 @@ genuinely exercised by that window; C1 is not (it is the menu/animation bank).
 
 **The blocker, and the next action:**
 
-1. **The game halts ~85 s into the boot (~frame 5088) and so does the reference interpreter** — see
-   Step 14. Until that is understood, no route reaches the field map, the menu or a battle, and C1/C3
-   stay unvalidated. Everything below is downstream of this.
-2. Get the debug server answering (`SNESRECOMP_DEBUG_PORT` opens no listener today) — `call_stack`,
-   `read_ram`, `spc_dump`, `trace_addr` and `break_add` are the instruments that separate
-   "waiting on the sound driver" from "shared device-model bug". If it stays dead, the fallback is a
-   build with `g_config.enable_audio = false` and a `C5:0004` breakpoint.
-3. Then the route itself: name entry is not used on the SNES version, so `press start` at the title
-   (~frame 2100), through the intro, to the Narshe snowfield; `press x` opens the in-game menu the
-   moment the player controls Terra; the first battle follows the magitek walk. Re-run
-   `tools/oracle/capture.sh` and require C1 and C3 samples in the cost histogram before believing any
-   promotion of them.
-4. Re-verify C0+C1+C2 on that longer route, then continue the campaign in order of *observed*
-   execution (C5 first, then C3, EE, D4/E5).
+1. **A route exists and runs gameplay + menu** — `tools/oracle/srm_route.sh <save.srm>` (Step 15). Use it
+   for every oracle from now on: it is 40x more useful than the boot route because it executes C3.
+2. **Promote C3 next.** It is the top executed un-promoted bank (8.94M interpreted instructions, 2,869
+   sites, 52,626 new-code hits on a 4,209-frame route). Generate roots with
+   `tools/gen_symbols.py --bank C3 --emit --stats`, promote, rebuild, and require the `srm_route.sh`
+   oracle to stay identical. Then C0 root extension (19.7M interpreted instructions still).
+3. **The walk crash is the battle gate.** ~150-300 frames of field movement segfaults both builds
+   (`0xC0000005`, `last recomp func: (none)`); battles cannot be validated until it is fixed. Bisect
+   between the `r_closed` dump and the fault with `tools/oracle/srm_route.sh <save> walk`, and read the
+   minidump already written to `build-c*/Release/`.
+4. **The prologue halt (Step 14) is now parked, not solved** — it does not block the campaign any more.
+   Chase it only if the intro itself matters.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
