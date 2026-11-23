@@ -491,3 +491,43 @@ one function, one call site, one frame, and a four-minute reproduction.
 
 Next: disassemble `C0:714A` from the authority JSON with the framework's own decoder
 (`snesrecomp/recompiler/snes65816.py`) and walk it against the generated C line by line.
+
+## Step 11 — the blackout was missing dispatch authorizations, not codegen (2026-11-17)
+
+Promoting `ExecEvent` alone blacked the screen. The cause was two unresolved indirect dispatches:
+the runner abandons them by design (`cpu_unresolved_abandon_balanced`, "handler side effects
+SKIPPED"), state decays, and the CPU eventually reaches `BRK` at `$7E:0001`. Authorizing both sites
+in the bank cfgs makes the promoted build pixel-identical to the baseline through frame 660:
+
+```
+recomp/bankc0.cfg:  bank = 0xC0
+                    indirect_dispatch 9B59 203 idx:X tables:98C4
+recomp/bankc5.cfg:  bank = 0xC5
+                    indirect_dispatch 160 8 idx:X tables:06FE
+```
+
+| site | bank:pc | instruction | table | cases |
+|---|---|---|---|---|
+| `$C09B59` | `C0:9B59` | `JMP [$002A]` after `LDA $C098C4,X` | `C0:98C4`, 16-bit pointers | 203 |
+| `$C50160` | `C5:0160` | `JMP ($06FE,X)` | `C5:06FE`, 16-bit pointers | 8 |
+
+Verification: `abandons=0`, `FIRST_DIFF none (identical through 660)`.
+
+### The recipe (this is the campaign technique)
+
+1. Run the promoted build with the frame oracle; read `[unresolved-abandon] first hit site=$XXXXXX`
+   from stderr. Note the **24-bit** site, then convert: cfg wants the **local 16-bit PC** and its bank.
+2. Disassemble from the site with `snesrecomp/recompiler/snes65816.py` (`decode_insn(rom, off, pc, bank,
+   m=1, x=1)`); find the indirect `JMP/JSR (tbl,X)` and its table base.
+3. Read the table out of the ROM. Prefer the code's own bounds ladder (`CMP`, `BCC/BCS`) for the count —
+   `count = upper - lower`. Only count by scanning for the pointer run when no ladder exists (that is
+   how the 203-case table was sized, and it is the risky path).
+4. Write `bank = 0xNN` then `indirect_dispatch <pc16> <count> idx:<X|Y> tables:<base>` into
+   `recomp/bankNN.cfg` — the header is mandatory; without it regen fails with "missing 'bank = NN'".
+5. `tools/regen.sh` (assert `REGEN=0`), rebuild, rerun the oracle, read the next site. Stop at
+   `abandons=0`.
+
+Two traps cost time here and are worth remembering: regen silently reuses cached published output, so
+a failed regen still lets the build succeed against stale generated code (assert on the abandon site
+disappearing, not just on `REGEN=0`); and `SNESRECOMP_WRITE_WATCH` only instruments WRAM fast paths, so
+it cannot observe writes to I/O ports like `$2180`.
