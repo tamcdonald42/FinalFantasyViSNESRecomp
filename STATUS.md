@@ -796,13 +796,67 @@ Measurement caveat worth keeping: during gameplay the dump's register snapshot r
 other and across builds, so this is snapshot timing in the dump, not a rendering difference — but never
 read `inidisp` alone as "blank" when the picture has content.
 
+## Step 16 — C3 promoted: oracle clean, 26% of its interpretation gone, the rest is one wait loop (2026-11-23)
+
+Chosen because Step 15's coverage made it the top executed un-promoted bank: 8.94M interpreted
+instructions, 2,869 sites, 52,626 new-code hits on the 4,209-frame save route.
+
+### Pass 1 — roots only
+
+- `gen_symbols.py --bank C3` -> **1,033 call targets**, address-named `sub_C3xxxx` (the `.dbg` is still not
+  needed; Step 13 settled that).
+- `gen_roots.py --bank C3 --done C0,C1,C2` -> 2,290 funcs; regen published **25,644 roots / 12,217 exact
+  AOT variants / 17,263 LLE** and 15 `bankc3_part*.c` files (asserted on, so this is fresh output and not
+  the stale-cache trap).
+- Oracle on the save route (`srm_route.sh <srm>`, 4,301 frames): **all five dump points byte-identical**
+  to the C0 control, `abandons=0` in both logs, no crash.
+- Coverage against the same route before the promotion: C3 **8.94M -> 6.65M** interpreted instructions
+  (25.6% fewer), 2,869 -> 1,471 sites, new-code entries 52,626 -> **6,887** (87% fewer).
+  `C3:12FC` — the top target beforehand at 24,320 hits — has left the interpreter entirely.
+
+### Where the remaining 6.65M is: three wait loops
+
+| address | interpreted instr | entry_mx |
+|---|---|---|
+| `C3:1370` / `C3:1372` | 3,037,631 each | M1X0 |
+| `C3:11CE .. 11FA` | 33,344 each | M0X0 |
+| `C3:1577 .. 1583` | 7,490 each | M1X0 |
+
+Those three are 6.32M of 6.65M — 95% of what C3 still interprets is loops, the hottest at ~706
+instructions per frame (~353 iterations per frame waiting for vblank, the same shape as `C0:B7A0` in
+Step 14). They are idle waits, not throughput.
+
+### Two attempts to convert them — both oracle-clean, both ineffective
+
+1. **Rooted the loop heads explicitly** (`recomp/candidate-roots-c3.toml`, 1,033 -> 1,036 roots). The code
+   was emitted (`bankc3_part00_v2.c` contains `sub_C31370`, `symbols.toml` has it), frames stayed
+   identical, interpretation did not change.
+2. **`entry_mx_at` overrides** in `recomp/bankc3.cfg` — `1370 1 0`, `11CE 0 0`, `1577 1 0`, the documented
+   hook ("kept outside auto-ingested func blocks") for exactly this. Frames identical, emit stats
+   identical, interpretation identical.
+
+Conclusion: the residual is **not** an MX-variant problem. The likely cause is that these addresses are
+*interior* to functions the generator cannot bound — nothing `jsr`/`jsl`-targets them, so the analysis is
+not exact and the root emits LLE regardless of entry width. The next lever is a boundary hint
+(`end_at` / `authority_data`), not another `entry_mx_at`. Cost/benefit is against spending more on it
+now: it is a wait loop.
+
+### The bigger prize is C0, not more C3
+
+C0 still interprets **18.4M** instructions despite its "full" promotion because only its 267 roots are
+AOT and the field engine's main loop is not one of them; C5 interprets **5.86M**. If the goal is "as much
+of the game AOT as possible", extending C0's root list is the single largest win available, and it needs
+no new bank work.
+
 ## Resume here (new session)
 
 **Head:** the Step-14 commit on `main`, tree clean, mirrored.
-**Verified state:** C0+C1+C2 promoted (13,564 analysis roots / 7,618 exact AOT variants) and
-pixel-identical to the C0 control across frames 390-1000 (611/611), `abandons=0`, `BRK=0`. C2 is
-genuinely exercised by that window; C1 is not (it is the menu/animation bank).
-`build-c1/Release/FinalFantasyViSNESRecomp.exe` is the C0+C1+C2 binary; `build-c0/...` the C0 control.
+**Verified state:** C0+C1+C2+C3 promoted — **2,293 funcs, 25,668 roots / 12,229 exact AOT variants** —
+and pixel-identical to the C0 control across the boot window (611/611 frames) and across the whole save
+route: map, menu, cursor, submenu, post-menu-close, `abandons=0`, `BRK=0`. C3's interpreted instructions
+fell 8.94M -> 6.65M and its new-code entries 52,626 -> 6,887; what is left in C3 is three idle wait loops
+(Step 16). C1 still executes nothing (battle-side). `build-c1/Release/...` is the full binary,
+`build-c0/Release/...` the C0-only control.
 
 **The blocker, and the next action:**
 
