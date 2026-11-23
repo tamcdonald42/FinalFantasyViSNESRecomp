@@ -70,7 +70,13 @@ def scan_calls(instructions):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dbg", required=True)
+    # --dbg is optional. With the ld65 .dbg present, roots are the labelled
+    # call targets (the disassembly's own entry points). Without it, the bank
+    # still comes from the call target's own address, so every
+    # instruction-aligned call target is rooted and named from its address.
+    # Rebuilding cc65 + the disassembly to recover names costs ~30 min and
+    # buys the analysis nothing: cfg names only have to be C identifiers.
+    ap.add_argument("--dbg", default="")
     ap.add_argument("--authority", required=True)
     ap.add_argument("--out")
     ap.add_argument("--bank", default="")
@@ -79,7 +85,7 @@ def main():
     ap.add_argument("--stats", action="store_true")
     args = ap.parse_args()
 
-    labels = parse_dbg_labels(args.dbg)
+    labels = parse_dbg_labels(args.dbg) if args.dbg else {}
     doc = json.load(open(args.authority))
     code = {int(i["pc24"], 0) for i in doc["instructions"]}
     calls = scan_calls(doc["instructions"])
@@ -92,16 +98,19 @@ def main():
         if banks and f"{(addr >> 16) & 0xFF:02X}" not in banks:
             continue
         names = labels.get(addr)
-        if not names:
-            continue
-        roots.append((addr, names[0], kind, calls[(addr, kind)]))
+        if labels and not names:
+            continue                      # labelled build: only named targets
+        roots.append((addr, names[0] if names else f"sub_{addr:06X}", kind,
+                      calls[(addr, kind)]))
     roots.sort()
     if args.limit:
         roots = roots[:args.limit]
 
     if args.stats:
         by_bank = collections.Counter(f"{(a >> 16) & 0xFF:02X}" for a, _, _, _ in roots)
-        print(f"labels {len(labels)}  call targets {len(calls)}  rooted {len(roots)}")
+        named = sum(1 for a, _, _, _ in roots if a in labels)
+        print(f"labels {len(labels)}  call targets {len(calls)}  rooted {len(roots)}"
+              f"  named {named}  address-named {len(roots) - named}")
         print("by bank:", dict(sorted(by_bank.items())))
         for addr, name, kind, n in roots[:10]:
             print(f"  {addr:06X} {name:28s} {kind} x{n}")

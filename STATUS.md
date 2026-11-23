@@ -571,22 +571,97 @@ the site -> repeat until `abandons=0` and `FIRST_DIFF none`.
 Reproduce the full-C0 state: `recomp/candidate-roots-c0.toml` (267 roots) appended to `recomp/symbols.toml`
 after the four vectors, plus the two bank cfgs.
 
+## Step 13 — the `.dbg` was never the blocker; C1 and C2 promote clean (2026-11-23)
+
+Roots without the reference disassembly. `tools/gen_symbols.py --dbg` is now optional, because the
+Step-12 note was wrong about *why* a missing `.dbg` roots nothing: bank membership already came from the
+call target's own address (`jsr` keeps the caller's bank bits, `jsl` carries a 24-bit operand). What the
+`.dbg` supplied was **names**, and an empty label dict dropped every root before output — that is the
+whole of `labels 0  call targets 2430  rooted 0  by bank: {}`. Without it the generator now roots every
+instruction-aligned call target and names it from its address (`sub_C1022A`); cfg names only have to be C
+identifiers, so the 30-minute cc65 + disassembly rebuild buys the analysis nothing.
+
+| promotion | root list | analysis | frames 390-1000 vs control | abandons / BRK |
+|---|---|---|---|---|
+| C0 (Step 12) | 267 | 2,708 roots, 1,362 exact AOT variants | identical | 0 / 0 |
+| + C1 | 562 | 9,076 roots, 5,084 exact AOT variants | **611/611 identical** | 0 / 0 |
+| + C2 | 425 | 13,564 roots, 7,618 exact AOT variants | **611/611 identical** | 0 / 0 |
+
+No new dispatch authorizations were needed: the two from Step 11 still cover the route. Cost is now
+dominated by compiling generated C — a fresh `build-c1` from scratch is ~8 min (25 MB exe), adding a bank
+7 min (33 MB) — and both outlive a single SSH call, so the build has to be polled
+(`ps -W | grep -c cl.exe`), not awaited.
+
+### What this route can and cannot validate
+
+Tier-2 coverage capture over 625 frames (title -> Start -> fade -> intro) on the control build, ranked by
+interpreted instruction samples: `7E` (WRAM routines) 917, `C0` 888, `C5` 536, `C2` 121, `C3` 11, `00` 6.
+**Zero C1, zero EE.** The authority's `source` field per instruction says why:
+
+| bank | instructions | what it is (top source files) | runs in this route |
+|---|---|---|---|
+| C0 | 18,469 | `obj`, `event`, `map`, `player` | yes |
+| C1 | 27,340 | `anim_cmd` 7,627, `menu` 4,463, `cursor` 3,817, `gfx_cmd` 3,685 | **no** |
+| C2 | 16,634 | `anim_init`, `action_1`, `mask_2`, `init_2` | yes (121 samples) |
+| C3 | 23,083 | `ending` 4,556, `field_menu`, `menu_common`, `equip` | barely (11) |
+| C5 | 762 | `sound_main` | yes (536) |
+| EE | 13,590 | `sprite`, `init`, `event`, `cutscene` | **no** |
+| D4 / E5 | 1,443 | `menu_init_2` / `the_end` | no |
+
+So C2's promotion is genuinely validated — its code runs inside the window and 611 frames come out
+pixel-identical. C1's is promoted and boots clean, but **identical frames prove nothing about code that
+never executes**: C1 is the menu / cursor / battle-animation bank, and no menu or battle has been reached.
+That reorders the campaign. The next gate is a route to the in-game menu and the first battle (the old
+"Next 5"), not more promotions: C3, EE, D4 and E5 would accumulate AOT that nothing exercises, and a
+defect planted in any of them would stay invisible.
+
+### Harness — `tools/oracle/`
+
+| file | what it does |
+|---|---|
+| `tools/gen_roots.py` | rebuilds `recomp/symbols.toml` from HEAD's seed plus the candidate lists: `--done C0,C1 --bank C2 --lo/--hi` (slice for bisection) |
+| `tools/oracle/refdump.sh TAG START END` | dumps frames from `build-c0` — the verified C0 control |
+| `tools/oracle/runonly.sh TAG REF START END` | runs `build-c1`, greps abandons/BRK, compares to REF |
+| `tools/oracle/cmp_frames.py` | BMP-vs-BMP, prints the first differing frame with its pixel count |
+| `tools/oracle/capture.sh 0\|1 TAG` | tier-2 coverage capture; `tools/oracle/poll.sh` reads build progress |
+
+Paths that worked: work dir `C:/Temp/c1`, input script `C:/Temp/oracle/script.txt`
+(`wait 500` / `press start 4` / `wait 900` / `quit`), ROM `D:/roms/snes/ff3u11.sfc` (same sha256 as the
+pinned dump). They are Windows scripts driven through `C:/Program Files/Git/bin/bash.exe`.
+
+Three things that cost time here:
+
+- **`ps -W | grep -iE "..."` inside a nested `bash -c` over ssh is parsed by cmd.exe**, which answers
+  `'MSBuild' is not recognized as an internal or external command`. Put the polling in a script file.
+- **A repo-wide phantom diff.** Every file was CRLF in the worktree and LF in the index, so `git status`
+  reported 20 modified files with equal +/- counts and `git checkout` refused. `git config core.autocrlf
+  true` in the repo *and* in each submodule (including `snesrecomp/lib/*`) cleared all of it; the tree now
+  reports only real changes.
+- **`regen` republishes `src/gen` for whatever `symbols.toml` says.** The committed seed symbols has 3
+  vectors, so a build tree and `src/gen` can disagree with the branch; always regenerate before a build
+  whose result you intend to quote.
+
 ## Resume here (new session)
 
-**Head:** `84f93e4`, branch `main`, working tree clean, mirrored to the private remote.
-**Verified state:** full 267-root bank C0 promotion — `abandons=0`, `BRK=0`, frames identical to baseline
-through 660. Two dispatch sites authorized (Step 11). Nothing is mid-flight.
+**Head:** the Step-13 commit on `main` (STATUS, the generator patch, the C1/C2 root lists), tree clean
+(after the autocrlf fix) and mirrored.
+**Verified state:** C0 + C1 + C2 promoted — 13,564 analysis roots / 7,618 exact AOT variants,
+`abandons=0`, `BRK=0`, frames 390-1000 pixel-identical to the C0 control (611 frames). C2 is genuinely
+exercised by the route; C1 is not (Step 13). Two dispatch sites authorized (Step 11).
+`build-c1/Release/FinalFantasyViSNESRecomp.exe` is the C0+C1+C2 binary; `build-c0/...` is the C0 control.
 
 **Next action, in order:**
-1. Patch `tools/gen_symbols.py` to attribute banks from the authority JSON's `pc24` (`bank = pc24 >> 16`)
-   instead of parsing `.dbg` label names. The `.dbg` was pruned from scratch and regenerating it means
-   rebuilding cc65 and the whole disassembly (~30 min). Without the patch, running the generator against
-   a missing `.dbg` gives `call targets 2430, rooted 0, by bank: {}` — the targets are found but cannot
-   be partitioned by bank, so nothing is rooted.
-2. Generate C1 roots, append to `recomp/symbols.toml`, then the per-bank loop:
-   regen -> build `build-c0` -> frame oracle on 390-660 -> read `[unresolved-abandon]` -> authorize ->
-   repeat until `abandons=0` and `FIRST_DIFF none`.
-3. Bank order: C1 (27,340 insns, 27.0%), C3, C2, then EE (event scripts), D4/E5.
+
+1. **Extend the route past the intro** — this is the gate, not another promotion. The script DSL
+   (`wait`, `press`, `until`, `dump`, `quit`) has to carry the game through name entry, the first field
+   map and the in-game menu; then re-run `tools/oracle/capture.sh` and require C1 and C3 samples to appear
+   in the cost histogram before believing any promotion of them.
+2. Re-verify C0+C1+C2 on that longer route (`tools/gen_roots.py --done C0,C1 --bank C2 --hi 0`, regen,
+   build, `tools/oracle/runonly.sh`).
+3. Then the remaining banks in order of *observed* execution, not size: C5 (sound, 536 samples) first,
+   then C3, EE, D4/E5 once the route reaches a menu / a battle animation / the ending.
+4. C1 will want the same treatment as C0 in Step 11 — the first `[unresolved-abandon]` it produces will
+   name a dispatch in `anim_cmd`/`menu`, most likely a `JMP (tbl,X)` over its command table.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
@@ -594,11 +669,15 @@ through 660. Two dispatch sites authorized (Step 11). Nothing is mid-flight.
   disappearing, not on `REGEN=0` alone.
 - Bank cfg directives must sit **above** the `# >>> BEGIN symbols.toml (generated — do not edit)` marker.
   Below it, regen owns the file.
-- A bank cfg needs `bank = 0xNN` on line one or regen fails with "missing 'bank = NN' line".
-- `indirect_dispatch` takes the **local 16-bit PC**, not the 24-bit address the abandon log prints
+- A bank cfg needs `bank = 0xNN` on line one or regen fails with "missing 'bank = NN' line", and
+  `indirect_dispatch` takes the **local 16-bit PC**, not the 24-bit address the abandon log prints
   (`site=$C50160` -> bank C5, pc `0160`).
 - Size tables from the code's own bounds ladder (`CMP`/`BCC`/`BCS`, count = upper - lower). Scanning for a
   contiguous run of plausible pointers is the risky fallback (that is how the 203-case table was sized).
 - `SNESRECOMP_WRITE_WATCH` only instruments WRAM fast paths — it cannot see I/O-port writes like `$2180`.
 - `SNESRECOMP_TIER2_CAPTURE` needs both the env var *and* a directory; with only the directory it writes
   nothing and exits cleanly.
+- Coverage records only *interpreted* execution: a promotion that produces an identical frame set may
+  simply not have been run. Check the cost histogram's bank mix before calling a promotion validated.
+- Do not trust an ssh call's exit status for a long build — the channel dies first and the build keeps
+  going (or is killed). Poll `cl.exe`/`link.exe` from a host script.
