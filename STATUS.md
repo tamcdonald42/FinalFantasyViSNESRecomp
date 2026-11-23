@@ -570,3 +570,35 @@ the site -> repeat until `abandons=0` and `FIRST_DIFF none`.
 
 Reproduce the full-C0 state: `recomp/candidate-roots-c0.toml` (267 roots) appended to `recomp/symbols.toml`
 after the four vectors, plus the two bank cfgs.
+
+## Resume here (new session)
+
+**Head:** `84f93e4`, branch `main`, working tree clean, mirrored to the private remote.
+**Verified state:** full 267-root bank C0 promotion — `abandons=0`, `BRK=0`, frames identical to baseline
+through 660. Two dispatch sites authorized (Step 11). Nothing is mid-flight.
+
+**Next action, in order:**
+1. Patch `tools/gen_symbols.py` to attribute banks from the authority JSON's `pc24` (`bank = pc24 >> 16`)
+   instead of parsing `.dbg` label names. The `.dbg` was pruned from scratch and regenerating it means
+   rebuilding cc65 and the whole disassembly (~30 min). Without the patch, running the generator against
+   a missing `.dbg` gives `call targets 2430, rooted 0, by bank: {}` — the targets are found but cannot
+   be partitioned by bank, so nothing is rooted.
+2. Generate C1 roots, append to `recomp/symbols.toml`, then the per-bank loop:
+   regen -> build `build-c0` -> frame oracle on 390-660 -> read `[unresolved-abandon]` -> authorize ->
+   repeat until `abandons=0` and `FIRST_DIFF none`.
+3. Bank order: C1 (27,340 insns, 27.0%), C3, C2, then EE (event scripts), D4/E5.
+
+**Traps that cost real time — do not relearn these:**
+- `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
+  against stale `src/gen`, producing a meaningless `FIRST_DIFF none`. Assert on the abandon site
+  disappearing, not on `REGEN=0` alone.
+- Bank cfg directives must sit **above** the `# >>> BEGIN symbols.toml (generated — do not edit)` marker.
+  Below it, regen owns the file.
+- A bank cfg needs `bank = 0xNN` on line one or regen fails with "missing 'bank = NN' line".
+- `indirect_dispatch` takes the **local 16-bit PC**, not the 24-bit address the abandon log prints
+  (`site=$C50160` -> bank C5, pc `0160`).
+- Size tables from the code's own bounds ladder (`CMP`/`BCC`/`BCS`, count = upper - lower). Scanning for a
+  contiguous run of plausible pointers is the risky fallback (that is how the 203-case table was sized).
+- `SNESRECOMP_WRITE_WATCH` only instruments WRAM fast paths — it cannot see I/O-port writes like `$2180`.
+- `SNESRECOMP_TIER2_CAPTURE` needs both the env var *and* a directory; with only the directory it writes
+  nothing and exits cleanly.
