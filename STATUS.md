@@ -1369,3 +1369,34 @@ regression `verify_fix.sh` semantics = wfix vs wnow (20/20 identical).
   `C1:0000` (`PHA/TDC/PLA/ASL A/TAX/JMP ($0008,X)`), `C1:450F` and `C1:5E4E` all resolved to 2-byte
   code-pointer tables (4, 48 and 32 entries) that the analysis could not see. One abandoned handler
   freezes the caller's `INC $47 / LDA $47 / BNE` handshake, so the symptom is a *stall*, not a crash.
+
+## Step 27 — Prologue unblocked: $4210 NMI latch starvation
+
+**Symptom.** From power-on the intro played, faded out at frame 5078, then the machine sat on a
+blank frame forever (byte-identical at 6k/8k/10k/12k/14k). CPU alive, `rc=0`, `abandons=0` — a
+livelock, not a crash.
+
+**Ground truth.** Built the repo's `tools/snesref` frontend (mingw g++ + SDL2-mingw) around
+`bsnes2014_accuracy_libretro.dll` and ran it headless against the same scene scripts. Recomp vs bsnes
+WRAM was byte-identical through frame 5084, diverged at 5085 (103 bytes) and 5100 (13,006), and the
+event pointer froze at `$CC:985D` while bsnes executed the `$F0` "play song" command and moved on.
+
+**Ruled out by measurement** (not inference): DMA (zero general `$420B` triggers after frame ~3960),
+the divider (133 accesses total, last at frame ~30), the APU handshake (CPU write `$2140=F0` -> SPC
+read -> SPC echo `F0` at `0E73` -> CPU read back `F0`, sync `step=0`), SPC `$F1` port wipe, and a
+guest-cycle/APU-clock unit mismatch.
+
+**Root cause.** `EventCmd_f0` ends in `lda hRDNMI / bpl` and never returns. `$4210`'s pending latch is
+one-shot: the read clears it. The beam driver runs the NMI handler the instant the beam reaches v=225,
+and the handler's own ack read consumed the latch, so the main loop's poll read `pend=0` on all 399
+reads of every frame and starved indefinitely.
+
+**Fix** (`runner/src/snes/snes.c`, case `$4210`): a read taken while `inNmi` acks the interrupt without
+consuming the pending latch (`if (!snes->inNmi) snes->rdnmiPending = false;`).
+
+**Verification.** vs bsnes at frame 5200: 13,006 bytes apart (permanent) -> 80 bytes, with identical
+event state (`$E5-E7 = 78 98 CC`, `$EA = 92`); frames 5200 vs 5600 now differ by 398 bytes (running);
+picture pattern matches bsnes 5300-5850 (85.1% vs 85.0% non-black). Cold boot now reaches the Narshe
+opening mission (Vicks/Wedge dialogue, Terra, frozen Esper) through intro and title. Regression:
+C0 control and C0+C1+C2+C3 candidate both rebuilt under the fix, battery-save route 4,681 frames,
+7/7 dumps IDENTICAL, `ORACLE: clean`.
