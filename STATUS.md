@@ -1438,3 +1438,37 @@ of the generated text; `program_digest` is unchanged). Analysis identical:
 clean on four affected translation units. Regeneration is deterministic —
 a repeat run reproduced all 367 files byte for byte.
 
+## Step 29 — Menu trigger measured: `$1503 == $C3` (2026-11-24)
+
+Phase 4 of the widescreen work (menus letterboxed rather than widened) needs a
+per-frame "is a menu on screen?" signal. Rather than pick one from the code
+listing and hope, two routes were run against the same battery save with tier-2
+coverage and WRAM dumps: `tools/oracle/menu_probe.sh field` (4,357 frames, 2
+dumps) and `menu` (4,551 frames, 6 dumps: field, menu, cursor moved, submenu,
+deeper submenu, closed). Both clean — 0 abandons, 0 crashes, `rc=0`.
+
+**Result.** `$1503`/`$1507` hold the bank of the installed NMI/IRQ handlers, and
+each subsystem installs its own: field `JML $C0:0182` / `$C0:0262`, battle
+`JML $C1:0BA7` / `$C1:0D4A`, menu `JML $C3:1387` / `$C3:13C7`. The menu value is
+what `C3:00C0` writes (the routine `C3:0032` calls on menu entry), so the static
+reading and the dynamic dump agree byte for byte. Menu open -> `$1503 = $C3` on
+all four menu dumps including the fade-in; back to `$C0` after two `B` presses.
+Battle is `C1`, so the three states are mutually exclusive.
+
+`$1503` is already `C3` 70 frames after the `X` press while the screen is still
+fading, i.e. the trigger leads the picture — the letterbox can be in place before
+the first menu pixel, with no flash of wide field. Rejected by measurement: `$26`
+(idle value on the field is not a guarantee), `$46` (noisy and does not restore),
+`$43` (also nonzero in battle), `$59` (a rendering side effect of the menu), and
+PC-range tests (the loop calls handlers across `$C3` and into `$D4`).
+
+**Menu-only code still interpreted.** Comparing the two coverage captures, 16
+unrooted `$C3` call targets are reached only with the menu open — `$C3:011A`,
+`$07FF`, `$080B`, `$082B`, `$1A8A`, `$1D94`, `$1DA4`, `$1DE8`, `$2E90`, `$2F42`,
+`$2F4A`, `$2F6B`, `$2FC0`, `$2FC8`, `$3014`, `$30F5`. They are reached by computed
+call (`JMP ($xxxx,X)` / `JSR ($xxxx,X)`), which is why the root finder never named
+them; they are a candidate-roots shortlist for phase 4.
+
+Full write-up, including the mechanism and the residual gaps (world map bank
+unmeasured; battle menus stay `C1`; ending scenes share `$C3`), is in
+`docs/WIDESCREEN_TRIGGER.md`.
