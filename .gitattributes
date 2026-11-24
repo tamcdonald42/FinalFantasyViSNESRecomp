@@ -1,0 +1,3 @@
+# Framework patches must keep LF on every platform: they are applied with
+# git apply against a checkout whose line endings vary by OS and autocrlf.
+*.patch -text
