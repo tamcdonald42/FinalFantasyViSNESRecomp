@@ -1248,35 +1248,87 @@ touching) plus C5 (sound driver) and 7E (WRAM-resident, not AOT-able). The next 
 be chosen the same way: find banks whose entry points are only reached by computed dispatch, and root what
 coverage actually saw.
 
+## Step 25 — walk regression clean; promotion is exhausted at 0.04% (2026-11-24)
+
+### Regression
+
+The walk route is the only route with a crash history (the mosaic fault), and it had not been exercised since
+the three dispatch authorizations and the EE promotion landed. Against the current build (46,951,936 B):
+
+```
+rc=0  5,515 frames  crashes=0  minidumps=0  abandons=0  dumps=20
+mosaic guard hits=8   (the fix still engaging, as designed)
+walk frames vs the post-fix run: identical=20 different=0
+```
+
+No regression. The mosaic fix, the dispatches and EE all coexist.
+
+### Promotion is finished as a lever
+
+Across all seven captures (715,395,075 interpreted instructions), classified by cause:
+
+```
+three flag-poll spins            478,562,107   66.9%
+bodies with no entry row         189,973,204   26.6%
+WRAM-resident (not AOT-able)      46,429,362    6.5%
+missing_entry                        280,719    0.04%
+missing_exact_variant                120,122    0.02%
+compiled_entry_available_check        29,561    0.004%
+```
+
+Every remaining `missing_entry` target in every capture now totals **320,027 instructions** (C0 186k, C1 62k,
+EE 46k, C3 22k, C2 3k). Another root-promotion pass would be fighting over four hundredths of a percent.
+
+Combined with Step 22 (265 fps turbo vs 59 paced), the conclusion is that code generation is no longer where
+the project's value is. Two thirds of the interpretation is the game waiting for its own frame flag — correct
+behaviour, faithfully reproduced — a fifteenth is WRAM-resident code AOT cannot reach by construction, and the
+rest is the bodies of functions that are already entered through compiled entries.
+
+### What that leaves
+
+1. **The prologue freeze (Step 14) is now the top defect, not a parked curiosity.** Every route validates from
+   a battery save; the game still cannot be played from power-on. Both the port and the reference interpreter
+   freeze at ~frame 5088 with the same PC (`C0:B7A0`, `LDA $4210 / BPL`), which points at a shared device-model
+   issue (APU/SPC handshake or NMI timing) rather than generated code — harder, but it is the only known bug
+   left and it is the difference between "validated" and "playable".
+2. **Scene breadth** — shops, the esper/magic menus, the final battle proper, and the ending (which needs a
+   savestate loader, since save 30 ships only `.zst`).
+3. **`ref_driver` SRAM support** (~30 lines) — a second engine for any save route.
+
+Not worth doing: more root promotion (0.04%), poll fast-forward (no headroom need), symbol work (crashes are
+already symbolised).
+
 ## Resume here (new session)
 
-**Head:** the Step-24 commit on `main`, tree clean, mirrored.
-**Verified state:** 2,360 funcs; regen emits **26,300 roots / 12,789 exact AOT variants / 17,747 LLE**; build
-46,951,936 B. Boot → save load → field → walking → encounter → battle → victory → return → menu → **Mode 7
-world map + airship** → **opera house (stage dialogue + backstage)** → **WoR field battle** → **Kefka's Tower
-interior**, all with `abandons=0`, no crash. Clean battle route 74.5% interp / 25.5% AOT; turbo 265 fps vs 59
+**Head:** the Step-25 commit on `main`, tree clean, mirrored.
+**Verified state:** 2,360 funcs; **26,300 roots / 12,789 exact AOT variants / 17,747 LLE**; build 46,951,936 B.
+Routes that pass with `abandons=0`, no crash, byte-identical frames: battle (7 dumps), opera deep (14),
+walk/mosaic repro (20), Mode 7 world map (6). Clean battle route 74.5% interp / 25.5% AOT; turbo 265 fps vs 59
 paced.
 
-**Promotion method that works** (Steps 19/24): take coverage targets with `fallback_reason=missing_entry`,
-append them to `recomp/candidate-roots-<bank>.toml`, `gen_roots.py --bank none --done C0,C1,C2,C3,EE`, regen,
-build, then require **byte-identical dumps on two different routes** (`build-c0` control / previous run) before
-committing. Rank roots by `costs[].interpreted_instructions`, but never predict a promotion's size from the
-root's own cost — a dispatcher root compiles its whole subtree (37 EE roots = −6.5M instructions).
+**Promotion is done (Step 25):** remaining `missing_entry` across every capture = 320,027 instructions of
+715,395,075 (0.04%). Interpretation is 66.9% three flag-poll spins, 26.6% bodies of already-entered functions,
+6.5% WRAM-resident (not AOT-able). Do not promote further without a new reason.
+
+**The top defect is the prologue freeze (Step 14).** Port and reference both stop at ~frame 5088, final PC
+`C0:B7A0` (`LDA $4210 / BPL`), forced blank, `video_active_frames=4022`, last APU port traffic frame 4924.
+Every route sidesteps it with a battery save. Same PC in both engines ⇒ shared device-model issue
+(APU/SPC handshake or NMI timing), not generated code.
 
 **Routes:** `tools/oracle/srm_route.sh <save.srm>`, `battle_route.sh <save.srm> [--coverage]`,
-`mode7_route.sh <worldmap.srm>`; scene poke routes in `/c/Temp/c1/{scenes,scenes2,opera_deep}.sh`.
-Donor `.srm` files stay outside the repo.
+`mode7_route.sh <worldmap.srm>`; scene routes `/c/Temp/c1/{scenes,scenes2,opera_deep,walknow}.sh`; walk
+regression `verify_fix.sh` semantics = wfix vs wnow (20/20 identical).
 
 **Next actions, in order:**
 
-1. **Repeat the EE trick on the other dispatch-entered banks.** EE went 17.2% → 12.4% of the opera route.
-   Check `fallback_reason=missing_entry` counts per bank across the scene captures (C5 is the biggest
-   remaining *real* block at 7.97M on the battle route; 7E is WRAM-resident and cannot be AOT-compiled).
-2. **Shops and the esper/magic menus** — still unvisited; pure C3 menu code.
-3. **Re-run the walking crash route** (the mosaic fix's original repro) once more against this build — it has
-   not been exercised since the dispatches landed, and it is the only known-crash route.
-4. **`ref_driver` SRAM support** (~30 lines) — a second engine for any save route.
-5. **The prologue halt (Step 14) stays parked.**
+1. **Attack the prologue freeze** — the only bug between this port and "playable from power-on". Start from
+   the fact that the reference freezes identically: compare APU/SPC state and NMI timing at frame 5088, not
+   generated code. `snesrecomp/runner/src/snes/snes.c:445-515` (`$4210`/RDNMI), `common_rtl.c:1740` (WMADD),
+   `common_rtl.c:2081` (APU handshake ports).
+2. **Scene breadth**: shops, esper/magic menus, the final battle proper; the ending needs savestate loading
+   (save 30 has only `.zst`).
+3. **`ref_driver` SRAM support** (~30 lines) — second engine for any save route.
+4. Keep every promotion gated on byte-identical frames across two routes; keep measuring with `costs[]`.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
