@@ -8,7 +8,7 @@ writes `src/gen/`.
 | `bank*.cfg` | you, plus generated blocks | Per-bank analysis directives |
 | `symbols.toml` | you | Progressive name map; the source of truth |
 | `funcs.h` | generated | Re-synced by `tools/regen.sh` — do not hand-edit |
-| `labels-*.toml` | `tools/import_labels.py` | Block names from an external disassembly |
+| `labels-*.toml` | `tools/import_labels.py` | Block names from an external disassembly — generated locally, gitignored |
 
 The block between `>>> BEGIN symbols.toml` and `<<< END symbols.toml` in
 each bank cfg is rewritten from `symbols.toml` on every regen. Edit
@@ -39,10 +39,11 @@ from the source disassembly text, and only imports an address that is already
 a known function entry, so it cannot invent a root or name the middle of an
 instruction.
 
-The shipped `labels-c3.toml` was imported from the **Final Fantasy VI Bank C3
-Compendium** by Novalia Spirit (Jame Coban), 2016 — see `README.md`, "Credits".
-That archive is not redistributed here, so regenerating the label file needs
-your own copy passed to `import_labels.py --disasm`.
+`labels-c3.toml` is generated, not shipped: it is an extract of the **Final
+Fantasy VI Bank C3 Compendium** by Novalia Spirit (Jame Coban), 2016, whose terms
+reserve reproduction of the document's contents, so the file is gitignored and
+built locally from your own copy via `import_labels.py --disasm`. See
+`README.md`, "Credits".
 
 `tools/apply_labels.py` merges the names into `symbols.toml` after gen_roots
 and before regen:

@@ -76,7 +76,11 @@ def main() -> int:
 
     labels = read_labels()
     if not labels:
-        raise SystemExit('apply_labels: no recomp/labels-*.toml found')
+        raise SystemExit(
+            'apply_labels: no recomp/labels-*.toml found.\n'
+            'Generate one from your own copy of the bank C3 compendium:\n'
+            '  python3 tools/import_labels.py --disasm <ff6_bank_c3.txt> --bank C3\n'
+            '(the extract is not committed; see README.md "Credits")')
 
     path = ROOT / args.symbols
     if not path.exists():

@@ -1412,7 +1412,10 @@ revision. (The single mismatch is a duplicated line in the source at `C3:2FC8`.)
 **What was imported.** 971 block names for the 1,036 `$C3` function entries in
 `recomp/candidate-roots-c3.toml`; the remaining 65 keep address names. Names
 are slugified to C identifiers (`Draw a menu window` -> `draw_a_menu_window`)
-and the prose is kept in `note`. Committed as `recomp/labels-c3.toml`.
+and the prose is kept in `note`. Written to `recomp/labels-c3.toml`, which is
+gitignored rather than committed: the source document reserves reproduction of
+its contents, so the extract is generated locally from an owned copy (README
+"Credits").
 
 **Why it matters.** The project's own symbol map had two vectors and the
 disassembly authority had no labels at all, so every reader (human, debugger,

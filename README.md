@@ -75,8 +75,9 @@ git submodule update --init --recursive
 python3 tools/gen_roots.py --done C0,C1,C2,C3,EE --bank none
 #   (on Windows without python3 on PATH, use: python tools/gen_roots.py ...)
 
-# Optional: name bank $C3's functions instead of addressing them
-# (sub_C30138 -> clear_cursor_position_restored_from_lineup_s).
+# Optional: name bank $C3's functions instead of addressing them. Generate the
+# name file first from your own copy of the bank C3 compendium (see Credits):
+#   python3 tools/import_labels.py --disasm <ff6_bank_c3.txt> --bank C3
 python3 tools/apply_labels.py
 
 bash tools/regen.sh --rom "/path/to/Final Fantasy III (USA) (Rev 1).sfc"
@@ -90,14 +91,16 @@ cmake --build build --config Release -j
 generated C. Expect the build to take 10–15 minutes.
 
 `apply_labels.py` is optional and changes identifiers only: `emit`, `entry_mx`
-and every tier decision stay as `gen_roots.py` wrote them. It merges the 971
-block names committed in `recomp/labels-c3.toml` — imported from a commented
-bank `$C3` disassembly whose instruction bytes agree with this ROM revision
-(25,440 of 25,441 sampled rows) — over the address-derived names. Checked by
-regenerating the same ROM with and without it: 349 of 367 generated files are
-byte-identical, the other 18 differ only by those names and the alphabetical
-order of each translation unit's forward declarations; the analysis is
-unchanged at 26,300 roots and 12,789 AOT variants.
+and every tier decision stay as `gen_roots.py` wrote them. It merges the block
+names from `recomp/labels-c3.toml` over the address-derived ones. That file is
+built by `import_labels.py` from a commented bank `$C3` disassembly whose
+instruction bytes agree with this ROM revision (25,440 of 25,441 sampled rows),
+and it is **not committed** — the source document's terms do not allow
+redistributing its contents, so you generate the file from your own copy.
+Checked by regenerating the same ROM with and without the names: 349 of 367
+generated files are byte-identical, the other 18 differ only by those names and
+the alphabetical order of each translation unit's forward declarations; the
+analysis is unchanged at 26,300 roots and 12,789 AOT variants.
 
 A verified from-scratch run of exactly these steps produced WRAM and
 framebuffers byte-identical to the reference build at frames 5200 and 9000.
@@ -256,14 +259,17 @@ The names for bank `$C3` come from the **Final Fantasy VI Bank C3 Compendium**
 by **Novalia Spirit (Jame Coban)** — a fully commented, reassemblable
 disassembly of the bank that holds every field menu and the ending scenes,
 released July 2016 and revised that October. `tools/import_labels.py` reads the
-name above each block and turns it into a function name, so all 971 entries in
-`recomp/labels-c3.toml` are his descriptions rather than ours. His instruction
-listings also agree with this ROM revision in 25,440 of 25,441 rows, which is
-what made the import worth trusting: `sub_C30138` is a plausible name only
-because the note beside it says "Clear cursor position restored from Lineup's
-Status menu".
+name above each block and turns it into a function name, so every name the
+import produces is his description rather than ours. His instruction listings
+also agree with this ROM revision in 25,440 of 25,441 rows, which is what made
+the import worth trusting: `sub_C30138` is a plausible name only because the
+note beside it says "Clear cursor position restored from Lineup's Status
+menu".
 
-The compendium itself is not redistributed here. It is published at
+Neither the compendium nor the names extracted from it are redistributed here:
+`recomp/labels-*.toml` is generated locally and ignored by git, because his
+release notes reserve reproduction of the documents' contents and license
+distribution to romhacking.net alone. The documents are published at
 [ff6hacking.com](https://www.ff6hacking.com/wiki/doku.php?id=ff3:ff3us:doc:game)
 under the author's terms.
 

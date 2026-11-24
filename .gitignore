@@ -26,6 +26,10 @@
 
 .DS_Store
 _authority/
+
+# Extracted from a third-party document whose terms reserve reproduction.
+# Generate it locally with tools/import_labels.py; see README.md Credits.
+recomp/labels-*.toml
 tools/cosim/build/
 build-cosim/
 tools/cosim/build/
