@@ -1062,36 +1062,87 @@ the gap and also give the walk/battle crash class a second implementation to com
 route, and prints `bgmode`, the matrix write counts and the distinct-value counts per dump, so
 "working" is a report rather than an impression.
 
+## Step 21 — metric correction: 73% of "interpreted instructions" is three poll loops (2026-11-24)
+
+Before choosing another step, I measured the thing Step 19 should have measured: a clean run (no tier-2
+capture, so no forced interpretation) reports **74.54% interp / 25.46% AOT cycles**, not the 97% a
+capture run reports. The capture inflates interpretation by construction. Fine — but the deeper problem
+was the *ranking* metric.
+
+### The correction
+
+Step 19 reported "C1 interpretation 35,282 → 15,601 (−56%)". Those were **entry counts**. The tier-2
+manifest also carries an instruction-weighted table (`costs[]`, `interpreted_instructions` per
+PC/x-mode), which nobody had read:
+
+```
+before (b5)  104,636,202 interpreted instructions
+after  (b7)  104,628,241 interpreted instructions   -> -0.008%
+```
+
+The promotion removed 12% of interpreted *entries* and 0.008% of interpreted *instructions*, because
+the gap targets it compiled were entered often and ran briefly, while the volume lives in long-lived
+loops. Every future pass must rank by `costs[].interpreted_instructions`, never by `observed_hits`.
+
+### What the volume actually is
+
+```
+C0:0566/0568  M1X0  16,674,156 each  (31.8%)   LDA $55 / BEQ  -- spin until NMI sets $55
+C1:1A26/1A28  M1X0  11,144,122 each  (21.3%)   INC $47 / LDA $47 / BNE -- handler handshake spin
+7E:7206/7208  M1X0  10,580,118 each  (20.2%)   WRAM-resident flag spin
+                                       73.4% of all interpreted instructions
+```
+
+Decoded `C0:0564`: `STZ $55 / LDA $55 / BEQ -4 / STZ $55 / RTS` — a wait-for-frame-flag spin, ~1,965
+iterations per frame at 8,481 frames. `C1:1A24` is the battle-side equivalent (~1,300/frame). These
+are the game *waiting*, which is what games do; they cost wall time, not correctness.
+
+Real code is 27,831,449 instructions (26.6%): **C5 7,971,770 (28.6% of non-poll), 7E 6,632,766, C3
+4,283,547, C1 4,215,789, C0 3,473,708, C2 1,233,359**. The top non-poll loops are C3:1370/1372 (1.92M
+each — the loop Step 16 could not root) and C5:01B5/01B8, C5:06AF/06B2.
+
+### What this changes
+
+1. **Promotion is close to done for its cost/benefit.** The remaining 27.8M is spread over hundreds of
+   buckets and, at 17 ms/frame, is not what limits the project. Another gap-target pass is polish.
+2. **The polls are the interesting target, for a non-performance reason.** A poll that never resolves
+   is exactly the failure mode that burned a whole session on `C1:0000` (38 minutes crawling on a
+   never-cleared `$47`). Recognising these three spins and yielding to the host would turn "flag never
+   set" from an invisible crawl into an immediate, diagnosable stall — and would collapse the
+   interpreted share as a side effect. The framework already has poll-shape recognition machinery.
+3. **`7E:7206` is WRAM-resident and AOT cannot reach it** — spin handling is the only lever there.
+
+Recorded rather than fixed: the honest state is "the port runs the whole game, one quarter of cycles are
+AOT, three quarters are 73% idle polling, and the metric I was reporting was entry counts".
+
 ## Resume here (new session)
 
-**Head:** the Step-20 commit on `main`, tree clean, mirrored.
+**Head:** the Step-21 commit on `main`, tree clean, mirrored.
 **Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 exact AOT variants / 17,663 LLE**.
 Boot → save load → field → walking → encounter → battle → victory → return to field → second encounter
-all run with `abandons=0`; the in-game menu works; **Mode 7 works on the world map** (mode 7 with a
-per-scanline matrix, 450 writes/frame, rotation term varying once the airship turns). Battle-route
-interpretation is 144,260 hits / 523 sites (C1 15,601, C0 28,884, C3 3,778, C2 2,051, 7E 93,946).
-Builds: `build-c1/Release` (full), `build-c0/Release` (C0-only control), `build-dbg/RelWithDebInfo`
-(symbols for crash work).
+all run with `abandons=0`; the in-game menu works; **Mode 7 works on the world map** (mode 7, per-scanline
+matrix, rotation term live). Clean battle route measures **74.5% interp / 25.5% AOT cycles**, but **73.4% of
+those interpreted instructions are three flag-poll spins** (`C0:0566/0568`, `C1:1A26/1A28`, `7E:7206/7208`);
+real code is only 27.8M instructions, led by C5 (7.97M), 7E RAM code (6.63M), C3 (4.28M), C1 (4.22M), C0 (3.47M).
 
-**Routes:** `tools/oracle/srm_route.sh <save.srm>` (field + menu), `tools/oracle/battle_route.sh
-<save.srm> [--coverage]` (encounter → victory → field → second encounter),
-`tools/oracle/mode7_route.sh <worldmap.srm>` (world map + airship). Donor `.srm` files stay outside
-the repo — they are path arguments.
+**Measure with `costs[]`, not entry counts.** The tier-2 manifest carries an instruction-weighted table;
+`discoveries[].observed_hits` counts entries and will mislead you (Step 19 looked like −56% and was −0.008%).
 
-**The next actions, in order:**
+**Routes:** `tools/oracle/srm_route.sh <save.srm>`, `tools/oracle/battle_route.sh <save.srm> [--coverage]`,
+`tools/oracle/mode7_route.sh <worldmap.srm>`. Donor `.srm` files stay outside the repo.
 
-1. **Give the world map a real oracle.** `ref_driver.c` cannot load SRAM, so Mode 7 has only
-   register evidence + a visual check, not byte-identical frames. ~30 lines to load a `.srm` into the
-   battery buffer would give the world map — and every other save route — a second implementation to
-   diff against.
-2. **Sample the C1 tail before promoting it.** 15,601 hits across 174 sites: check `fallback_reason`
-   first — `goto_gap/missing_entry` is another compilable pass (Step 19's method), while
-   `missing_exact_variant` is an `entry_mx` cfg question, not a root question.
-3. **C0 still interprets 28,884 hits** on the battle route — same gap-target method applies.
-4. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
-5. **Expect more dispatch authorizations** as new scenes become reachable. Loop: run → read
-   `[unresolved-abandon] site=$XXnnnn` → size the table → `indirect_dispatch` above the regen marker
-   → regen → rebuild → rerun.
+**Next actions, in order:**
+
+1. **Poll-spin handling** — the reason to do it is diagnosis, not speed: a never-cleared flag currently
+   crawls instead of stalling (that cost a session on `C1:0000`). Find the existing poll-shape recognition
+   in `interp_bridge.c`, apply it to the three hot spins, and verify frames stay byte-identical.
+2. **Sample the C3/C5 loops by instructions** (`C3:1370/1372` 1.92M each, `C5:01B5/01B8`, `C5:06AF/06B2`)
+   — these are real work and were invisible under entry-count ranking.
+3. **Give the world map and the crash class a second engine**: `ref_driver` still cannot load a `.srm`
+   (~30 lines). Note the limit: the reference links the same `ppu.c`, so it catches recompiled-code bugs,
+   not shared device-model bugs.
+4. **Promotion is now polish** — the remaining 27.8M is spread thin and does not limit anything at 17 ms/frame.
+5. **The prologue halt (Step 14) stays parked.**
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
