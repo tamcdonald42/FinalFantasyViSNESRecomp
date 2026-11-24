@@ -7,7 +7,7 @@ Scaffolded from snesrecomp (`tools/new_project/setup_project.sh`, framework pinn
 and run headless. All of this is reproducible from this file alone.
 
 **ROM (the one this project is pinned to):**
-`D:\roms\snes\Final Fantasy III (USA) (Rev 1).sfc` — sha256
+`<rom-path>\Final Fantasy III (USA) (Rev 1).sfc` — sha256
 `10eccc5d2fab81346dd759f6be478dcb682eef981e8d3d662da176e1f9a996bc`, crc32 `c0fa0464`.
 HiROM + FastROM, 3 MB, 8 KB battery SRAM, no coprocessor, checksum valid.
 
@@ -17,9 +17,9 @@ and sha256). It emits `build/en/rom/ff6-en.dbg` — 400,869 address→source-lin
 and 13,928 named labels. That is the analysis authority this port should be built
 against; nothing of it is committed here.
 
-**Toolchain:** VS2022 BuildTools, CMake 4.4.5 at `C:\Tools\cmake`, rustc 1.97.1
-`x86_64-pc-windows-gnu`, python 3.13 (miniconda), ninja at `C:\Users\Admin\bin`,
-winlibs gcc 16.2 at `C:\Tools\mingw64`.
+**Toolchain:** VS2022 BuildTools, CMake 4.4.5 at `<toolchain>\cmake`, rustc 1.97.1
+`x86_64-pc-windows-gnu`, python 3.13 (miniconda), ninja at `<toolchain>\bin`,
+winlibs gcc 16.2 at `<toolchain>\mingw64`.
 
 ### Build — canonical: MSVC
 
@@ -54,7 +54,7 @@ for this reason.
 ```powershell
 $env:SDL_VIDEODRIVER="dummy"; $env:SDL_AUDIODRIVER="dummy"
 .\build-msvc\Release\FinalFantasyViSNESRecomp.exe --no-launcher `
-  --rom 'D:\roms\snes\Final Fantasy III (USA) (Rev 1).sfc' --script boot.txt
+  --rom '<rom-path>\Final Fantasy III (USA) (Rev 1).sfc' --script boot.txt
 ```
 
 A dummy video driver implies headless, so the launcher is skipped automatically.
@@ -281,7 +281,7 @@ reference symbols that only the recompiled runtime defines, so `tools/cosim/ref_
 cmake -S tools/cosim -B tools/cosim/build -G "Visual Studio 17 2022" -A x64
 cmake --build tools/cosim/build --config Release --parallel 12
 tools/cosim/build/Release/ff6_cosim_ref.exe "<rom>" --frames 620 \
-    --final-frame-dump C:\Temp\refframes\final620.ppm
+    --final-frame-dump <scratch>\refframes\final620.ppm
 ```
 
 Result: 620 frames in about a minute, `PASS`, and its frame 620 is **pixel-identical to the port's
@@ -350,7 +350,7 @@ instrument this investigation wanted.
 
 No co-sim needed: `ff6_cosim_ref` dumps a final frame for any N, and the port dumps a frame range, so
 the two can be compared pixel-for-pixel. Three-way comparison at the intro fade (frame dumps:
-`C:\Temp\oracle\{ref,port2,port3,port_c0}`):
+`<scratch>\oracle\{ref,port2,port3,port_c0}`):
 
 | comparison | result |
 |---|---|
@@ -371,7 +371,7 @@ splits for APU boot-path reasons.
 
 ## Step 7 — bisecting with the frame oracle: two independent defects (2026-11-16)
 
-Harness: `C:\Temp\bisect\{gen_trial.py,cmp.py,trial.sh}` — select a contiguous slice of
+Harness: `<scratch>\bisect\{gen_trial.py,cmp.py,trial.sh}` — select a contiguous slice of
 `_authority/roots.toml`, append it after the four vectors, `regen`, incremental build of `build-c0`,
 24 s headless run dumping frames 640-662, compare against the baseline dump. ~3.5 min per trial.
 
@@ -625,7 +625,7 @@ defect planted in any of them would stay invisible.
 | `tools/oracle/cmp_frames.py` | BMP-vs-BMP, prints the first differing frame with its pixel count |
 | `tools/oracle/capture.sh 0\|1 TAG` | tier-2 coverage capture; `tools/oracle/poll.sh` reads build progress |
 
-Paths that worked: work dir `C:/Temp/c1`, input script `C:/Temp/oracle/script.txt`
+Paths that worked: work dir `<scratch>/c1`, input script `<scratch>/oracle/script.txt`
 (`wait 500` / `press start 4` / `wait 900` / `quit`), ROM `D:/roms/snes/ff3u11.sfc` (same sha256 as the
 pinned dump). They are Windows scripts driven through `C:/Program Files/Git/bin/bash.exe`.
 
@@ -1316,7 +1316,7 @@ Every route sidesteps it with a battery save. Same PC in both engines ⇒ shared
 (APU/SPC handshake or NMI timing), not generated code.
 
 **Routes:** `tools/oracle/srm_route.sh <save.srm>`, `battle_route.sh <save.srm> [--coverage]`,
-`mode7_route.sh <worldmap.srm>`; scene routes `/c/Temp/c1/{scenes,scenes2,opera_deep,walknow}.sh`; walk
+`mode7_route.sh <worldmap.srm>`; scene routes `<scratch>/{scenes,scenes2,opera_deep,walknow}.sh`; walk
 regression `verify_fix.sh` semantics = wfix vs wnow (20/20 identical).
 
 **Next actions, in order:**

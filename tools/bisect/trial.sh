@@ -10,21 +10,21 @@ cp _authority/symbols_base.toml recomp/symbols.toml
 cat "$FRAG" >> recomp/symbols.toml
 
 t0=$(date +%s)
-bash tools/regen.sh > /c/Temp/trial_regen.log 2>&1
+bash tools/regen.sh > ${SCRATCH:-/tmp}/trial_regen.log 2>&1
 RG=$?
 t1=$(date +%s)
 if [ $RG -ne 0 ]; then
   echo "TRIAL=REGEN_FAIL regen=$((t1-t0))s"
-  grep -v "^$" /c/Temp/trial_regen.log | tail -3
+  grep -v "^$" ${SCRATCH:-/tmp}/trial_regen.log | tail -3
   exit 0
 fi
 
-cmake --build build-msvc --config Release --parallel 12 > /c/Temp/trial_build.log 2>&1
+cmake --build build-msvc --config Release --parallel 12 > ${SCRATCH:-/tmp}/trial_build.log 2>&1
 BD=$?
 t2=$(date +%s)
 if [ $BD -ne 0 ]; then
   echo "TRIAL=BUILD_FAIL build=$((t2-t1))s"
-  grep -E "error|Error" /c/Temp/trial_build.log | head -5
+  grep -E "error|Error" ${SCRATCH:-/tmp}/trial_build.log | head -5
   exit 0
 fi
 
@@ -34,19 +34,20 @@ export SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy
 export SNESRECOMP_FRAMEDUMP_PIXELS=1
 export SNESRECOMP_FRAMEDUMP_START=480
 export SNESRECOMP_FRAMEDUMP_END=670
-rm -rf /c/Temp/ff6trial
+rm -rf "${SCRATCH:-/tmp}/ff6trial"
 timeout 240 ./FinalFantasyViSNESRecomp.exe --no-launcher \
-  --rom 'D:\roms\snes\Final Fantasy III (USA) (Rev 1).sfc' \
-  --framedump 'C:\Temp\ff6trial' --script 'C:\Temp\bisect.txt' > /c/Temp/trial_run.log 2>&1
+  --rom "${SNESRECOMP_ROM:-Final Fantasy III (USA) (Rev 1).sfc}" \
+  --framedump "${SCRATCH:-/tmp}/ff6trial" --script "${SCRATCH:-/tmp}/bisect.txt" \
+  > "${SCRATCH:-/tmp}/trial_run.log" 2>&1
 RUN=$?
 t3=$(date +%s)
 
 n=0; bad=0; first=""
-for f in /c/Temp/ff6trial/*.bmp; do
+for f in "${SCRATCH:-/tmp}/ff6trial"/*.bmp; do
   [ -e "$f" ] || continue
   n=$((n+1))
   b=$(basename "$f")
-  if ! cmp -s "$f" "/c/Temp/ff6start/$b"; then
+  if ! cmp -s "$f" "${SCRATCH:-/tmp}/ff6start/$b"; then
     bad=$((bad+1))
     [ -z "$first" ] && first="$b"
   fi

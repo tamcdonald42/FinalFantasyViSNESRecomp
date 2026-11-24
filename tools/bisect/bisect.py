@@ -5,15 +5,16 @@ Each trial promotes a subset, regenerates, rebuilds, replays frames 480-670 and
 byte-compares them with the capture taken before any AOT promotion. A subset
 "fails" when any frame differs.
 """
+import os
 import pathlib
 import re
 import subprocess
 import sys
 
-REPO = pathlib.Path(r"H:\FinalFantasyViSNESRecomp")
-BASH = r"C:\Program Files\Git\bin\bash.exe"
-TRIAL = r"C:/Temp/trial.sh"
-LOG = pathlib.Path(r"C:\Temp\bisect_out.log")
+REPO = pathlib.Path(__file__).resolve().parents[2]
+BASH = os.environ.get("BASH", "bash")
+TRIAL = os.environ.get("TRIAL_SCRIPT", str(REPO / "tools" / "bisect" / "trial.sh"))
+LOG = pathlib.Path(os.environ.get("BISECT_LOG", "bisect_out.log"))
 
 
 def log(msg):

@@ -12,16 +12,17 @@ So class the outcome and only narrow towards the signature we are chasing:
 
 Recurse into whichever half is MILD; stop when neither half is.
 """
+import os
 import pathlib
 import re
 import subprocess
 import sys
 
-REPO = pathlib.Path(r"H:\FinalFantasyViSNESRecomp")
+REPO = pathlib.Path(__file__).resolve().parents[2]
 AUTH = REPO / "_authority"
-BASH = r"C:\Program Files\Git\bin\bash.exe"
+BASH = os.environ.get("BASH", "bash")
 TRIAL = r"C:/Temp/trial.sh"
-LOG = pathlib.Path(r"C:\Temp\bisect2.log")
+LOG = pathlib.Path(os.environ.get("BISECT_LOG", "bisect2.log"))
 FIRST_DUMPED = "frame_000480.bmp"
 
 

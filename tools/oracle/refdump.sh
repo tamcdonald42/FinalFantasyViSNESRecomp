@@ -3,7 +3,7 @@ set -u
 TAG=${1:-ref}
 START=${2:-390}
 END=${3:-660}
-W=/c/Temp/c1
+W="${SCRATCH:-/tmp}/ff6-oracle"
 cd /h/FinalFantasyViSNESRecomp || exit 9
 rm -rf $W/$TAG; mkdir -p $W/$TAG
 SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \

@@ -1,10 +1,10 @@
 set -u
 # usage: runonly.sh TAG REFDIR [START] [END]
 TAG=${1:-c1full}
-REF=${2:-/c/Temp/c1/ref}
+REF=${2:-${SCRATCH:-/tmp}/ff6-oracle/ref}
 START=${3:-390}
 END=${4:-660}
-W=/c/Temp/c1
+W="${SCRATCH:-/tmp}/ff6-oracle"
 cd /h/FinalFantasyViSNESRecomp || exit 9
 rm -rf $W/out_$TAG; mkdir -p $W/out_$TAG
 SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
