@@ -976,32 +976,75 @@ triggered by walking on. Battle start, battle execution, victory and return-to-f
 - **Kill the old process before rebuilding.** A killed run leaves `FinalFantasyViSNESRecomp.exe`
   holding its own image, and the next build dies with `LNK1104: cannot open file ...exe`.
 
+## Step 19 — promoting C1 coverage gaps: 30 roots, 56% of C1's interpretation gone (2026-11-23)
+
+First promotion driven by battle coverage rather than by bank size.
+
+### Baseline
+
+Battle-route capture (`battle_route.sh <srm> build-c1 --coverage`, 8,481 frames):
+**163,941 interpreted hits across 547 sites** — 7E 93,946, C1 35,282, C0 28,884, C3 3,778,
+C2 2,051. The failure classes split cleanly: **143,811 hits `missing_entry`** (no compiled function
+at the target at all) versus **20,130 `missing_exact_variant`** (function exists, wrong M/X mode).
+So the bottleneck was promotion, not cfg modes.
+
+C1 was the target: 0 hits on the field-only route, then 35,282 once battles ran, top 10 sites = 47%.
+
+### What was promoted
+
+The top 30 C1 `missing_entry` targets by hit count (22,800 hits covered), appended to
+`recomp/candidate-roots-c1.toml` with `emit = true` and an address-derived name.
+
+- Emit: 25,668 → **25,916 roots**, 12,391 → **12,479 exact AOT variants** (+88), LLE 17,497 → 17,663.
+- **The counter moving is the gate, and it is what separated this from Step 16.** Rooting C3's hot
+  loop heads moved nothing because they were interior addresses with no observed edge; these are
+  `goto_gap` targets — the coverage recorded an actual jump into them — so the analysis can enter
+  and compile them.
+
+### Verification
+
+- Pixel oracle on the same battle route: **7/7 dump points byte-identical** to the pre-promotion
+  run, `abandons=0`, no crash (8,481 frames both times).
+- Re-captured coverage, same route: total **163,941 → 144,260** (−12%), sites 547 → 523.
+  **C1 35,282 → 15,601 (−55.8%)**, C1 sites 198 → 174. C0, C3, C2 and 7E are unchanged to the hit,
+  which is the control that says the promotion did what it claimed and nothing else.
+
+### What is left
+
+- **C1 15,601 across 174 sites** — a long tail now, not a hot spot. Promoting the whole remaining
+  set is a larger job for a smaller return; sample it before deciding.
+- **7E 93,946 is not promotable**: those are RAM-resident routines (`call_gap/missing_entry` at
+  `$7E53E9` etc. — code the game copies into WRAM and runs from there). Also note the figure is
+  *identical* across runs of different length, so it reads as deduped or capped accounting rather
+  than a per-run count; treat the total as a floor, not an exact number.
+
 ## Resume here (new session)
 
-**Head:** the Step-18 commit on `main`, tree clean, mirrored.
-**Verified state:** C0+C1+C2+C3 promoted — 2,293 funcs, 25,668 roots / **12,391 exact AOT variants** /
-17,497 LLE. Field, menu, **battle, victory and return-to-field all run with `abandons=0`**: the battle
-route covers 8,481 frames in 143 s, the fight resolves (dump `f50` is the field again), and a second
-encounter triggers. `build-c1/Release/...` is the full binary, `build-c0/Release/...` the C0-only
-control, `build-dbg/RelWithDebInfo/...` the symbolized build for crash work.
+**Head:** the Step-19 commit on `main`, tree clean, mirrored.
+**Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 exact AOT variants / 17,663 LLE**.
+Field, menu and battle all run with `abandons=0`; the battle route resolves a fight, returns to the
+field and triggers a second encounter. Battle-route interpretation is down to **144,260 hits / 523
+sites** (from 163,941 / 547), with **C1 15,601** (from 35,282) — C0 28,884, C3 3,778, C2 2,051,
+7E 93,946. `build-c1/Release/...` is the full binary, `build-c0/Release/...` the C0-only control,
+`build-dbg/RelWithDebInfo/...` the symbolized build for crash work.
 
-**Routes:** `tools/oracle/srm_route.sh <save.srm>` (field + menu, 5 dump points) and
-`tools/oracle/battle_route.sh <save.srm>` (encounter + fight to victory). Use both as oracles; they
-cover different banks.
+**Routes:** `tools/oracle/srm_route.sh <save.srm>` (field + menu) and
+`tools/oracle/battle_route.sh <save.srm> [--coverage]` (encounter → victory → field → second
+encounter). Both are deterministic; both are oracles. Always diff dumps before and after a promotion.
 
 **The next actions, in order:**
 
-1. **Measure the battle route.** Coverage before any further promotion: C1/C2 volumes, which sites are
-   still interpreted, whether the battle side is now AOT-heavy or dominant-by-wait-loops. Promote the
-   hot residues exactly as Step 16 did for C3.
-2. **Mode 7 is still untested.** The world map is the path that exercises it; the opening only pokes
-   `$211B`/`$211C`. Crash diagnosis now works (`symdump.py` + `build-dbg`), so this is cheap to try.
+1. **Sample the C1 tail before promoting it.** 15,601 hits across 174 sites is a long tail: check
+   whether the remaining sites are `goto_gap/missing_entry` (compilable, worth another pass) or
+   `missing_exact_variant` (a cfg `entry_mx` question, not a root question).
+2. **Mode 7 is still untested.** The world map is the path that exercises it — the opening only pokes
+   `$211B`/`$211C` while the display stays in mode 1. Crash diagnosis works now
+   (`tools/oracle/symdump.py` + `build-dbg`), so a world-map save is a cheap, high-value test.
 3. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
-4. **C0 still interprets ~18-19M instructions** — root extension is the cheapest AOT win left.
-5. **Expect more dispatch authorizations.** Battle code is built from computed jump tables; each
-   newly-reachable scene can expose another site. The loop is: run → read
-   `[unresolved-abandon] site=$XXnnnn` → size the table → add `indirect_dispatch` above the regen
-   marker → regen → rebuild → rerun.
+4. **C0 still interprets ~28,884 hits on this route.** Same gap-target method as Step 19 applies.
+5. **Expect more dispatch authorizations** as new scenes become reachable — battle code is built from
+   computed jump tables. Loop: run → read `[unresolved-abandon] site=$XXnnnn` → size the table →
+   `indirect_dispatch` above the regen marker → regen → rebuild → rerun.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds

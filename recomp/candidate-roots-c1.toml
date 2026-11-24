@@ -3934,3 +3934,243 @@ addr = "ff68"
 bank = 0xC1
 emit = true
 note = "jsr target, 1 call site(s)"
+
+[[func]]
+name = "sub_C127B9"
+addr = "27B9"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 2795 interpreted hits"
+
+
+[[func]]
+name = "sub_C1686F"
+addr = "686F"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1993 interpreted hits"
+
+
+[[func]]
+name = "sub_C15A3D"
+addr = "5A3D"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1239 interpreted hits"
+
+
+[[func]]
+name = "sub_C167B9"
+addr = "67B9"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1235 interpreted hits"
+
+
+[[func]]
+name = "sub_C167F6"
+addr = "67F6"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1235 interpreted hits"
+
+
+[[func]]
+name = "sub_C167B2"
+addr = "67B2"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1225 interpreted hits"
+
+
+[[func]]
+name = "sub_C167E8"
+addr = "67E8"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1225 interpreted hits"
+
+
+[[func]]
+name = "sub_C167B5"
+addr = "67B5"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1128 interpreted hits"
+
+
+[[func]]
+name = "sub_C167EF"
+addr = "67EF"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 1128 interpreted hits"
+
+
+[[func]]
+name = "sub_C167BD"
+addr = "67BD"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 986 interpreted hits"
+
+
+[[func]]
+name = "sub_C1683E"
+addr = "683E"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 951 interpreted hits"
+
+
+[[func]]
+name = "sub_C144FD"
+addr = "44FD"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 944 interpreted hits"
+
+
+[[func]]
+name = "sub_C14AC7"
+addr = "4AC7"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 663 interpreted hits"
+
+
+[[func]]
+name = "sub_C14AD8"
+addr = "4AD8"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 662 interpreted hits"
+
+
+[[func]]
+name = "sub_C14AE9"
+addr = "4AE9"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 662 interpreted hits"
+
+
+[[func]]
+name = "sub_C14AB9"
+addr = "4AB9"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 662 interpreted hits"
+
+
+[[func]]
+name = "sub_C15A3E"
+addr = "5A3E"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 484 interpreted hits"
+
+
+[[func]]
+name = "sub_C16791"
+addr = "6791"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 341 interpreted hits"
+
+
+[[func]]
+name = "sub_C168A4"
+addr = "68A4"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 319 interpreted hits"
+
+
+[[func]]
+name = "sub_C16929"
+addr = "6929"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 319 interpreted hits"
+
+
+[[func]]
+name = "sub_C14AFA"
+addr = "4AFA"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 315 interpreted hits"
+
+
+[[func]]
+name = "sub_C14B01"
+addr = "4B01"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 315 interpreted hits"
+
+
+[[func]]
+name = "sub_C14B0A"
+addr = "4B0A"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 315 interpreted hits"
+
+
+[[func]]
+name = "sub_C14B13"
+addr = "4B13"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 314 interpreted hits"
+
+
+[[func]]
+name = "sub_C144FA"
+addr = "44FA"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 313 interpreted hits"
+
+
+[[func]]
+name = "sub_C17E02"
+addr = "7E02"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 294 interpreted hits"
+
+
+[[func]]
+name = "sub_C17E70"
+addr = "7E70"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 228 interpreted hits"
+
+
+[[func]]
+name = "sub_C17A8F"
+addr = "7A8F"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 194 interpreted hits"
+
+
+[[func]]
+name = "sub_C18622"
+addr = "8622"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 159 interpreted hits"
+
+
+[[func]]
+name = "sub_C16D8D"
+addr = "6D8D"
+bank = 0xC1
+emit = true
+note = "battle-route coverage gap target, 157 interpreted hits"
+
