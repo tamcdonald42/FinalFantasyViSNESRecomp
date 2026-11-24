@@ -1,0 +1,5842 @@
+# Block names for Final Fantasy VI bank $C3.
+#
+# Imported by tools/import_labels.py from an external commented
+# disassembly; regenerate rather than hand-edit the generated block.
+#
+# source:      ff6_bank_c3.txt
+# source_sha:  86a425837cda22821cbb15ccc88b7871eaa638a6647ea3d99d1c39cbf0ff863f
+# source_size: 1329609 bytes
+# entries:     971 of 1036 known $C3 function entries
+# unnamed:     65
+#
+# `name` is a C identifier safe to use as a generated function name.
+# `note` is the compendium prose, verbatim except for a stripped
+# "Fork: " prefix and trailing ellipsis.
+#
+# Apply with: python3 tools/apply_labels.py   (after tools/gen_roots.py)
+
+[[label]]
+addr = "00c0"
+bank = 0xC3
+name = "reroute_interrupt_vectors"
+note = "Reroute interrupt vectors"
+
+[[label]]
+addr = "00dd"
+bank = 0xC3
+name = "access_requested_field_menu"
+note = "Access requested field menu"
+
+[[label]]
+addr = "0138"
+bank = 0xC3
+name = "clear_cursor_position_restored_from_lineup_s"
+note = "Clear cursor position restored from Lineup's Status menu"
+
+[[label]]
+addr = "02db"
+bank = 0xC3
+name = "set_to_exit_menu_if_event_countdown_timer"
+note = "Set to exit menu if event countdown timer expired"
+
+[[label]]
+addr = "02f9"
+bank = 0xC3
+name = "load_text_string_into_tilemap"
+note = "Load text string into tilemap"
+
+[[label]]
+addr = "0341"
+bank = 0xC3
+name = "prepare_to_and_draw_a_menu_window"
+note = "Prepare to and draw a menu window"
+
+[[label]]
+addr = "0375"
+bank = 0xC3
+name = "draw_a_menu_window"
+note = "Draw a menu window"
+
+[[label]]
+addr = "03a3"
+bank = 0xC3
+name = "draw_window_s_upper_row"
+note = "Draw window's upper row"
+
+[[label]]
+addr = "0402"
+bank = 0xC3
+name = "set_pattern_width_for_inner_window_tiles"
+note = "Set pattern width for inner window tiles"
+
+[[label]]
+addr = "0408"
+bank = 0xC3
+name = "set_pattern_width_for_top_or_bottom_window"
+note = "Set pattern width for top or bottom window border"
+
+[[label]]
+addr = "040e"
+bank = 0xC3
+name = "get_window_side_tiles_for_odd_numbered_pattern"
+note = "Get window side tiles for odd-numbered pattern row"
+
+[[label]]
+addr = "041b"
+bank = 0xC3
+name = "get_window_side_tiles_for_even_numbered_pattern"
+note = "Get window side tiles for even-numbered pattern row"
+
+[[label]]
+addr = "0486"
+bank = 0xC3
+name = "draw_3_digits_16_bit_number"
+note = "Draw 3 digits (16-bit number)"
+
+[[label]]
+addr = "0490"
+bank = 0xC3
+name = "draw_4_digits"
+note = "Draw 4 digits"
+
+[[label]]
+addr = "049a"
+bank = 0xC3
+name = "draw_5_digits"
+note = "Draw 5 digits"
+
+[[label]]
+addr = "04a3"
+bank = 0xC3
+name = "draw_8_digits"
+note = "Draw 8 digits"
+
+[[label]]
+addr = "04ac"
+bank = 0xC3
+name = "draw_7_digits"
+note = "Draw 7 digits"
+
+[[label]]
+addr = "04b6"
+bank = 0xC3
+name = "draw_2_digits"
+note = "Draw 2 digits"
+
+[[label]]
+addr = "04c0"
+bank = 0xC3
+name = "draw_3_digits_8_bit_number"
+note = "Draw 3 digits (8-bit number)"
+
+[[label]]
+addr = "04e0"
+bank = 0xC3
+name = "convert_8_bit_number_into_text_blank_leading"
+note = "Convert 8-bit number into text, blank leading zeroes"
+
+[[label]]
+addr = "04f9"
+bank = 0xC3
+name = "convert_8_bit_number_into_text_retain_leading"
+note = "Convert 8-bit number into text, retain leading zeroes"
+
+[[label]]
+addr = "052e"
+bank = 0xC3
+name = "convert_16_bit_number_into_text_blank_leading"
+note = "Convert 16-bit number into text, blank leading zeroes"
+
+[[label]]
+addr = "0582"
+bank = 0xC3
+name = "convert_24_bit_number_into_text_blank_leading"
+note = "Convert 24-bit number into text, blank leading zeroes"
+
+[[label]]
+addr = "05fe"
+bank = 0xC3
+name = "load_navigation_parameters_for_menu_area"
+note = "Load navigation parameters for menu area"
+
+[[label]]
+addr = "0630"
+bank = 0xC3
+name = "set_address_to_table_of_cursor_coordinates"
+note = "Set address to table of cursor coordinates"
+
+[[label]]
+addr = "0640"
+bank = 0xC3
+name = "position_cursor_in_unscrollable_area"
+note = "Position cursor in unscrollable area"
+
+[[label]]
+addr = "0648"
+bank = 0xC3
+name = "position_cursor_in_scrollable_list"
+note = "Position cursor in scrollable list"
+
+[[label]]
+addr = "0650"
+bank = 0xC3
+name = "set_cursor_s_slot_position_in_party_area_of"
+note = "Set cursor's slot position in party area of Lineup menu"
+
+[[label]]
+addr = "0677"
+bank = 0xC3
+name = "set_cursor_s_slot_position_in_unscrollable_area"
+note = "Set cursor's slot position in unscrollable area"
+
+[[label]]
+addr = "069e"
+bank = 0xC3
+name = "set_cursor_s_slot_position_in_scrollable_list"
+note = "Set cursor's slot position in scrollable list"
+
+[[label]]
+addr = "072d"
+bank = 0xC3
+name = "handle_d_pad_for_unscrollable_list"
+note = "Handle D-Pad for unscrollable list"
+
+[[label]]
+addr = "07b0"
+bank = 0xC3
+name = "queue_movable_cursor_s_oam_function"
+note = "Queue movable cursor's OAM function"
+
+[[label]]
+addr = "089f"
+bank = 0xC3
+name = "create_a_blinking_cursor_by_every_portrait"
+note = "Create a blinking cursor by every portrait"
+
+[[label]]
+addr = "0908"
+bank = 0xC3
+name = "update_scrollbar_animation_index"
+note = "Update scrollbar animation index"
+
+[[label]]
+addr = "091f"
+bank = 0xC3
+name = "create_a_scrollbar_on_right_side_of_screen"
+note = "Create a scrollbar on right side of screen"
+
+[[label]]
+addr = "0933"
+bank = 0xC3
+name = "create_a_scrollbar_in_middle_of_screen"
+note = "Create a scrollbar in middle of screen"
+
+[[label]]
+addr = "0a22"
+bank = 0xC3
+name = "create_portrait_for_member_1"
+note = "Create portrait for member 1"
+
+[[label]]
+addr = "0a4b"
+bank = 0xC3
+name = "create_portrait_for_member_2"
+note = "Create portrait for member 2"
+
+[[label]]
+addr = "0a76"
+bank = 0xC3
+name = "create_portrait_for_member_3"
+note = "Create portrait for member 3"
+
+[[label]]
+addr = "0aa1"
+bank = 0xC3
+name = "create_portrait_for_member_4"
+note = "Create portrait for member 4"
+
+[[label]]
+addr = "0acc"
+bank = 0xC3
+name = "load_pointer_to_animation_table_for_portrait"
+note = "Load pointer to animation table for portrait"
+
+[[label]]
+addr = "0af1"
+bank = 0xC3
+name = "set_portrait_s_base_x_position_based_on_actor_s"
+note = "Set portrait's base X position based on actor's row"
+
+[[label]]
+addr = "0c6c"
+bank = 0xC3
+name = "draw_member_s_level_hp_and_mp"
+note = "Draw member's level, HP, and MP"
+
+[[label]]
+addr = "0d21"
+bank = 0xC3
+name = "draw_member_s_current_or_max_hp_or_mp"
+note = "Draw member's current or max HP or MP"
+
+[[label]]
+addr = "0d2b"
+bank = 0xC3
+name = "determine_whether_actor_can_use_magic"
+note = "Determine whether actor can use magic"
+
+[[label]]
+addr = "0d65"
+bank = 0xC3
+name = "determine_max_hp_or_mp_with_gear_bonus"
+note = "Determine max HP or MP with gear bonus"
+
+[[label]]
+addr = "0d92"
+bank = 0xC3
+name = "enforce_hp_cap"
+note = "Enforce HP cap"
+
+[[label]]
+addr = "0d9f"
+bank = 0xC3
+name = "enforce_mp_cap"
+note = "Enforce MP cap"
+
+[[label]]
+addr = "0dac"
+bank = 0xC3
+name = "restore_cursor_position_in_inventory"
+note = "Restore cursor position in inventory"
+
+[[label]]
+addr = "0dba"
+bank = 0xC3
+name = "interchange_cursor_memory_for_swapped_members"
+note = "Interchange cursor memory for swapped members"
+
+[[label]]
+addr = "0dff"
+bank = 0xC3
+name = "restore_cursor_position_in_skills_menu"
+note = "Restore cursor position in Skills menu"
+
+[[label]]
+addr = "0e0a"
+bank = 0xC3
+name = "restore_cursor_position_in_magic_menu"
+note = "Restore cursor position in Magic menu"
+
+[[label]]
+addr = "0e28"
+bank = 0xC3
+name = "upload_bg1_tilemaps_a_and_b"
+note = "Upload BG1 tilemaps A and B"
+
+[[label]]
+addr = "0e36"
+bank = 0xC3
+name = "upload_bg1_tilemaps_b_and_c"
+note = "Upload BG1 tilemaps B and C"
+
+[[label]]
+addr = "0e44"
+bank = 0xC3
+name = "upload_bg1_tilemaps_c_and_d"
+note = "Upload BG1 tilemaps C and D"
+
+[[label]]
+addr = "0e52"
+bank = 0xC3
+name = "upload_bg2_tilemaps_a_and_b"
+note = "Upload BG2 tilemaps A and B"
+
+[[label]]
+addr = "0e60"
+bank = 0xC3
+name = "upload_bg2_tilemaps_c_and_d"
+note = "Upload BG2 tilemaps C and D"
+
+[[label]]
+addr = "0e6e"
+bank = 0xC3
+name = "upload_bg3_tilemaps_a_and_b"
+note = "Upload BG3 tilemaps A and B"
+
+[[label]]
+addr = "0e7c"
+bank = 0xC3
+name = "upload_bg3_tilemaps_c_and_d"
+note = "Upload BG3 tilemaps C and D"
+
+[[label]]
+addr = "0ea3"
+bank = 0xC3
+name = "play_cursor_sound"
+note = "Play cursor sound"
+
+[[label]]
+addr = "0eb2"
+bank = 0xC3
+name = "play_click_sound"
+note = "Play click sound"
+
+[[label]]
+addr = "0eb9"
+bank = 0xC3
+name = "play_save_sound"
+note = "Play save sound"
+
+[[label]]
+addr = "0ec0"
+bank = 0xC3
+name = "play_buzzer_sound"
+note = "Play buzzer sound"
+
+[[label]]
+addr = "0ec7"
+bank = 0xC3
+name = "play_letter_deletion_sound"
+note = "Play letter deletion sound"
+
+[[label]]
+addr = "0ece"
+bank = 0xC3
+name = "play_cash_register_sound"
+note = "Play cash register sound"
+
+[[label]]
+addr = "0ee5"
+bank = 0xC3
+name = "play_recovery_sound"
+note = "Play recovery sound"
+
+[[label]]
+addr = "0ee9"
+bank = 0xC3
+name = "set_to_upload_bg1_tilemaps_a_and_b"
+note = "Set to upload BG1 tilemaps A and B"
+
+[[label]]
+addr = "0efd"
+bank = 0xC3
+name = "set_to_upload_bg1_tilemap_a"
+note = "Set to upload BG1 tilemap A"
+
+[[label]]
+addr = "0f11"
+bank = 0xC3
+name = "set_to_upload_bg1_tilemap_b"
+note = "Set to upload BG1 tilemap B"
+
+[[label]]
+addr = "0f25"
+bank = 0xC3
+name = "set_to_upload_bg3_tilemaps_a_and_b"
+note = "Set to upload BG3 tilemaps A and B"
+
+[[label]]
+addr = "0f39"
+bank = 0xC3
+name = "set_to_upload_bg3_tilemap_a_version_1"
+note = "Set to upload BG3 tilemap A (version 1)"
+
+[[label]]
+addr = "0f4d"
+bank = 0xC3
+name = "set_to_upload_bg3_tilemap_b_version_1"
+note = "Set to upload BG3 tilemap B (version 1)"
+
+[[label]]
+addr = "0f61"
+bank = 0xC3
+name = "set_to_upload_bg3_tilemap_a_version_2"
+note = "Set to upload BG3 tilemap A (version 2)"
+
+[[label]]
+addr = "0f75"
+bank = 0xC3
+name = "set_to_upload_bg3_tilemap_b_version_2"
+note = "Set to upload BG3 tilemap B (version 2)"
+
+[[label]]
+addr = "0f89"
+bank = 0xC3
+name = "disable_conditional_upload_during_nmi"
+note = "Disable conditional upload during NMI"
+
+[[label]]
+addr = "0f8e"
+bank = 0xC3
+name = "load_specified_palette_for_ending"
+note = "Load specified palette (for ending)"
+
+[[label]]
+addr = "0faa"
+bank = 0xC3
+name = "set_to_gradually_convert_one_palette_into"
+note = "Set to gradually convert one palette into another"
+
+[[label]]
+addr = "1037"
+bank = 0xC3
+name = "partially_convert_one_palette_into_another"
+note = "Partially convert one palette into another"
+
+[[label]]
+addr = "1051"
+bank = 0xC3
+name = "partially_convert_one_color_into_another"
+note = "Partially convert one color into another"
+
+[[label]]
+addr = "1114"
+bank = 0xC3
+name = "reset_oam_and_animation_queue"
+note = "Reset OAM and animation queue"
+
+[[label]]
+addr = "114e"
+bank = 0xC3
+name = "reset_oam"
+note = "Reset OAM"
+
+[[label]]
+addr = "1173"
+bank = 0xC3
+name = "queue_animation_function_include_queue_index"
+note = "Queue animation function, include queue index"
+
+[[label]]
+addr = "118b"
+bank = 0xC3
+name = "queue_animation_function"
+note = "Queue animation function"
+
+[[label]]
+addr = "11b0"
+bank = 0xC3
+name = "process_animation_queue_hide_inactive_objects"
+note = "Process animation queue, hide inactive objects"
+
+[[label]]
+addr = "1203"
+bank = 0xC3
+name = "execute_queued_animation_function"
+note = "Execute queued animation function"
+
+[[label]]
+addr = "1206"
+bank = 0xC3
+name = "initialize_m7_or_object_s_pose_number_and_timer"
+note = "Initialize M7 or object's pose number and timer"
+
+[[label]]
+addr = "1221"
+bank = 0xC3
+name = "handle_object_s_pose_timer_then_define_oam"
+note = "Handle object's pose timer, then define OAM"
+
+[[label]]
+addr = "1227"
+bank = 0xC3
+name = "handle_pose_or_mode_7_timer"
+note = "Handle pose or Mode 7 timer"
+
+[[label]]
+addr = "1263"
+bank = 0xC3
+name = "initialize_pose_or_mode_7_timer"
+note = "Initialize pose or Mode 7 timer"
+
+[[label]]
+addr = "12fc"
+bank = 0xC3
+name = "determine_object_tile_s_coordinates_load"
+note = "Determine object tile's coordinates, load attributes"
+
+[[label]]
+addr = "1338"
+bank = 0xC3
+name = "hide_inactive_tiles_in_oam"
+note = "Hide inactive tiles in OAM"
+
+[[label]]
+addr = "134d"
+bank = 0xC3
+name = "trigger_nmi_decode_joypads_etc"
+note = "Trigger NMI, decode joypads, etc."
+
+[[label]]
+addr = "1368"
+bank = 0xC3
+name = "trigger_nmi_allow_cursor_sound_to_repeat"
+note = "Trigger NMI, allow cursor sound to repeat"
+
+[[label]]
+addr = "13c8"
+bank = 0xC3
+name = "advance_play_time_nmi"
+note = "Advance play time (NMI)"
+
+[[label]]
+addr = "1412"
+bank = 0xC3
+name = "refresh_screen_nmi"
+note = "Refresh screen (NMI)"
+
+[[label]]
+addr = "1463"
+bank = 0xC3
+name = "refresh_oam_nmi"
+note = "Refresh OAM (NMI)"
+
+[[label]]
+addr = "1488"
+bank = 0xC3
+name = "handle_absolute_vram_transfer_nmi"
+note = "Handle absolute VRAM transfer (NMI)"
+
+[[label]]
+addr = "14ac"
+bank = 0xC3
+name = "handle_conditional_vram_transfer_nmi"
+note = "Handle conditional VRAM transfer (NMI)"
+
+[[label]]
+addr = "14d2"
+bank = 0xC3
+name = "refresh_cgram_nmi"
+note = "Refresh CGRAM (NMI)"
+
+[[label]]
+addr = "1566"
+bank = 0xC3
+name = "load_save_file"
+note = "Load save file"
+
+[[label]]
+addr = "1586"
+bank = 0xC3
+name = "copy_event_timer_data_to_save_area"
+note = "Copy event timer data to save area"
+
+[[label]]
+addr = "1595"
+bank = 0xC3
+name = "restore_saved_event_timer_data"
+note = "Restore saved event timer data"
+
+[[label]]
+addr = "15a4"
+bank = 0xC3
+name = "load_navigation_data_for_save_menu"
+note = "Load navigation data for Save menu"
+
+[[label]]
+addr = "15aa"
+bank = 0xC3
+name = "handle_d_pad_for_save_menu"
+note = "Handle D-Pad for Save menu"
+
+[[label]]
+addr = "15b8"
+bank = 0xC3
+name = "load_navigation_data_for_load_menu"
+note = "Load navigation data for Load menu"
+
+[[label]]
+addr = "15be"
+bank = 0xC3
+name = "handle_d_pad_for_load_menu"
+note = "Handle D-Pad for Load menu"
+
+[[label]]
+addr = "15d4"
+bank = 0xC3
+name = "load_navigation_data_for_save_file_confirmation"
+note = "Load navigation data for save file confirmation"
+
+[[label]]
+addr = "15da"
+bank = 0xC3
+name = "handle_d_pad_for_save_file_confirmation"
+note = "Handle D-Pad for save file confirmation"
+
+[[label]]
+addr = "15ec"
+bank = 0xC3
+name = "draw_save_menu_load_skins_list_actor_sprites"
+note = "Draw Save menu, load skins, list actor sprites"
+
+[[label]]
+addr = "1608"
+bank = 0xC3
+name = "draw_load_menu_load_skins_list_actor_sprites"
+note = "Draw Load menu, load skins, list actor sprites"
+
+[[label]]
+addr = "1632"
+bank = 0xC3
+name = "output_all_save_files"
+note = "Output all save files"
+
+[[label]]
+addr = "171d"
+bank = 0xC3
+name = "draw_all_text_for_save_file_1"
+note = "Draw all text for save file 1"
+
+[[label]]
+addr = "174d"
+bank = 0xC3
+name = "draw_leader_info_for_save_file_1"
+note = "Draw leader info for save file 1"
+
+[[label]]
+addr = "17be"
+bank = 0xC3
+name = "get_member_s_sram_block_address"
+note = "Get member's SRAM block address"
+
+[[label]]
+addr = "17ca"
+bank = 0xC3
+name = "draw_all_text_for_save_file_2"
+note = "Draw all text for save file 2"
+
+[[label]]
+addr = "17fa"
+bank = 0xC3
+name = "draw_leader_info_for_save_file_2"
+note = "Draw leader info for save file 2"
+
+[[label]]
+addr = "182d"
+bank = 0xC3
+name = "draw_all_text_for_save_file_3"
+note = "Draw all text for save file 3"
+
+[[label]]
+addr = "185d"
+bank = 0xC3
+name = "draw_leader_info_for_save_file_3"
+note = "Draw leader info for save file 3"
+
+[[label]]
+addr = "18ac"
+bank = 0xC3
+name = "back_up_sram_block"
+note = "Back up SRAM block"
+
+[[label]]
+addr = "18c1"
+bank = 0xC3
+name = "restore_sram_block"
+note = "Restore SRAM block"
+
+[[label]]
+addr = "18d1"
+bank = 0xC3
+name = "set_to_condense_bg3_text_save_file_confirmation"
+note = "Set to condense BG3 text (save file confirmation, Colosseum matchup)"
+
+[[label]]
+addr = "1903"
+bank = 0xC3
+name = "create_actor_sprites_for_save_or_load_menu"
+note = "Create actor sprites for Save or Load menu"
+
+[[label]]
+addr = "19d1"
+bank = 0xC3
+name = "compute_sram_checksum"
+note = "Compute SRAM checksum"
+
+[[label]]
+addr = "19eb"
+bank = 0xC3
+name = "load_and_validate_sram_checksum_buggy_if_zero"
+note = "Load and validate SRAM checksum (buggy if zero)"
+
+[[label]]
+addr = "1ae2"
+bank = 0xC3
+name = "initialize_item_list_variables_item_colosseum"
+note = "Initialize item list variables (Item, Colosseum)"
+
+[[label]]
+addr = "1afe"
+bank = 0xC3
+name = "draw_item_menu_position_cursor_in_inventory"
+note = "Draw Item menu, position cursor in inventory"
+
+[[label]]
+addr = "1b0e"
+bank = 0xC3
+name = "initiate_text_shifting_sprites_fade_in_item"
+note = "Initiate text shifting, sprites, fade-in (Item, Colosseum)"
+
+[[label]]
+addr = "1b99"
+bank = 0xC3
+name = "set_to_update_and_upload_description"
+note = "Set to update and upload description"
+
+[[label]]
+addr = "1ba8"
+bank = 0xC3
+name = "load_portrait_graphics_and_colors_for_party"
+note = "Load portrait graphics and colors for party"
+
+[[label]]
+addr = "1bbd"
+bank = 0xC3
+name = "initialize_variables_for_equip_menu"
+note = "Initialize variables for Equip menu"
+
+[[label]]
+addr = "1c01"
+bank = 0xC3
+name = "redraw_equip_menu_after_actor_swap"
+note = "Redraw Equip menu after actor swap"
+
+[[label]]
+addr = "1c0a"
+bank = 0xC3
+name = "put_cursor_on_first_gear_slot_trigger_fade_in"
+note = "Put cursor on first gear slot, trigger fade-in"
+
+[[label]]
+addr = "1c5d"
+bank = 0xC3
+name = "initialize_cursor_data_for_status_menu"
+note = "Initialize cursor data for Status menu"
+
+[[label]]
+addr = "1dd2"
+bank = 0xC3
+name = "update_field_effects_from_gear_charms_sprint"
+note = "Update field effects from gear (Charms, Sprint Shoes)"
+
+[[label]]
+addr = "1e4e"
+bank = 0xC3
+name = "determine_if_actor_related_menu_is_accessible"
+note = "Determine if actor-related menu is accessible"
+
+[[label]]
+addr = "1f64"
+bank = 0xC3
+name = "handle_l_and_r_for_scrollable_list"
+note = "Handle L and R for scrollable list"
+
+[[label]]
+addr = "2130"
+bank = 0xC3
+name = "create_scrollbar_for_magic_menu"
+note = "Create scrollbar for Magic menu"
+
+[[label]]
+addr = "2148"
+bank = 0xC3
+name = "load_navigation_data_for_magic_menu_position"
+note = "Load navigation data for Magic menu; position cursor"
+
+[[label]]
+addr = "2158"
+bank = 0xC3
+name = "switch_to_magic_menu_create_portrait_draw"
+note = "Switch to Magic menu, create portrait, draw spells and \"MP...\""
+
+[[label]]
+addr = "23a7"
+bank = 0xC3
+name = "reset_skin_palette"
+note = "Reset skin palette"
+
+[[label]]
+addr = "24ee"
+bank = 0xC3
+name = "delete_all_portraits_and_status_icons"
+note = "Delete all portraits and status icons"
+
+[[label]]
+addr = "24f8"
+bank = 0xC3
+name = "swap_assigned_joypad_for_switched_members"
+note = "Swap assigned joypad for switched members"
+
+[[label]]
+addr = "25df"
+bank = 0xC3
+name = "restore_sram_block_and_record_game_data"
+note = "Restore SRAM block and record game data"
+
+[[label]]
+addr = "261e"
+bank = 0xC3
+name = "handle_selected_item_menu_option"
+note = "Handle selected Item menu option"
+
+[[label]]
+addr = "26b8"
+bank = 0xC3
+name = "relocate_inventory_for_sorting_delete_original"
+note = "Relocate inventory for sorting, delete original"
+
+[[label]]
+addr = "26e0"
+bank = 0xC3
+name = "sort_inventory_based_on_item_icons"
+note = "Sort inventory based on item icons"
+
+[[label]]
+addr = "2706"
+bank = 0xC3
+name = "copy_all_items_with_given_icon_from_buffer_to"
+note = "Copy all items with given icon from buffer to inventory"
+
+[[label]]
+addr = "2929"
+bank = 0xC3
+name = "equip_and_draw_selected_esper"
+note = "Equip and draw selected esper"
+
+[[label]]
+addr = "29a5"
+bank = 0xC3
+name = "return_to_skills_menu"
+note = "Return to Skills menu"
+
+[[label]]
+addr = "2a21"
+bank = 0xC3
+name = "reset_play_time"
+note = "Reset play time"
+
+[[label]]
+addr = "2a76"
+bank = 0xC3
+name = "initialize_variables_for_spell_or_item_usage"
+note = "Initialize variables for spell or item usage menu"
+
+[[label]]
+addr = "2b39"
+bank = 0xC3
+name = "adjust_spell_target_s_hp_and_status"
+note = "Adjust spell target's HP and status"
+
+[[label]]
+addr = "2b9a"
+bank = 0xC3
+name = "keep_hp_from_exceeding_max_hp_clear_carry_if"
+note = "Keep HP from exceeding max HP, clear Carry if lower"
+
+[[label]]
+addr = "2bbc"
+bank = 0xC3
+name = "keep_mp_from_exceeding_max_mp_clear_carry_if"
+note = "Keep MP from exceeding max MP, clear Carry if lower"
+
+[[label]]
+addr = "2c01"
+bank = 0xC3
+name = "redraw_party_after_spell_or_item_usage"
+note = "Redraw party after spell or item usage"
+
+[[label]]
+addr = "2c14"
+bank = 0xC3
+name = "establish_whether_spell_target_is_valid"
+note = "Establish whether spell target is valid"
+
+[[label]]
+addr = "2ccc"
+bank = 0xC3
+name = "load_caster_s_mag_pwr_and_level_for_c2_0009"
+note = "Load caster's Mag.Pwr and level (for C2/0009)"
+
+[[label]]
+addr = "2cdf"
+bank = 0xC3
+name = "load_member_s_stats_and_properties_with_gear"
+note = "Load member's stats and properties with gear"
+
+[[label]]
+addr = "2cea"
+bank = 0xC3
+name = "decrease_caster_s_mp"
+note = "Decrease caster's MP"
+
+[[label]]
+addr = "2d03"
+bank = 0xC3
+name = "get_caster_s_sram_block_address"
+note = "Get caster's SRAM block address"
+
+[[label]]
+addr = "2d0b"
+bank = 0xC3
+name = "get_target_s_sram_block_address"
+note = "Get target's SRAM block address"
+
+[[label]]
+addr = "2d13"
+bank = 0xC3
+name = "get_selected_spell"
+note = "Get selected spell"
+
+[[label]]
+addr = "2db7"
+bank = 0xC3
+name = "revert_to_a_single_target_for_spell"
+note = "Revert to a single target for spell"
+
+[[label]]
+addr = "2dd1"
+bank = 0xC3
+name = "swap_actor_info_for_switched_members"
+note = "Swap actor info for switched members"
+
+[[label]]
+addr = "2e10"
+bank = 0xC3
+name = "toggle_member_s_row_set_to_shift_portrait"
+note = "Toggle member's row, set to shift portrait"
+
+[[label]]
+addr = "2e3c"
+bank = 0xC3
+name = "set_to_delete_all_portraits"
+note = "Set to delete all portraits"
+
+[[label]]
+addr = "2eeb"
+bank = 0xC3
+name = "create_blinking_cursor_for_espers_menu"
+note = "Create blinking cursor for Espers menu"
+
+[[label]]
+addr = "2f06"
+bank = 0xC3
+name = "create_blinking_cursor_to_the_right_of_main"
+note = "Create blinking cursor to the right of main cursor"
+
+[[label]]
+addr = "2f21"
+bank = 0xC3
+name = "create_blinking_cursor_to_northeast_of_main"
+note = "Create blinking cursor to northeast of main cursor"
+
+[[label]]
+addr = "2f98"
+bank = 0xC3
+name = "preload_nav_data_for_portrait_selection_disable"
+note = "Preload nav data for portrait selection, disable empty slots"
+
+[[label]]
+addr = "2fb1"
+bank = 0xC3
+name = "preload_navigation_data_for_portrait_selection"
+note = "Preload navigation data for portrait selection"
+
+[[label]]
+addr = "2ff5"
+bank = 0xC3
+name = "load_custom_nav_data_for_portrait_selection"
+note = "Load custom nav data for portrait selection, target leader"
+
+[[label]]
+addr = "3008"
+bank = 0xC3
+name = "set_portrait_cursor_s_slot_and_base_pixel"
+note = "Set portrait cursor's slot and base pixel position"
+
+[[label]]
+addr = "304f"
+bank = 0xC3
+name = "queue_menu_fade_out"
+note = "Queue menu fade-out"
+
+[[label]]
+addr = "3056"
+bank = 0xC3
+name = "queue_menu_fade_in"
+note = "Queue menu fade-in"
+
+[[label]]
+addr = "305d"
+bank = 0xC3
+name = "queue_mosaic_effect"
+note = "Queue mosaic effect"
+
+[[label]]
+addr = "30f5"
+bank = 0xC3
+name = "draw_and_upload_main_menu"
+note = "Draw and upload main menu"
+
+[[label]]
+addr = "3128"
+bank = 0xC3
+name = "draw_and_upload_save_confirmation_menu"
+note = "Draw and upload save confirmation menu"
+
+[[label]]
+addr = "314c"
+bank = 0xC3
+name = "draw_and_upload_load_confirmation_menu"
+note = "Draw and upload load confirmation menu"
+
+[[label]]
+addr = "3170"
+bank = 0xC3
+name = "draw_elements_shared_by_main_menu_and_save_file"
+note = "Draw elements shared by main menu and save file submenus"
+
+[[label]]
+addr = "318a"
+bank = 0xC3
+name = "draw_party_info"
+note = "Draw party info"
+
+[[label]]
+addr = "31a8"
+bank = 0xC3
+name = "upload_skin_for_viewed_save_file"
+note = "Upload skin for viewed save file"
+
+[[label]]
+addr = "31d7"
+bank = 0xC3
+name = "draw_confirmation_text_for_save_menu"
+note = "Draw confirmation text for Save menu"
+
+[[label]]
+addr = "31e5"
+bank = 0xC3
+name = "draw_confirmation_text_for_load_menu"
+note = "Draw confirmation text for Load menu"
+
+[[label]]
+addr = "31f3"
+bank = 0xC3
+name = "draw_list_of_submenus_in_main_menu"
+note = "Draw list of submenus in main menu"
+
+[[label]]
+addr = "326c"
+bank = 0xC3
+name = "draw_time_in_main_menu"
+note = "Draw time in main menu"
+
+[[label]]
+addr = "3295"
+bank = 0xC3
+name = "draw_time"
+note = "Draw time"
+
+[[label]]
+addr = "32b2"
+bank = 0xC3
+name = "divide_countdown_timer_s_value_by_60"
+note = "Divide countdown timer's value by 60"
+
+[[label]]
+addr = "32ce"
+bank = 0xC3
+name = "enforce_gp_cap"
+note = "Enforce GP cap"
+
+[[label]]
+addr = "32f1"
+bank = 0xC3
+name = "draw_info_for_member_1"
+note = "Draw info for member 1"
+
+[[label]]
+addr = "333d"
+bank = 0xC3
+name = "draw_info_for_member_2"
+note = "Draw info for member 2"
+
+[[label]]
+addr = "3389"
+bank = 0xC3
+name = "draw_info_for_member_3"
+note = "Draw info for member 3"
+
+[[label]]
+addr = "33d5"
+bank = 0xC3
+name = "draw_info_for_member_4"
+note = "Draw info for member 4"
+
+[[label]]
+addr = "3427"
+bank = 0xC3
+name = "display_actor_s_status_excludes_status_menu"
+note = "Display actor's status (excludes Status menu)"
+
+[[label]]
+addr = "34cf"
+bank = 0xC3
+name = "draw_actor_name"
+note = "Draw actor name"
+
+[[label]]
+addr = "34e5"
+bank = 0xC3
+name = "draw_actor_class_sfc"
+note = "Draw actor class (SFC)"
+
+[[label]]
+addr = "34e6"
+bank = 0xC3
+name = "draw_equipped_esper"
+note = "Draw equipped esper"
+
+[[label]]
+addr = "3519"
+bank = 0xC3
+name = "prepare_name_drawing"
+note = "Prepare name drawing"
+
+[[label]]
+addr = "352f"
+bank = 0xC3
+name = "reset_oam_and_anim_queue_disable_screen"
+note = "Reset OAM and anim queue; disable screen, interrupts, pad, HDMA"
+
+[[label]]
+addr = "3541"
+bank = 0xC3
+name = "prepare_fade_in"
+note = "Prepare fade-in"
+
+[[label]]
+addr = "3548"
+bank = 0xC3
+name = "redraw_time_in_main_menu"
+note = "Redraw time in main menu"
+
+[[label]]
+addr = "354e"
+bank = 0xC3
+name = "queue_main_screen_designation_hdma_for_main_menu"
+note = "Queue main screen designation HDMA for main menu"
+
+[[label]]
+addr = "3582"
+bank = 0xC3
+name = "queue_member_swap_animation_for_order_menu"
+note = "Queue member swap animation for Order menu"
+
+[[label]]
+addr = "35b2"
+bank = 0xC3
+name = "set_base_scanline_for_slot_a"
+note = "Set base scanline for slot A"
+
+[[label]]
+addr = "35c1"
+bank = 0xC3
+name = "set_base_scanline_for_slot_b"
+note = "Set base scanline for slot B"
+
+[[label]]
+addr = "3677"
+bank = 0xC3
+name = "enable_or_disable_desired_layers_on_next_4"
+note = "Enable or disable desired layers on next 4 lines below"
+
+[[label]]
+addr = "368d"
+bank = 0xC3
+name = "enable_or_disable_desired_layers_on_next_4_368d"
+note = "Enable or disable desired layers on next 4 lines above"
+
+[[label]]
+addr = "36a3"
+bank = 0xC3
+name = "set_to_condense_bg3_text_in_main_menu"
+note = "Set to condense BG3 text in main menu"
+
+[[label]]
+addr = "36ff"
+bank = 0xC3
+name = "load_navigation_data_for_non_shifted_status_menu"
+note = "Load navigation data for non-shifted Status menu"
+
+[[label]]
+addr = "3705"
+bank = 0xC3
+name = "handle_d_pad_for_non_shifted_status_menu"
+note = "Handle D-Pad for non-shifted Status menu"
+
+[[label]]
+addr = "3858"
+bank = 0xC3
+name = "load_navigation_data_for_config_page_1"
+note = "Load navigation data for Config page 1"
+
+[[label]]
+addr = "385e"
+bank = 0xC3
+name = "handle_d_pad_for_config_page_1"
+note = "Handle D-Pad for Config page 1"
+
+[[label]]
+addr = "387e"
+bank = 0xC3
+name = "load_navigation_data_for_config_page_2"
+note = "Load navigation data for Config page 2"
+
+[[label]]
+addr = "3884"
+bank = 0xC3
+name = "handle_d_pad_for_config_page_2"
+note = "Handle D-Pad for Config page 2"
+
+[[label]]
+addr = "389e"
+bank = 0xC3
+name = "draw_config_menu_load_navigation_data_create"
+note = "Draw Config menu, load navigation data, create arrow"
+
+[[label]]
+addr = "3950"
+bank = 0xC3
+name = "draw_empty_color_gauges"
+note = "Draw empty color gauges"
+
+[[label]]
+addr = "395e"
+bank = 0xC3
+name = "load_color_gauge_palette"
+note = "Load color gauge palette"
+
+[[label]]
+addr = "39ea"
+bank = 0xC3
+name = "switch_to_config_page_2"
+note = "Switch to Config page 2"
+
+[[label]]
+addr = "39f5"
+bank = 0xC3
+name = "switch_to_config_page_1"
+note = "Switch to Config page 1"
+
+[[label]]
+addr = "3a4c"
+bank = 0xC3
+name = "set_window_2_positions_per_scanline_for_config"
+note = "Set Window 2 positions per scanline for Config menu"
+
+[[label]]
+addr = "3a6b"
+bank = 0xC3
+name = "set_window_2_positions_for_main_menu"
+note = "Set Window 2 positions for main menu"
+
+[[label]]
+addr = "3a87"
+bank = 0xC3
+name = "upload_skin_graphics_load_colors_and_tile"
+note = "Upload skin graphics, load colors and tile attributes"
+
+[[label]]
+addr = "3aa1"
+bank = 0xC3
+name = "upload_skin_for_save_file_1"
+note = "Upload skin for save file 1"
+
+[[label]]
+addr = "3abd"
+bank = 0xC3
+name = "upload_skin_for_save_file_2"
+note = "Upload skin for save file 2"
+
+[[label]]
+addr = "3ad9"
+bank = 0xC3
+name = "upload_skin_for_save_file_3"
+note = "Upload skin for save file 3"
+
+[[label]]
+addr = "3af5"
+bank = 0xC3
+name = "load_skin_colors_for_save_file_1"
+note = "Load skin colors for save file 1"
+
+[[label]]
+addr = "3b09"
+bank = 0xC3
+name = "load_skin_colors_for_save_file_2"
+note = "Load skin colors for save file 2"
+
+[[label]]
+addr = "3b1d"
+bank = 0xC3
+name = "load_skin_colors_for_save_file_3"
+note = "Load skin colors for save file 3"
+
+[[label]]
+addr = "3b30"
+bank = 0xC3
+name = "set_source_for_uploading_skin_graphics"
+note = "Set source for uploading skin graphics"
+
+[[label]]
+addr = "3b5b"
+bank = 0xC3
+name = "apply_player_s_skin_colors"
+note = "Apply player's skin colors"
+
+[[label]]
+addr = "3b8c"
+bank = 0xC3
+name = "draw_bat_mode_settings"
+note = "Draw Bat.Mode settings"
+
+[[label]]
+addr = "3ba5"
+bank = 0xC3
+name = "draw_active"
+note = "Draw \"Active\""
+
+[[label]]
+addr = "3bb7"
+bank = 0xC3
+name = "draw_bat_speed_values"
+note = "Draw Bat.Speed values"
+
+[[label]]
+addr = "3bf2"
+bank = 0xC3
+name = "draw_msg_speed_values"
+note = "Draw Msg.Speed values"
+
+[[label]]
+addr = "3c33"
+bank = 0xC3
+name = "draw_cmd_set_settings"
+note = "Draw Cmd.Set settings"
+
+[[label]]
+addr = "3c4a"
+bank = 0xC3
+name = "draw_short"
+note = "Draw \"Short\""
+
+[[label]]
+addr = "3c5c"
+bank = 0xC3
+name = "draw_gauge_settings"
+note = "Draw Gauge settings"
+
+[[label]]
+addr = "3c73"
+bank = 0xC3
+name = "draw_on"
+note = "Draw \"On\""
+
+[[label]]
+addr = "3c85"
+bank = 0xC3
+name = "draw_sound_settings"
+note = "Draw Sound settings"
+
+[[label]]
+addr = "3c9e"
+bank = 0xC3
+name = "draw_stereo"
+note = "Draw \"Stereo\""
+
+[[label]]
+addr = "3cb0"
+bank = 0xC3
+name = "draw_cursor_settings"
+note = "Draw Cursor settings"
+
+[[label]]
+addr = "3cc9"
+bank = 0xC3
+name = "draw_reset"
+note = "Draw \"Reset\""
+
+[[label]]
+addr = "3cdb"
+bank = 0xC3
+name = "draw_reequip_settings"
+note = "Draw Reequip settings"
+
+[[label]]
+addr = "3cf4"
+bank = 0xC3
+name = "draw_optimum"
+note = "Draw \"Optimum\""
+
+[[label]]
+addr = "3d06"
+bank = 0xC3
+name = "draw_controller_settings"
+note = "Draw Controller settings"
+
+[[label]]
+addr = "3d1d"
+bank = 0xC3
+name = "draw_single"
+note = "Draw \"Single\""
+
+[[label]]
+addr = "3e3f"
+bank = 0xC3
+name = "adjust_volume_based_on_sound_mode_stereo_0"
+note = "Adjust volume based on sound mode (stereo = 0)"
+
+[[label]]
+addr = "3f99"
+bank = 0xC3
+name = "apply_player_s_font_color"
+note = "Apply player's font color"
+
+[[label]]
+addr = "3fad"
+bank = 0xC3
+name = "apply_player_s_skin_colors_after_changes"
+note = "Apply player's skin colors after changes"
+
+[[label]]
+addr = "3ffd"
+bank = 0xC3
+name = "draw_mag_order_settings"
+note = "Draw Mag.Order settings"
+
+[[label]]
+addr = "4058"
+bank = 0xC3
+name = "draw_current_mag_order_spell_type"
+note = "Draw current Mag.Order spell type"
+
+[[label]]
+addr = "40ea"
+bank = 0xC3
+name = "draw_wallpaper_values"
+note = "Draw wallpaper values"
+
+[[label]]
+addr = "4133"
+bank = 0xC3
+name = "draw_wallpaper_palette_and_arrow_in_config"
+note = "Draw wallpaper palette and arrow in Config"
+
+[[label]]
+addr = "417f"
+bank = 0xC3
+name = "draw_font"
+note = "Draw \"Font\""
+
+[[label]]
+addr = "41c3"
+bank = 0xC3
+name = "draw_rgb_gauges_and_values_in_config_menu"
+note = "Draw RGB gauges and values in Config menu"
+
+[[label]]
+addr = "41fe"
+bank = 0xC3
+name = "separate_rgb_components_for_color_in_config_menu"
+note = "Separate RGB components for color in Config menu"
+
+[[label]]
+addr = "4221"
+bank = 0xC3
+name = "merge_rgb_components_of_updated_color"
+note = "Merge RGB components of updated color"
+
+[[label]]
+addr = "4250"
+bank = 0xC3
+name = "draw_value_and_fill_gauge_for_green_component"
+note = "Draw value and fill gauge for green component"
+
+[[label]]
+addr = "4263"
+bank = 0xC3
+name = "draw_value_and_fill_gauge_for_blue_component"
+note = "Draw value and fill gauge for blue component"
+
+[[label]]
+addr = "43d0"
+bank = 0xC3
+name = "reset_command_list_for_member_1"
+note = "Reset command list for member 1"
+
+[[label]]
+addr = "43d8"
+bank = 0xC3
+name = "reset_command_list_for_member_2"
+note = "Reset command list for member 2"
+
+[[label]]
+addr = "43e1"
+bank = 0xC3
+name = "reset_command_list_for_member_3"
+note = "Reset command list for member 3"
+
+[[label]]
+addr = "43f3"
+bank = 0xC3
+name = "reset_member_s_battle_command_list"
+note = "Reset member's battle command list"
+
+[[label]]
+addr = "442c"
+bank = 0xC3
+name = "draw_cmd_set_menu"
+note = "Draw Cmd.Set menu"
+
+[[label]]
+addr = "44b4"
+bank = 0xC3
+name = "draw_cmd_set_menu_text_for_member_1"
+note = "Draw Cmd.Set menu text for member 1"
+
+[[label]]
+addr = "44ed"
+bank = 0xC3
+name = "draw_cmd_set_menu_text_for_member_2"
+note = "Draw Cmd.Set menu text for member 2"
+
+[[label]]
+addr = "4526"
+bank = 0xC3
+name = "draw_cmd_set_menu_text_for_member_3"
+note = "Draw Cmd.Set menu text for member 3"
+
+[[label]]
+addr = "455f"
+bank = 0xC3
+name = "draw_cmd_set_menu_text_for_member_4"
+note = "Draw Cmd.Set menu text for member 4"
+
+[[label]]
+addr = "4598"
+bank = 0xC3
+name = "draw_member_s_1st_command_in_cmd_set_menu"
+note = "Draw member's 1st command in Cmd.Set menu"
+
+[[label]]
+addr = "459e"
+bank = 0xC3
+name = "draw_member_s_2nd_command_in_cmd_set_menu"
+note = "Draw member's 2nd command in Cmd.Set menu"
+
+[[label]]
+addr = "45a5"
+bank = 0xC3
+name = "draw_member_s_3rd_command_in_cmd_set_menu"
+note = "Draw member's 3rd command in Cmd.Set menu"
+
+[[label]]
+addr = "45ad"
+bank = 0xC3
+name = "draw_member_s_4th_command_in_cmd_set_menu"
+note = "Draw member's 4th command in Cmd.Set menu"
+
+[[label]]
+addr = "45b6"
+bank = 0xC3
+name = "load_navigation_data_for_cmd_set_menu_s_actor"
+note = "Load navigation data for Cmd.Set menu's actor list"
+
+[[label]]
+addr = "45bc"
+bank = 0xC3
+name = "handle_d_pad_for_cmd_set_menu_s_actor_list"
+note = "Handle D-Pad for Cmd.Set menu's actor list"
+
+[[label]]
+addr = "45d4"
+bank = 0xC3
+name = "load_navigation_data_for_cmd_set_menu_s_command"
+note = "Load navigation data for Cmd.Set menu's command list"
+
+[[label]]
+addr = "45da"
+bank = 0xC3
+name = "relocate_cursor_in_cmd_set_menu_s_command_list"
+note = "Relocate cursor in Cmd.Set menu's command list"
+
+[[label]]
+addr = "4602"
+bank = 0xC3
+name = "handle_d_pad_and_cursor_for_cmd_set_menu_s"
+note = "Handle D-Pad and cursor for Cmd.Set menu's command list"
+
+[[label]]
+addr = "4615"
+bank = 0xC3
+name = "handle_d_pad_for_cmd_set_menu_s_command_list"
+note = "Handle D-Pad for Cmd.Set menu's command list"
+
+[[label]]
+addr = "466f"
+bank = 0xC3
+name = "set_to_condense_text_in_cmd_set_menu"
+note = "Set to condense text in Cmd.Set menu"
+
+[[label]]
+addr = "46f5"
+bank = 0xC3
+name = "draw_controller_menu"
+note = "Draw Controller menu"
+
+[[label]]
+addr = "47b4"
+bank = 0xC3
+name = "draw_controller_menu_text_for_member_1"
+note = "Draw Controller menu text for member 1"
+
+[[label]]
+addr = "47df"
+bank = 0xC3
+name = "draw_cntlr1"
+note = "Draw \"Cntlr1\""
+
+[[label]]
+addr = "47f1"
+bank = 0xC3
+name = "draw_controller_menu_text_for_member_2"
+note = "Draw Controller menu text for member 2"
+
+[[label]]
+addr = "481c"
+bank = 0xC3
+name = "draw_cntlr1_481c"
+note = "Draw \"Cntlr1\""
+
+[[label]]
+addr = "482e"
+bank = 0xC3
+name = "draw_controller_menu_text_for_member_3"
+note = "Draw Controller menu text for member 3"
+
+[[label]]
+addr = "4859"
+bank = 0xC3
+name = "draw_cntlr1_4859"
+note = "Draw \"Cntlr1\""
+
+[[label]]
+addr = "486b"
+bank = 0xC3
+name = "draw_controller_menu_text_for_member_4"
+note = "Draw Controller menu text for member 4"
+
+[[label]]
+addr = "4896"
+bank = 0xC3
+name = "draw_cntlr1_4896"
+note = "Draw \"Cntlr1\""
+
+[[label]]
+addr = "48a8"
+bank = 0xC3
+name = "set_window_2_positions_per_scanline_for"
+note = "Set Window 2 positions per scanline for Controller menu"
+
+[[label]]
+addr = "48d7"
+bank = 0xC3
+name = "load_navigation_data_for_controller_menu"
+note = "Load navigation data for Controller menu"
+
+[[label]]
+addr = "48dd"
+bank = 0xC3
+name = "handle_d_pad_for_controller_menu"
+note = "Handle D-Pad for Controller menu"
+
+[[label]]
+addr = "48f7"
+bank = 0xC3
+name = "forget_memorized_cursor_positions_for_main_menu"
+note = "Forget memorized cursor positions for main menu"
+
+[[label]]
+addr = "4b50"
+bank = 0xC3
+name = "load_navigation_data_for_skills_menu"
+note = "Load navigation data for Skills menu"
+
+[[label]]
+addr = "4b56"
+bank = 0xC3
+name = "handle_d_pad_and_cursor_memory_for_skills_menu"
+note = "Handle D-Pad and cursor memory for Skills menu"
+
+[[label]]
+addr = "4b82"
+bank = 0xC3
+name = "load_navigation_data_for_magic_menu"
+note = "Load navigation data for Magic menu"
+
+[[label]]
+addr = "4b88"
+bank = 0xC3
+name = "handle_d_pad_and_cursor_memory_for_magic_menu"
+note = "Handle D-Pad and cursor memory for Magic menu"
+
+[[label]]
+addr = "4bce"
+bank = 0xC3
+name = "load_navigation_data_for_swdtech_blitz_or_dance"
+note = "Load navigation data for SwdTech, Blitz, or Dance menu"
+
+[[label]]
+addr = "4bd4"
+bank = 0xC3
+name = "handle_d_pad_for_swdtech_blitz_or_dance_menu"
+note = "Handle D-Pad for SwdTech, Blitz, or Dance menu"
+
+[[label]]
+addr = "4bf4"
+bank = 0xC3
+name = "load_navigation_data_for_lore_menu"
+note = "Load navigation data for Lore menu"
+
+[[label]]
+addr = "4bfa"
+bank = 0xC3
+name = "handle_d_pad_for_lore_menu"
+note = "Handle D-Pad for Lore menu"
+
+[[label]]
+addr = "4c18"
+bank = 0xC3
+name = "load_navigation_data_for_espers_menu"
+note = "Load navigation data for Espers menu"
+
+[[label]]
+addr = "4c1e"
+bank = 0xC3
+name = "handle_d_pad_for_espers_menu"
+note = "Handle D-Pad for Espers menu"
+
+[[label]]
+addr = "4c4c"
+bank = 0xC3
+name = "load_navigation_data_for_rage_menu"
+note = "Load navigation data for Rage menu"
+
+[[label]]
+addr = "4c52"
+bank = 0xC3
+name = "handle_d_pad_for_rage_menu"
+note = "Handle D-Pad for Rage menu"
+
+[[label]]
+addr = "4c80"
+bank = 0xC3
+name = "draw_skills_menu_disable_individual_mp_costs_in"
+note = "Draw Skills menu, disable individual MP costs in Magic menu"
+
+[[label]]
+addr = "4d27"
+bank = 0xC3
+name = "draw_actor_info_in_skills_menu_including_blue"
+note = "Draw actor info in Skills menu, including blue text"
+
+[[label]]
+addr = "4d3d"
+bank = 0xC3
+name = "assign_a_palette_to_each_submenu_in_skills_menu"
+note = "Assign a palette to each submenu in Skills menu"
+
+[[label]]
+addr = "4dbc"
+bank = 0xC3
+name = "set_to_condense_text_in_skills_menu_or_submenu"
+note = "Set to condense text in Skills menu or submenu"
+
+[[label]]
+addr = "4e2d"
+bank = 0xC3
+name = "load_vertical_shift_values_for_bg1_text_in"
+note = "Load vertical shift values for BG1 text in skill menus"
+
+[[label]]
+addr = "4edd"
+bank = 0xC3
+name = "load_member_s_sram_block_address_for_skills_menu"
+note = "Load member's SRAM block address for Skills menu"
+
+[[label]]
+addr = "4f1c"
+bank = 0xC3
+name = "build_magic_list_based_on_mag_order"
+note = "Build Magic list based on Mag.Order"
+
+[[label]]
+addr = "4f61"
+bank = 0xC3
+name = "add_spells_of_given_type_to_magic_list_based_on"
+note = "Add spells of given type to Magic list based on starting spell"
+
+[[label]]
+addr = "4f87"
+bank = 0xC3
+name = "draw_magic_list"
+note = "Draw Magic list"
+
+[[label]]
+addr = "4f9e"
+bank = 0xC3
+name = "draw_a_row_of_two_spells_in_magic_menu"
+note = "Draw a row of two spells in Magic menu"
+
+[[label]]
+addr = "4fb5"
+bank = 0xC3
+name = "set_source_for_loading_magic_name"
+note = "Set source for loading Magic name"
+
+[[label]]
+addr = "4fc4"
+bank = 0xC3
+name = "draw_text_in_spell_slot_of_magic_menu"
+note = "Draw text in spell slot of Magic menu"
+
+[[label]]
+addr = "50a2"
+bank = 0xC3
+name = "get_spell_s_mastery_percentage"
+note = "Get spell's mastery percentage"
+
+[[label]]
+addr = "50ec"
+bank = 0xC3
+name = "get_processed_spell"
+note = "Get processed spell"
+
+[[label]]
+addr = "50f5"
+bank = 0xC3
+name = "compute_spell_data_index"
+note = "Compute spell data index"
+
+[[label]]
+addr = "510d"
+bank = 0xC3
+name = "define_spell_s_mp_cost"
+note = "Define spell's MP cost"
+
+[[label]]
+addr = "514d"
+bank = 0xC3
+name = "enable_or_disable_spell_in_magic_menu"
+note = "Enable or disable spell in Magic menu"
+
+[[label]]
+addr = "51b9"
+bank = 0xC3
+name = "disable_spell"
+note = "Disable spell"
+
+[[label]]
+addr = "51c6"
+bank = 0xC3
+name = "draw_mp_cost_in_corner_of_magic_menu"
+note = "Draw MP cost in corner of Magic menu"
+
+[[label]]
+addr = "51f9"
+bank = 0xC3
+name = "draw_lore_list_and_menu_title_create_portrait"
+note = "Draw Lore list and menu title, create portrait"
+
+[[label]]
+addr = "520f"
+bank = 0xC3
+name = "build_lore_list"
+note = "Build Lore list"
+
+[[label]]
+addr = "523c"
+bank = 0xC3
+name = "build_and_draw_lore_list"
+note = "Build and draw Lore list"
+
+[[label]]
+addr = "5256"
+bank = 0xC3
+name = "prepare_to_and_draw_lore_s_name_and_mp_cost"
+note = "Prepare to and draw Lore's name and MP cost"
+
+[[label]]
+addr = "5266"
+bank = 0xC3
+name = "set_source_for_loading_lore_name"
+note = "Set source for loading Lore name"
+
+[[label]]
+addr = "5275"
+bank = 0xC3
+name = "draw_lore_s_name_and_mp_cost"
+note = "Draw Lore's name and MP cost"
+
+[[label]]
+addr = "52d7"
+bank = 0xC3
+name = "draw_swdtech_list_and_menu_title_create_portrait"
+note = "Draw SwdTech list and menu title, create portrait"
+
+[[label]]
+addr = "52f4"
+bank = 0xC3
+name = "draw_swdtech_list"
+note = "Draw SwdTech list"
+
+[[label]]
+addr = "5311"
+bank = 0xC3
+name = "draw_a_row_of_two_swdtechs"
+note = "Draw a row of two SwdTechs"
+
+[[label]]
+addr = "5328"
+bank = 0xC3
+name = "set_source_for_loading_swdtech_name"
+note = "Set source for loading SwdTech name"
+
+[[label]]
+addr = "5337"
+bank = 0xC3
+name = "draw_swdtech_name"
+note = "Draw SwdTech name"
+
+[[label]]
+addr = "536e"
+bank = 0xC3
+name = "build_swdtech_list"
+note = "Build SwdTech list"
+
+[[label]]
+addr = "5391"
+bank = 0xC3
+name = "draw_rage_list_and_menu_title_create_portrait"
+note = "Draw Rage list and menu title, create portrait"
+
+[[label]]
+addr = "53a7"
+bank = 0xC3
+name = "build_and_draw_rage_list"
+note = "Build and draw Rage list"
+
+[[label]]
+addr = "53c1"
+bank = 0xC3
+name = "build_rage_list"
+note = "Build Rage list"
+
+[[label]]
+addr = "53ee"
+bank = 0xC3
+name = "draw_a_row_of_two_rages"
+note = "Draw a row of two Rages"
+
+[[label]]
+addr = "5409"
+bank = 0xC3
+name = "set_source_for_loading_enemy_name"
+note = "Set source for loading enemy name"
+
+[[label]]
+addr = "5418"
+bank = 0xC3
+name = "draw_rage_name"
+note = "Draw Rage name"
+
+[[label]]
+addr = "5452"
+bank = 0xC3
+name = "draw_esper_list_and_menu_title_create_portrait"
+note = "Draw esper list and menu title, create portrait"
+
+[[label]]
+addr = "546c"
+bank = 0xC3
+name = "build_and_draw_esper_list"
+note = "Build and draw esper list"
+
+[[label]]
+addr = "5486"
+bank = 0xC3
+name = "build_sorted_esper_list"
+note = "Build sorted esper list"
+
+[[label]]
+addr = "54e3"
+bank = 0xC3
+name = "draw_a_row_of_two_esper_names_with_mp_cost"
+note = "Draw a row of two esper names with MP cost"
+
+[[label]]
+addr = "54fa"
+bank = 0xC3
+name = "set_source_for_loading_esper_name"
+note = "Set source for loading esper name"
+
+[[label]]
+addr = "5509"
+bank = 0xC3
+name = "draw_esper_s_name_and_mp_cost"
+note = "Draw esper's name and MP cost"
+
+[[label]]
+addr = "5574"
+bank = 0xC3
+name = "define_esper_name_color"
+note = "Define esper name color"
+
+[[label]]
+addr = "559a"
+bank = 0xC3
+name = "draw_actor_has_it_in_esper_data_menu"
+note = "Draw \"<actor> has it!\" in esper data menu"
+
+[[label]]
+addr = "55d4"
+bank = 0xC3
+name = "draw_blitz_inputs_and_menu_title_create_portrait"
+note = "Draw Blitz inputs and menu title, create portrait"
+
+[[label]]
+addr = "55ea"
+bank = 0xC3
+name = "build_blitz_list_and_draw_blitz_inputs"
+note = "Build Blitz list and draw Blitz inputs"
+
+[[label]]
+addr = "560a"
+bank = 0xC3
+name = "draw_a_row_of_two_sets_of_blitz_inputs"
+note = "Draw a row of two sets of Blitz inputs"
+
+[[label]]
+addr = "561b"
+bank = 0xC3
+name = "build_blitz_list"
+note = "Build Blitz list"
+
+[[label]]
+addr = "5620"
+bank = 0xC3
+name = "build_dance_list"
+note = "Build Dance list"
+
+[[label]]
+addr = "5643"
+bank = 0xC3
+name = "draw_blitz_s_inputs"
+note = "Draw Blitz's inputs"
+
+[[label]]
+addr = "5683"
+bank = 0xC3
+name = "build_tilemap_for_blitz_s_inputs"
+note = "Build tilemap for Blitz's inputs"
+
+[[label]]
+addr = "56df"
+bank = 0xC3
+name = "load_esper_description"
+note = "Load esper description"
+
+[[label]]
+addr = "56e5"
+bank = 0xC3
+name = "load_magic_description"
+note = "Load Magic description"
+
+[[label]]
+addr = "56eb"
+bank = 0xC3
+name = "load_lore_description"
+note = "Load Lore description"
+
+[[label]]
+addr = "5700"
+bank = 0xC3
+name = "load_swdtech_description"
+note = "Load SwdTech description"
+
+[[label]]
+addr = "5715"
+bank = 0xC3
+name = "load_blitz_description"
+note = "Load Blitz description"
+
+[[label]]
+addr = "572a"
+bank = 0xC3
+name = "load_skill_or_item_description"
+note = "Load skill or item description"
+
+[[label]]
+addr = "5774"
+bank = 0xC3
+name = "draw_dance_list_and_menu_title_create_portrait"
+note = "Draw Dance list and menu title, create portrait"
+
+[[label]]
+addr = "578a"
+bank = 0xC3
+name = "build_and_draw_dance_list"
+note = "Build and draw Dance list"
+
+[[label]]
+addr = "57aa"
+bank = 0xC3
+name = "draw_a_row_of_two_dance_names"
+note = "Draw a row of two Dance names"
+
+[[label]]
+addr = "57c1"
+bank = 0xC3
+name = "set_source_for_loading_dance_name"
+note = "Set source for loading Dance name"
+
+[[label]]
+addr = "57d0"
+bank = 0xC3
+name = "draw_dance_name"
+note = "Draw Dance name"
+
+[[label]]
+addr = "5812"
+bank = 0xC3
+name = "draw_and_upload_spell_usage_menu"
+note = "Draw and upload spell usage menu"
+
+[[label]]
+addr = "584b"
+bank = 0xC3
+name = "draw_spell_name_and_cost_message_for_spell"
+note = "Draw spell name and cost message for spell usage menu"
+
+[[label]]
+addr = "5897"
+bank = 0xC3
+name = "initialize_esper_data_menu"
+note = "Initialize esper data menu"
+
+[[label]]
+addr = "597d"
+bank = 0xC3
+name = "load_navigation_data_for_esper_data_menu"
+note = "Load navigation data for esper data menu"
+
+[[label]]
+addr = "5983"
+bank = 0xC3
+name = "handle_d_pad_for_esper_data_menu"
+note = "Handle D-Pad for esper data menu"
+
+[[label]]
+addr = "599f"
+bank = 0xC3
+name = "draw_selected_esper_s_info"
+note = "Draw selected esper's info"
+
+[[label]]
+addr = "5a84"
+bank = 0xC3
+name = "draw_spell_s_mastery_percentage_for_esper_data"
+note = "Draw spell's mastery percentage for esper data menu"
+
+[[label]]
+addr = "5ae1"
+bank = 0xC3
+name = "draw_spell_s_name_and_learning_rate"
+note = "Draw spell's name and learning rate"
+
+[[label]]
+addr = "5b3d"
+bank = 0xC3
+name = "compute_position_into_bg1_tilemap_b"
+note = "Compute position into BG1 tilemap B"
+
+[[label]]
+addr = "5b54"
+bank = 0xC3
+name = "load_esper_s_info_for_display"
+note = "Load esper's info for display"
+
+[[label]]
+addr = "5b93"
+bank = 0xC3
+name = "load_description_for_esper_data_menu"
+note = "Load description for esper data menu"
+
+[[label]]
+addr = "5bdb"
+bank = 0xC3
+name = "load_description_pointers_for_esper_data_menu"
+note = "Load description pointers for esper data menu"
+
+[[label]]
+addr = "5be3"
+bank = 0xC3
+name = "magic_effect"
+note = "Magic effect"
+
+[[label]]
+addr = "5c09"
+bank = 0xC3
+name = "esper_effect"
+note = "Esper effect"
+
+[[label]]
+addr = "5d05"
+bank = 0xC3
+name = "draw_and_upload_status_menu_create_portrait"
+note = "Draw and upload Status menu, create portrait"
+
+[[label]]
+addr = "5d17"
+bank = 0xC3
+name = "draw_windows_for_non_shifted_status_menu"
+note = "Draw windows for non-shifted Status menu"
+
+[[label]]
+addr = "5d3c"
+bank = 0xC3
+name = "draw_blue_text_and_non_blue_symbols_in_status"
+note = "Draw blue text and non-blue symbols in Status menu"
+
+[[label]]
+addr = "5d41"
+bank = 0xC3
+name = "draw_lv_hp_mp_and_non_blue_symbols_in_status"
+note = "Draw LV, HP, MP, and non-blue symbols in Status menu"
+
+[[label]]
+addr = "5d77"
+bank = 0xC3
+name = "upload_tilemaps_for_status_menu"
+note = "Upload tilemaps for Status menu"
+
+[[label]]
+addr = "5dc1"
+bank = 0xC3
+name = "draw_gogo_s_list_of_available_commands_prepare"
+note = "Draw Gogo's list of available commands, prepare portrait hiding"
+
+[[label]]
+addr = "5ed7"
+bank = 0xC3
+name = "draw_battle_command_name_ignore_modifiers"
+note = "Draw battle command name, ignore modifiers"
+
+[[label]]
+addr = "5ee1"
+bank = 0xC3
+name = "draw_battle_command_name_apply_modifiers"
+note = "Draw battle command name, apply modifiers"
+
+[[label]]
+addr = "5f25"
+bank = 0xC3
+name = "select_a_palette_for_battle_command"
+note = "Select a palette for battle command"
+
+[[label]]
+addr = "5f8d"
+bank = 0xC3
+name = "draw_actor_info_in_status_menu"
+note = "Draw actor info in Status menu"
+
+[[label]]
+addr = "60a0"
+bank = 0xC3
+name = "calculate_experience_needed_to_level_up"
+note = "Calculate experience needed to level up"
+
+[[label]]
+addr = "60ca"
+bank = 0xC3
+name = "calculate_total_experience_needed_to_level_up"
+note = "Calculate total experience needed to level up"
+
+[[label]]
+addr = "612c"
+bank = 0xC3
+name = "handle_battle_command_modifiers"
+note = "Handle battle command modifiers"
+
+[[label]]
+addr = "61a2"
+bank = 0xC3
+name = "replace_portrait_in_status_menu_after_actor_swap"
+note = "Replace portrait in Status menu after actor swap"
+
+[[label]]
+addr = "61ac"
+bank = 0xC3
+name = "create_portrait_by_upper_left_corner"
+note = "Create portrait by upper-left corner"
+
+[[label]]
+addr = "61b2"
+bank = 0xC3
+name = "create_portrait_for_equip_or_relic_menu"
+note = "Create portrait for Equip or Relic menu"
+
+[[label]]
+addr = "61da"
+bank = 0xC3
+name = "create_portrait_a"
+note = "Create portrait A"
+
+[[label]]
+addr = "61fb"
+bank = 0xC3
+name = "initialize_variables_for_portrait_by_upper_left"
+note = "Initialize variables for portrait by upper-left corner"
+
+[[label]]
+addr = "620b"
+bank = 0xC3
+name = "set_to_condense_bg3_text_in_status_menu"
+note = "Set to condense BG3 text in Status menu"
+
+[[label]]
+addr = "6306"
+bank = 0xC3
+name = "create_blank_string_for_erasing_wounded"
+note = "Create blank string for erasing \"Wounded\""
+
+[[label]]
+addr = "6354"
+bank = 0xC3
+name = "draw_lineup_s_status_menu_create_portrait"
+note = "Draw Lineup's Status menu, create portrait"
+
+[[label]]
+addr = "6379"
+bank = 0xC3
+name = "load_actor_number_and_address_for_lineup_s"
+note = "Load actor number and address for Lineup's Status menu"
+
+[[label]]
+addr = "638e"
+bank = 0xC3
+name = "set_portrait_s_x_position_for_lineup_s_status"
+note = "Set portrait's X position for Lineup's Status menu"
+
+[[label]]
+addr = "6403"
+bank = 0xC3
+name = "load_navigation_data_for_shifted_status_menu"
+note = "Load navigation data for shifted Status menu"
+
+[[label]]
+addr = "6409"
+bank = 0xC3
+name = "handle_d_pad_for_shifted_status_menu"
+note = "Handle D-Pad for shifted Status menu"
+
+[[label]]
+addr = "65e8"
+bank = 0xC3
+name = "add_or_remove_letter_from_actor_name"
+note = "Add or remove letter from actor name"
+
+[[label]]
+addr = "660f"
+bank = 0xC3
+name = "get_index_for_overwritten_letter_in_actor"
+note = "Get index for overwritten letter in actor naming menu"
+
+[[label]]
+addr = "6621"
+bank = 0xC3
+name = "initialize_arrow_s_column_for_actor_naming_menu"
+note = "Initialize arrow's column for actor naming menu"
+
+[[label]]
+addr = "6638"
+bank = 0xC3
+name = "load_navigation_data_for_actor_naming_menu"
+note = "Load navigation data for actor naming menu"
+
+[[label]]
+addr = "663e"
+bank = 0xC3
+name = "handle_d_pad_for_actor_naming_menu"
+note = "Handle D-Pad for actor naming menu"
+
+[[label]]
+addr = "66d8"
+bank = 0xC3
+name = "create_portrait_for_actor_naming_menu"
+note = "Create portrait for actor naming menu"
+
+[[label]]
+addr = "6705"
+bank = 0xC3
+name = "draw_actor_naming_menu"
+note = "Draw actor naming menu"
+
+[[label]]
+addr = "6771"
+bank = 0xC3
+name = "upload_portrait_for_actor_naming_menu"
+note = "Upload portrait for actor naming menu"
+
+[[label]]
+addr = "678c"
+bank = 0xC3
+name = "load_portrait_colors_for_actor_naming_menu"
+note = "Load portrait colors for actor naming menu"
+
+[[label]]
+addr = "67bf"
+bank = 0xC3
+name = "draw_options_in_actor_naming_menu"
+note = "Draw options in actor naming menu"
+
+[[label]]
+addr = "683c"
+bank = 0xC3
+name = "set_to_condense_text_in_actor_naming_menu"
+note = "Set to condense text in actor naming menu"
+
+[[label]]
+addr = "68fa"
+bank = 0xC3
+name = "reset_menu_or_ending_variables"
+note = "Reset menu or ending variables"
+
+[[label]]
+addr = "6904"
+bank = 0xC3
+name = "reset_bg_positions"
+note = "Reset BG positions"
+
+[[label]]
+addr = "6915"
+bank = 0xC3
+name = "get_party_info_from_sram_block"
+note = "Get party info from SRAM block"
+
+[[label]]
+addr = "6989"
+bank = 0xC3
+name = "copy_party_info_to_sram_block"
+note = "Copy party info to SRAM block"
+
+[[label]]
+addr = "69a9"
+bank = 0xC3
+name = "memorize_current_party_useless"
+note = "Memorize current party (useless)"
+
+[[label]]
+addr = "69ba"
+bank = 0xC3
+name = "draw_multiple_strings_using_consecutive_pointers"
+note = "Draw multiple strings using consecutive pointers"
+
+[[label]]
+addr = "69dc"
+bank = 0xC3
+name = "set_window_1_positions_per_scanline"
+note = "Set Window 1 positions per scanline"
+
+[[label]]
+addr = "6a08"
+bank = 0xC3
+name = "set_global_window_1_positions"
+note = "Set global Window 1 positions"
+
+[[label]]
+addr = "6a15"
+bank = 0xC3
+name = "clear_bg1_tilemap_a"
+note = "Clear BG1 tilemap A"
+
+[[label]]
+addr = "6a19"
+bank = 0xC3
+name = "clear_bg1_tilemap_b"
+note = "Clear BG1 tilemap B"
+
+[[label]]
+addr = "6a1e"
+bank = 0xC3
+name = "clear_bg1_tilemap_c"
+note = "Clear BG1 tilemap C"
+
+[[label]]
+addr = "6a23"
+bank = 0xC3
+name = "clear_bg1_tilemap_d"
+note = "Clear BG1 tilemap D"
+
+[[label]]
+addr = "6a28"
+bank = 0xC3
+name = "clear_bg2_tilemap_a"
+note = "Clear BG2 tilemap A"
+
+[[label]]
+addr = "6a2d"
+bank = 0xC3
+name = "clear_bg2_tilemap_b"
+note = "Clear BG2 tilemap B"
+
+[[label]]
+addr = "6a32"
+bank = 0xC3
+name = "clear_bg2_tilemap_c"
+note = "Clear BG2 tilemap C"
+
+[[label]]
+addr = "6a3c"
+bank = 0xC3
+name = "clear_bg3_tilemap_a"
+note = "Clear BG3 tilemap A"
+
+[[label]]
+addr = "6a41"
+bank = 0xC3
+name = "clear_bg3_tilemap_b"
+note = "Clear BG3 tilemap B"
+
+[[label]]
+addr = "6a46"
+bank = 0xC3
+name = "clear_bg3_tilemap_c"
+note = "Clear BG3 tilemap C"
+
+[[label]]
+addr = "6a4b"
+bank = 0xC3
+name = "clear_bg3_tilemap_d"
+note = "Clear BG3 tilemap D"
+
+[[label]]
+addr = "6a66"
+bank = 0xC3
+name = "load_graphics_colors_enemy_and_prize_for"
+note = "Load graphics, colors, enemy, and prize for Colosseum matchup"
+
+[[label]]
+addr = "6a87"
+bank = 0xC3
+name = "load_non_skin_graphics_and_colors_for_menu"
+note = "Load non-skin graphics and colors for menu"
+
+[[label]]
+addr = "6b13"
+bank = 0xC3
+name = "upload_bg3_font_graphics_and_erase_vwf"
+note = "Upload BG3 font graphics and erase VWF description"
+
+[[label]]
+addr = "6b37"
+bank = 0xC3
+name = "upload_bg1_font_graphics"
+note = "Upload BG1 font graphics"
+
+[[label]]
+addr = "6bbc"
+bank = 0xC3
+name = "reset_all_skin_colors"
+note = "Reset all skin colors"
+
+[[label]]
+addr = "6be8"
+bank = 0xC3
+name = "load_font_and_black_background_s_colors"
+note = "Load font and black background's colors"
+
+[[label]]
+addr = "6c09"
+bank = 0xC3
+name = "load_portrait_colors_for_entire_party"
+note = "Load portrait colors for entire party"
+
+[[label]]
+addr = "6c60"
+bank = 0xC3
+name = "load_grayscale_actor_palette"
+note = "Load grayscale actor palette"
+
+[[label]]
+addr = "6c84"
+bank = 0xC3
+name = "load_cursor_arrow_and_icon_colors"
+note = "Load cursor, arrow, and icon colors"
+
+[[label]]
+addr = "6cc7"
+bank = 0xC3
+name = "load_actor_sprite_palettes"
+note = "Load actor sprite palettes"
+
+[[label]]
+addr = "6ce9"
+bank = 0xC3
+name = "upload_actor_sprite_graphics_one_pose"
+note = "Upload actor sprite graphics (one pose)"
+
+[[label]]
+addr = "6d44"
+bank = 0xC3
+name = "upload_both_tiles_in_current_row_of_actor_sprite"
+note = "Upload both tiles in current row of actor sprite"
+
+[[label]]
+addr = "6d67"
+bank = 0xC3
+name = "blank_both_tiles_under_actor_s_feet"
+note = "Blank both tiles under actor's feet"
+
+[[label]]
+addr = "6df8"
+bank = 0xC3
+name = "upload_current_actor_sprite_tile_for_shop"
+note = "Upload current actor sprite tile for shop"
+
+[[label]]
+addr = "6e67"
+bank = 0xC3
+name = "upload_cursor_arrow_and_icon_graphics_plus"
+note = "Upload cursor, arrow, and icon graphics (plus excess data)"
+
+[[label]]
+addr = "6e82"
+bank = 0xC3
+name = "upload_each_member_s_portrait"
+note = "Upload each member's portrait"
+
+[[label]]
+addr = "6f61"
+bank = 0xC3
+name = "list_actor_sprites_for_save_file_1"
+note = "List actor sprites for save file 1"
+
+[[label]]
+addr = "6f97"
+bank = 0xC3
+name = "get_actor_s_graphics_set"
+note = "Get actor's graphics set"
+
+[[label]]
+addr = "6fa6"
+bank = 0xC3
+name = "choose_between_green_or_brown_soldier"
+note = "Choose between green or brown soldier"
+
+[[label]]
+addr = "6fb8"
+bank = 0xC3
+name = "list_actor_sprites_for_save_file_2"
+note = "List actor sprites for save file 2"
+
+[[label]]
+addr = "6fdc"
+bank = 0xC3
+name = "list_actor_sprites_for_save_file_3"
+note = "List actor sprites for save file 3"
+
+[[label]]
+addr = "7000"
+bank = 0xC3
+name = "upload_actor_s_portrait_graphics"
+note = "Upload actor's portrait graphics"
+
+[[label]]
+addr = "7010"
+bank = 0xC3
+name = "create_a_blank_portrait_for_lineup_menu"
+note = "Create a blank portrait for Lineup menu"
+
+[[label]]
+addr = "7023"
+bank = 0xC3
+name = "validate_sram_markers"
+note = "Validate SRAM markers"
+
+[[label]]
+addr = "704b"
+bank = 0xC3
+name = "delete_all_saved_data"
+note = "Delete all saved data"
+
+[[label]]
+addr = "7068"
+bank = 0xC3
+name = "reset_saved_cursor_positions_for_main_menu"
+note = "Reset saved cursor positions for main menu"
+
+[[label]]
+addr = "709b"
+bank = 0xC3
+name = "reset_game_data_for_load_menu"
+note = "Reset game data for Load menu"
+
+[[label]]
+addr = "70fc"
+bank = 0xC3
+name = "initialize_variables_for_lineup_menu"
+note = "Initialize variables for Lineup menu"
+
+[[label]]
+addr = "71b9"
+bank = 0xC3
+name = "handle_d_pad_and_update_actor_info_in_lineup"
+note = "Handle D-Pad and update actor info in Lineup menu"
+
+[[label]]
+addr = "7296"
+bank = 0xC3
+name = "handle_attempt_to_exit_lineup_menu"
+note = "Handle attempt to exit Lineup menu"
+
+[[label]]
+addr = "72f8"
+bank = 0xC3
+name = "swap_actor_positions_in_lineup_menu"
+note = "Swap actor positions in Lineup menu"
+
+[[label]]
+addr = "73db"
+bank = 0xC3
+name = "load_nav_data_for_party_area_of_lineup_menu"
+note = "Load nav data for party area of Lineup menu, relocate cursor"
+
+[[label]]
+addr = "7415"
+bank = 0xC3
+name = "handle_d_pad_for_lineup_menu"
+note = "Handle D-Pad for Lineup menu"
+
+[[label]]
+addr = "7432"
+bank = 0xC3
+name = "adjust_cursor_column_upon_entering_3_party_area"
+note = "Adjust cursor column upon entering 3-party area of Lineup menu"
+
+[[label]]
+addr = "744c"
+bank = 0xC3
+name = "adjust_cursor_column_upon_leaving_3_party_area"
+note = "Adjust cursor column upon leaving 3-party area of Lineup menu"
+
+[[label]]
+addr = "7482"
+bank = 0xC3
+name = "load_navigation_data_for_non_party_area_of"
+note = "Load navigation data for non-party area of Lineup menu"
+
+[[label]]
+addr = "7491"
+bank = 0xC3
+name = "load_navigation_data_for_single_party_area_of"
+note = "Load navigation data for single-party area of Lineup menu"
+
+[[label]]
+addr = "74a0"
+bank = 0xC3
+name = "load_navigation_data_for_two_party_area_of"
+note = "Load navigation data for two-party area of Lineup menu"
+
+[[label]]
+addr = "74af"
+bank = 0xC3
+name = "load_navigation_data_for_three_party_area_of"
+note = "Load navigation data for three-party area of Lineup menu"
+
+[[label]]
+addr = "7522"
+bank = 0xC3
+name = "draw_lineup_menu_windows_and_uppermost_text"
+note = "Draw Lineup menu windows and uppermost text"
+
+[[label]]
+addr = "755f"
+bank = 0xC3
+name = "clear_bg3_tilemap_a_755f"
+note = "Clear BG3 tilemap A"
+
+[[label]]
+addr = "7562"
+bank = 0xC3
+name = "draw_form_group_s"
+note = "Draw \"Form <#> group(s).\""
+
+[[label]]
+addr = "7572"
+bank = 0xC3
+name = "draw_party_windows_for_lineup_menu"
+note = "Draw party windows for Lineup menu"
+
+[[label]]
+addr = "75b8"
+bank = 0xC3
+name = "update_displayed_actor_info_in_lineup_menu"
+note = "Update displayed actor info in Lineup menu"
+
+[[label]]
+addr = "75c5"
+bank = 0xC3
+name = "set_to_condense_text_in_lineup_menu"
+note = "Set to condense text in Lineup menu"
+
+[[label]]
+addr = "75f7"
+bank = 0xC3
+name = "draw_number_of_required_groups_for_lineup_menu"
+note = "Draw number of required groups for Lineup menu"
+
+[[label]]
+addr = "7613"
+bank = 0xC3
+name = "list_members_and_create_actors_after_changes_in"
+note = "List members and create actors after changes in Lineup menu"
+
+[[label]]
+addr = "762a"
+bank = 0xC3
+name = "list_and_create_actors_in_lineup_menu_define"
+note = "List and create actors in Lineup menu, define locked slots"
+
+[[label]]
+addr = "7677"
+bank = 0xC3
+name = "list_members_create_actors_and_define_locked"
+note = "List members, create actors, and define locked slots in Lineup menu"
+
+[[label]]
+addr = "7683"
+bank = 0xC3
+name = "create_all_candidates_in_lineup_menu"
+note = "Create all candidates in Lineup menu"
+
+[[label]]
+addr = "76ea"
+bank = 0xC3
+name = "list_members_by_id_and_choice_link_each_menu"
+note = "List members by ID and choice, link each menu slot to a party"
+
+[[label]]
+addr = "7738"
+bank = 0xC3
+name = "sort_members_by_player_choice_merge_into_a"
+note = "Sort members by player choice, merge into a unified list"
+
+[[label]]
+addr = "77c3"
+bank = 0xC3
+name = "add_groups_1_and_2"
+note = "Add groups 1 and 2"
+
+[[label]]
+addr = "77d6"
+bank = 0xC3
+name = "add_group_1"
+note = "Add group 1"
+
+[[label]]
+addr = "7839"
+bank = 0xC3
+name = "c3_1_group"
+note = "1 group"
+
+[[label]]
+addr = "783e"
+bank = 0xC3
+name = "c3_2_groups"
+note = "2 groups"
+
+[[label]]
+addr = "7853"
+bank = 0xC3
+name = "create_all_party_members_in_lineup_menu"
+note = "Create all party members in Lineup menu"
+
+[[label]]
+addr = "78eb"
+bank = 0xC3
+name = "load_pointer_to_actor_s_animation_table"
+note = "Load pointer to actor's animation table"
+
+[[label]]
+addr = "793f"
+bank = 0xC3
+name = "initialize_and_load_portrait_for_lineup_menu"
+note = "Initialize and load portrait for Lineup menu"
+
+[[label]]
+addr = "7953"
+bank = 0xC3
+name = "draw_actor_info_in_lineup_menu"
+note = "Draw actor info in Lineup menu"
+
+[[label]]
+addr = "79ac"
+bank = 0xC3
+name = "erase_actor_info_on_bg1_in_lineup_menu"
+note = "Erase actor info on BG1 in Lineup menu"
+
+[[label]]
+addr = "7ae5"
+bank = 0xC3
+name = "create_portrait_for_lineup_menu"
+note = "Create portrait for Lineup menu"
+
+[[label]]
+addr = "7b0e"
+bank = 0xC3
+name = "load_animation_table_address_for_portrait"
+note = "Load animation table address for portrait"
+
+[[label]]
+addr = "7b25"
+bank = 0xC3
+name = "sort_members_by_actual_order_rather_than_actor"
+note = "Sort members by actual order rather than actor slot"
+
+[[label]]
+addr = "7bae"
+bank = 0xC3
+name = "create_large_arrow_under_actor_if_forced_into"
+note = "Create large arrow under actor if forced into party"
+
+[[label]]
+addr = "7c2f"
+bank = 0xC3
+name = "set_to_upload_portrait_for_lineup_menu"
+note = "Set to upload portrait for Lineup menu"
+
+[[label]]
+addr = "7cae"
+bank = 0xC3
+name = "load_portrait_palette_for_lineup_menu"
+note = "Load portrait palette for Lineup menu"
+
+[[label]]
+addr = "7d1c"
+bank = 0xC3
+name = "load_navigation_data_for_item_colosseum_or_sell"
+note = "Load navigation data for Item, Colosseum, or Sell menu"
+
+[[label]]
+addr = "7d22"
+bank = 0xC3
+name = "handle_d_pad_for_item_colosseum_or_sell_menu"
+note = "Handle D-Pad for Item, Colosseum, or Sell menu"
+
+[[label]]
+addr = "7d44"
+bank = 0xC3
+name = "load_navigation_data_for_rare_item_menu"
+note = "Load navigation data for rare item menu"
+
+[[label]]
+addr = "7d4a"
+bank = 0xC3
+name = "handle_d_pad_for_rare_item_menu"
+note = "Handle D-Pad for rare item menu"
+
+[[label]]
+addr = "7d80"
+bank = 0xC3
+name = "load_navigation_data_for_item_menu_options"
+note = "Load navigation data for Item menu options"
+
+[[label]]
+addr = "7d86"
+bank = 0xC3
+name = "relocate_cursor_for_item_menu_options"
+note = "Relocate cursor for Item menu options"
+
+[[label]]
+addr = "7d8c"
+bank = 0xC3
+name = "handle_d_pad_for_item_menu_options"
+note = "Handle D-Pad for Item menu options"
+
+[[label]]
+addr = "7da3"
+bank = 0xC3
+name = "draw_item_menu_with_inventory_upload_element"
+note = "Draw Item menu with inventory; upload element graphics"
+
+[[label]]
+addr = "7e0d"
+bank = 0xC3
+name = "draw_inventory_after_clearing_tilemap_item"
+note = "Draw inventory after clearing tilemap (Item, Colosseum, Sell)"
+
+[[label]]
+addr = "7e2b"
+bank = 0xC3
+name = "set_to_condense_text_in_item_colosseum_or_sell"
+note = "Set to condense text in Item, Colosseum, or Sell menu"
+
+[[label]]
+addr = "7e95"
+bank = 0xC3
+name = "load_bg1_vertical_shift_table_for_item"
+note = "Load BG1 vertical shift table for Item, Colosseum, or Sell menu"
+
+[[label]]
+addr = "7f88"
+bank = 0xC3
+name = "draw_inventory_for_item_colosseum_or_sell_menu"
+note = "Draw inventory for Item, Colosseum, or Sell menu"
+
+[[label]]
+addr = "7fa1"
+bank = 0xC3
+name = "draw_item_s_name_quantity_owned_and_class"
+note = "Draw item's name, quantity owned, and class"
+
+[[label]]
+addr = "7fd9"
+bank = 0xC3
+name = "draw_memorized_string"
+note = "Draw memorized string"
+
+[[label]]
+addr = "8045"
+bank = 0xC3
+name = "choose_item_s_color_for_item_colosseum_or_sell"
+note = "Choose item's color for Item, Colosseum, or Sell menu"
+
+[[label]]
+addr = "809f"
+bank = 0xC3
+name = "compute_position_into_bg1_tilemap_a"
+note = "Compute position into BG1 tilemap A"
+
+[[label]]
+addr = "80b9"
+bank = 0xC3
+name = "load_owned_item_s_name_add_colon_item_colosseum"
+note = "Load owned item's name, add colon (Item, Colosseum, Sell)"
+
+[[label]]
+addr = "8105"
+bank = 0xC3
+name = "adjust_bg1_vertical_shift_amounts_while_list"
+note = "Adjust BG1 vertical shift amounts while list scrolls"
+
+[[label]]
+addr = "81c7"
+bank = 0xC3
+name = "handle_d_pad_for_scrollable_list_change_row"
+note = "Handle D-Pad for scrollable list, change row when wrapping"
+
+[[label]]
+addr = "8286"
+bank = 0xC3
+name = "set_to_scroll_list_upward_draw_row_to_scroll"
+note = "Set to scroll list upward, draw row to scroll into view"
+
+[[label]]
+addr = "829e"
+bank = 0xC3
+name = "set_to_scroll_list_downward_draw_row_to_scroll"
+note = "Set to scroll list downward, draw row to scroll into view"
+
+[[label]]
+addr = "82dd"
+bank = 0xC3
+name = "draw_list_elements_to_scroll_into_view"
+note = "Draw list elements to scroll into view"
+
+[[label]]
+addr = "82f1"
+bank = 0xC3
+name = "load_common_item_s_description_and_draw_item"
+note = "Load common item's description and draw item count in Item menu"
+
+[[label]]
+addr = "8308"
+bank = 0xC3
+name = "prepare_item_description_loading"
+note = "Prepare item description loading"
+
+[[label]]
+addr = "8321"
+bank = 0xC3
+name = "compute_item_data_index"
+note = "Compute item data index"
+
+[[label]]
+addr = "8339"
+bank = 0xC3
+name = "load_rare_item_s_description_and_draw_item_count"
+note = "Load rare item's description and draw item count"
+
+[[label]]
+addr = "8356"
+bank = 0xC3
+name = "count_number_of_common_items"
+note = "Count number of common items"
+
+[[label]]
+addr = "836b"
+bank = 0xC3
+name = "count_number_of_rare_items"
+note = "Count number of rare items"
+
+[[label]]
+addr = "8385"
+bank = 0xC3
+name = "blank_item_count_in_corner_of_item_menu"
+note = "Blank item count in corner of Item menu"
+
+[[label]]
+addr = "838b"
+bank = 0xC3
+name = "build_and_draw_rare_item_list"
+note = "Build and draw rare item list"
+
+[[label]]
+addr = "8394"
+bank = 0xC3
+name = "build_rare_item_list"
+note = "Build rare item list"
+
+[[label]]
+addr = "83f7"
+bank = 0xC3
+name = "define_bg1_row_for_drawing_list_plus_first"
+note = "Define BG1 row for drawing list, plus first onscreen list slot"
+
+[[label]]
+addr = "841b"
+bank = 0xC3
+name = "draw_a_row_of_two_rare_items"
+note = "Draw a row of two rare items"
+
+[[label]]
+addr = "8436"
+bank = 0xC3
+name = "set_source_for_loading_rare_item_name"
+note = "Set source for loading rare item name"
+
+[[label]]
+addr = "8445"
+bank = 0xC3
+name = "draw_rare_item_name"
+note = "Draw rare item name"
+
+[[label]]
+addr = "8467"
+bank = 0xC3
+name = "load_fixed_size_string_from_table"
+note = "Load fixed-size string from table"
+
+[[label]]
+addr = "858c"
+bank = 0xC3
+name = "disable_scrollbar_and_freeze_description"
+note = "Disable scrollbar and freeze description"
+
+[[label]]
+addr = "8595"
+bank = 0xC3
+name = "create_arrow_for_gear_data_menu"
+note = "Create arrow for gear data menu"
+
+[[label]]
+addr = "85ad"
+bank = 0xC3
+name = "add_can_be_used_by_after_item_name"
+note = "Add \" can be used by:\" after item name"
+
+[[label]]
+addr = "85d5"
+bank = 0xC3
+name = "filter_and_draw_gear_s_list_of_compatible_actors"
+note = "Filter and draw gear's list of compatible actors"
+
+[[label]]
+addr = "8671"
+bank = 0xC3
+name = "draw_all_gear_info_except_compatible_actors"
+note = "Draw all gear info except compatible actors"
+
+[[label]]
+addr = "8795"
+bank = 0xC3
+name = "draw_string_for_the_above"
+note = "Draw string for the above"
+
+[[label]]
+addr = "879c"
+bank = 0xC3
+name = "draw_weapon_s_bat_pwr_in_gear_data_menu"
+note = "Draw weapon's Bat.Pwr in gear data menu"
+
+[[label]]
+addr = "87eb"
+bank = 0xC3
+name = "draw_evade_and_mblock_modifiers_for_gear_data"
+note = "Draw Evade and MBlock modifiers for gear data menu"
+
+[[label]]
+addr = "8836"
+bank = 0xC3
+name = "draw_a_non_evasion_stat_modifier_for_gear_data"
+note = "Draw a non-evasion stat modifier for gear data menu"
+
+[[label]]
+addr = "88a0"
+bank = 0xC3
+name = "build_and_draw_list_of_attack_or_halved_elements"
+note = "Build and draw list of attack or halved elements"
+
+[[label]]
+addr = "88ae"
+bank = 0xC3
+name = "build_current_list_of_elements"
+note = "Build current list of elements"
+
+[[label]]
+addr = "8937"
+bank = 0xC3
+name = "draw_current_element"
+note = "Draw current element"
+
+[[label]]
+addr = "8959"
+bank = 0xC3
+name = "build_and_draw_list_of_absorbed_nulled_and_weak"
+note = "Build and draw list of absorbed, nulled, and weak elements"
+
+[[label]]
+addr = "89de"
+bank = 0xC3
+name = "create_scrollbar_and_set_to_update_description"
+note = "Create scrollbar and set to update description"
+
+[[label]]
+addr = "8a0e"
+bank = 0xC3
+name = "draw_item_usage_menu"
+note = "Draw item usage menu"
+
+[[label]]
+addr = "8a47"
+bank = 0xC3
+name = "draw_item_info_for_item_usage_menu"
+note = "Draw item info for item usage menu"
+
+[[label]]
+addr = "8a6d"
+bank = 0xC3
+name = "draw_quantity_owned_for_item_usage_menu"
+note = "Draw quantity owned for item usage menu"
+
+[[label]]
+addr = "8ae7"
+bank = 0xC3
+name = "handle_item_usage_excluding_rename_card"
+note = "Handle item usage, excluding Rename Card"
+
+[[label]]
+addr = "8b11"
+bank = 0xC3
+name = "heal_item_s_target_destroy_item"
+note = "Heal item's target, destroy item"
+
+[[label]]
+addr = "8b1a"
+bank = 0xC3
+name = "adjust_item_target_s_hp_mp_and_status"
+note = "Adjust item target's HP, MP, and status"
+
+[[label]]
+addr = "8b3d"
+bank = 0xC3
+name = "determine_whether_item_target_is_valid"
+note = "Determine whether item target is valid"
+
+[[label]]
+addr = "8be5"
+bank = 0xC3
+name = "elixir"
+note = "Elixir"
+
+[[label]]
+addr = "8c2b"
+bank = 0xC3
+name = "get_selected_recovery_item"
+note = "Get selected recovery item"
+
+[[label]]
+addr = "8ccd"
+bank = 0xC3
+name = "load_recovery_item_s_power"
+note = "Load recovery item's power"
+
+[[label]]
+addr = "8cd6"
+bank = 0xC3
+name = "multiply_max_hp_or_mp_by_item_s_power_divide_by"
+note = "Multiply max HP or MP by item's power, divide by 16"
+
+[[label]]
+addr = "8e50"
+bank = 0xC3
+name = "load_navigation_data_for_equip_menu_options"
+note = "Load navigation data for Equip menu options"
+
+[[label]]
+addr = "8e56"
+bank = 0xC3
+name = "handle_d_pad_for_equip_menu_options"
+note = "Handle D-Pad for Equip menu options"
+
+[[label]]
+addr = "8e6c"
+bank = 0xC3
+name = "load_navigation_data_for_equip_menu_slot"
+note = "Load navigation data for Equip menu slot selection"
+
+[[label]]
+addr = "8e72"
+bank = 0xC3
+name = "handle_d_pad_for_equip_menu_slot_selection"
+note = "Handle D-Pad for Equip menu slot selection"
+
+[[label]]
+addr = "8e88"
+bank = 0xC3
+name = "load_navigation_data_for_equipment_browsing"
+note = "Load navigation data for equipment browsing"
+
+[[label]]
+addr = "8e97"
+bank = 0xC3
+name = "load_navigation_data_for_equipment_browsing_8e97"
+note = "Load navigation data for equipment browsing"
+
+[[label]]
+addr = "8ebd"
+bank = 0xC3
+name = "load_navigation_data_for_relic_menu_options"
+note = "Load navigation data for Relic menu options"
+
+[[label]]
+addr = "8ec3"
+bank = 0xC3
+name = "handle_d_pad_for_relic_menu_options"
+note = "Handle D-Pad for Relic menu options"
+
+[[label]]
+addr = "8ed5"
+bank = 0xC3
+name = "load_navigation_data_for_relic_slot_selection"
+note = "Load navigation data for relic slot selection"
+
+[[label]]
+addr = "8edb"
+bank = 0xC3
+name = "handle_d_pad_for_relic_slot_selection"
+note = "Handle D-Pad for relic slot selection"
+
+[[label]]
+addr = "8eed"
+bank = 0xC3
+name = "draw_party_gear_overview"
+note = "Draw party gear overview"
+
+[[label]]
+addr = "8f1c"
+bank = 0xC3
+name = "draw_text_in_party_gear_overview_for_member_1"
+note = "Draw text in party gear overview for member 1"
+
+[[label]]
+addr = "8f36"
+bank = 0xC3
+name = "draw_text_in_party_gear_overview_for_member_2"
+note = "Draw text in party gear overview for member 2"
+
+[[label]]
+addr = "8f52"
+bank = 0xC3
+name = "draw_text_in_party_gear_overview_for_member_3"
+note = "Draw text in party gear overview for member 3"
+
+[[label]]
+addr = "8f6e"
+bank = 0xC3
+name = "draw_text_in_party_gear_overview_for_member_4"
+note = "Draw text in party gear overview for member 4"
+
+[[label]]
+addr = "8f8a"
+bank = 0xC3
+name = "draw_member_s_gear_in_party_gear_overview"
+note = "Draw member's gear in party gear overview"
+
+[[label]]
+addr = "8fe1"
+bank = 0xC3
+name = "load_equipped_item_s_name"
+note = "Load equipped item's name"
+
+[[label]]
+addr = "9032"
+bank = 0xC3
+name = "draw_equip_menu_create_portrait_update_status"
+note = "Draw Equip menu, create portrait, update status via gear"
+
+[[label]]
+addr = "904e"
+bank = 0xC3
+name = "draw_options_in_equip_menu"
+note = "Draw options in Equip menu"
+
+[[label]]
+addr = "905c"
+bank = 0xC3
+name = "draw_options_in_relic_menu"
+note = "Draw options in Relic menu"
+
+[[label]]
+addr = "906a"
+bank = 0xC3
+name = "draw_relic_menu_memorize_original_relics_create"
+note = "Draw Relic menu, memorize original relics, create portrait"
+
+[[label]]
+addr = "9093"
+bank = 0xC3
+name = "draw_elements_shared_by_equip_and_relic_menus"
+note = "Draw elements shared by Equip and Relic menus, create portrait"
+
+[[label]]
+addr = "9110"
+bank = 0xC3
+name = "load_member_s_stats_and_properties_with_gear_9110"
+note = "Load member's stats and properties with gear"
+
+[[label]]
+addr = "911b"
+bank = 0xC3
+name = "draw_actor_info_in_equip_menu_update_status"
+note = "Draw actor info in Equip menu, update status based on gear"
+
+[[label]]
+addr = "9131"
+bank = 0xC3
+name = "draw_actor_info_in_relic_menu_update_status"
+note = "Draw actor info in Relic menu, update status based on gear"
+
+[[label]]
+addr = "913e"
+bank = 0xC3
+name = "draw_current_stats_in_gear_menu_update_status"
+note = "Draw current stats in gear menu, update status based on gear"
+
+[[label]]
+addr = "91c4"
+bank = 0xC3
+name = "update_status_based_on_gear_rage_denotes_auto"
+note = "Update status based on gear (Rage denotes Auto Float)"
+
+[[label]]
+addr = "91ec"
+bank = 0xC3
+name = "cure_ailments_blocked_by_gear"
+note = "Cure ailments blocked by gear"
+
+[[label]]
+addr = "9207"
+bank = 0xC3
+name = "load_actor_s_info_for_equip_or_relic_menu"
+note = "Load actor's info for Equip or Relic menu"
+
+[[label]]
+addr = "9233"
+bank = 0xC3
+name = "draw_projected_stats_in_equip_or_relic_menu"
+note = "Draw projected stats in Equip or Relic menu"
+
+[[label]]
+addr = "9320"
+bank = 0xC3
+name = "set_color_for_each_projected_stat_in_equip_or"
+note = "Set color for each projected stat in Equip or Relic menu"
+
+[[label]]
+addr = "9371"
+bank = 0xC3
+name = "define_current_status_or_projected_equip_relic"
+note = "Define current (Status) or projected (Equip, Relic) Bat.Pwr"
+
+[[label]]
+addr = "93ab"
+bank = 0xC3
+name = "define_current_bat_pwr_for_equip_or_relic_menu"
+note = "Define current Bat.Pwr for Equip or Relic menu"
+
+[[label]]
+addr = "93e5"
+bank = 0xC3
+name = "draw_actor_name_in_equip_or_relic_menu"
+note = "Draw actor name in Equip or Relic menu"
+
+[[label]]
+addr = "93f2"
+bank = 0xC3
+name = "load_member_s_sram_block_address"
+note = "Load member's SRAM block address"
+
+[[label]]
+addr = "93fc"
+bank = 0xC3
+name = "draw_equipped_armaments_in_equip_menu"
+note = "Draw equipped armaments in Equip menu"
+
+[[label]]
+addr = "941d"
+bank = 0xC3
+name = "check_if_empty_should_be_drawn_for_both_hands"
+note = "Check if \"Empty\" should be drawn for both hands"
+
+[[label]]
+addr = "946d"
+bank = 0xC3
+name = "set_text_position_and_load_actor_data_address"
+note = "Set text position and load actor data address"
+
+[[label]]
+addr = "9497"
+bank = 0xC3
+name = "set_to_condense_text_for_party_gear_overview_or"
+note = "Set to condense text for party gear overview or final battle lineup"
+
+[[label]]
+addr = "94b6"
+bank = 0xC3
+name = "set_to_condense_text_in_equip_or_relic_menu"
+note = "Set to condense text in Equip or Relic menu"
+
+[[label]]
+addr = "9520"
+bank = 0xC3
+name = "load_bg1_vertical_shift_table_for_equip_or"
+note = "Load BG1 vertical shift table for Equip or Relic menu"
+
+[[label]]
+addr = "960c"
+bank = 0xC3
+name = "switch_to_layout_with_options_in_equip_or_relic"
+note = "Switch to layout with options in Equip or Relic menu"
+
+[[label]]
+addr = "9614"
+bank = 0xC3
+name = "switch_to_layout_without_options_in_equip_or"
+note = "Switch to layout without options in Equip or Relic menu"
+
+[[label]]
+addr = "964f"
+bank = 0xC3
+name = "draw_blue_equip_in_equip_or_relic_menu"
+note = "Draw blue \"Equip\" in Equip or Relic menu"
+
+[[label]]
+addr = "9656"
+bank = 0xC3
+name = "draw_blue_remove_in_equip_or_relic_menu"
+note = "Draw blue \"Remove\" in Equip or Relic menu"
+
+[[label]]
+addr = "965d"
+bank = 0xC3
+name = "erase_options_and_title_in_equip_or_relic_menu"
+note = "Erase options and title in Equip or Relic menu"
+
+[[label]]
+addr = "96a8"
+bank = 0xC3
+name = "remove_character_s_equipment"
+note = "Remove character's equipment"
+
+[[label]]
+addr = "96f0"
+bank = 0xC3
+name = "optimize_character_s_equipment"
+note = "Optimize character's equipment"
+
+[[label]]
+addr = "9795"
+bank = 0xC3
+name = "compile_compatible_weapons_for_optimum"
+note = "Compile compatible weapons for Optimum"
+
+[[label]]
+addr = "97d7"
+bank = 0xC3
+name = "compile_compatible_shields_for_optimum"
+note = "Compile compatible shields for Optimum"
+
+[[label]]
+addr = "9819"
+bank = 0xC3
+name = "select_first_non_excluded_item_in_sorted_list"
+note = "Select first non-excluded item in sorted list of compatible gear"
+
+[[label]]
+addr = "983f"
+bank = 0xC3
+name = "select_first_two_handed_weapon_from_sorted_list"
+note = "Select first two-handed weapon from sorted list of compatible gear"
+
+[[label]]
+addr = "9975"
+bank = 0xC3
+name = "draw_r_hand_and_l_hand_in_equip_menu"
+note = "Draw \"R-hand\" and \"L-hand\" in Equip menu"
+
+[[label]]
+addr = "9998"
+bank = 0xC3
+name = "sub_draw_r_hand"
+note = "Sub: Draw \"R-hand\""
+
+[[label]]
+addr = "99e8"
+bank = 0xC3
+name = "define_bat_pwr_mode_normal_doubled_or_combined"
+note = "Define Bat.Pwr mode (normal, doubled, or combined hands)"
+
+[[label]]
+addr = "9a42"
+bank = 0xC3
+name = "check_if_pointing_at_grayed_out_gear"
+note = "Check if pointing at grayed out gear"
+
+[[label]]
+addr = "9a4a"
+bank = 0xC3
+name = "load_address_to_selected_body_slot"
+note = "Load address to selected body slot"
+
+[[label]]
+addr = "9a56"
+bank = 0xC3
+name = "determine_whether_gear_list_entry_is_disabled"
+note = "Determine whether gear list entry is disabled"
+
+[[label]]
+addr = "9ad3"
+bank = 0xC3
+name = "handle_d_pad_plus_l_and_r_for_gear_browsing"
+note = "Handle D-Pad plus L and R for gear browsing"
+
+[[label]]
+addr = "9aeb"
+bank = 0xC3
+name = "initialize_cursor_data_for_list_of_available"
+note = "Initialize cursor data for list of available gear"
+
+[[label]]
+addr = "9b0d"
+bank = 0xC3
+name = "initialize_cursor_data_for_scrollable_gear_list"
+note = "Initialize cursor data for scrollable gear list"
+
+[[label]]
+addr = "9b59"
+bank = 0xC3
+name = "compile_compatible_gear_for_actor_s_body_part"
+note = "Compile compatible gear for actor's body part"
+
+[[label]]
+addr = "9c2a"
+bank = 0xC3
+name = "initialize_list_of_compatible_gear"
+note = "Initialize list of compatible gear"
+
+[[label]]
+addr = "9c41"
+bank = 0xC3
+name = "define_gear_compatibility_for_actor"
+note = "Define gear compatibility for actor"
+
+[[label]]
+addr = "9c87"
+bank = 0xC3
+name = "erase_projected_stats_in_equip_or_relic_menu"
+note = "Erase projected stats in Equip or Relic menu"
+
+[[label]]
+addr = "9cac"
+bank = 0xC3
+name = "draw_and_reveal_list_of_available_gear_for_body"
+note = "Draw and reveal list of available gear for body part"
+
+[[label]]
+addr = "9ce2"
+bank = 0xC3
+name = "draw_name_of_item_from_list_of_available_gear"
+note = "Draw name of item from list of available gear"
+
+[[label]]
+addr = "9d11"
+bank = 0xC3
+name = "load_name_of_item_from_list_of_available_gear"
+note = "Load name of item from list of available gear"
+
+[[label]]
+addr = "9d5e"
+bank = 0xC3
+name = "add_item_to_inventory"
+note = "Add item to inventory"
+
+[[label]]
+addr = "9d97"
+bank = 0xC3
+name = "remove_item_from_inventory"
+note = "Remove item from inventory"
+
+[[label]]
+addr = "9dc4"
+bank = 0xC3
+name = "duplicate_cursor_before_browsing_gear"
+note = "Duplicate cursor before browsing gear"
+
+[[label]]
+addr = "9e14"
+bank = 0xC3
+name = "set_to_upload_text_tilemaps_for_relic_menu"
+note = "Set to upload text tilemaps for Relic menu"
+
+[[label]]
+addr = "9e23"
+bank = 0xC3
+name = "set_to_upload_bg3_tilemaps_a_and_upper_b"
+note = "Set to upload BG3 tilemaps A and upper B"
+
+[[label]]
+addr = "9e37"
+bank = 0xC3
+name = "set_to_upload_bg1_tilemap_a_9e37"
+note = "Set to upload BG1 tilemap A"
+
+[[label]]
+addr = "9e50"
+bank = 0xC3
+name = "initialize_variables_for_relic_menu"
+note = "Initialize variables for Relic menu"
+
+[[label]]
+addr = "9e99"
+bank = 0xC3
+name = "reset_relic_menu_for_either_of_the_above"
+note = "Reset Relic menu for either of the above"
+
+[[label]]
+addr = "9ea8"
+bank = 0xC3
+name = "put_cursor_on_first_relic_slot_trigger_fade_in"
+note = "Put cursor on first relic slot, trigger fade-in"
+
+[[label]]
+addr = "9ee6"
+bank = 0xC3
+name = "memorize_menu_mode_for_positioning_reequip"
+note = "Memorize menu mode for positioning Reequip warning"
+
+[[label]]
+addr = "9eeb"
+bank = 0xC3
+name = "test_reequip_activation_select_menu_commands"
+note = "Test Reequip activation, select menu commands accordingly"
+
+[[label]]
+addr = "9f1c"
+bank = 0xC3
+name = "handle_reequip_activation"
+note = "Handle Reequip activation"
+
+[[label]]
+addr = "9f5c"
+bank = 0xC3
+name = "determine_whether_to_trigger_reequip_in_relic"
+note = "Determine whether to trigger Reequip in Relic menu"
+
+[[label]]
+addr = "a051"
+bank = 0xC3
+name = "compile_compatible_relics"
+note = "Compile compatible relics"
+
+[[label]]
+addr = "a150"
+bank = 0xC3
+name = "sort_compatible_gear_by_power_after_loading"
+note = "Sort compatible gear by power after loading power ratings"
+
+[[label]]
+addr = "a187"
+bank = 0xC3
+name = "sort_list_of_compatible_gear_by_power"
+note = "Sort list of compatible gear by power"
+
+[[label]]
+addr = "a1d8"
+bank = 0xC3
+name = "load_item_description_for_relic_browsing"
+note = "Load item description for relic browsing"
+
+[[label]]
+addr = "a424"
+bank = 0xC3
+name = "establish_button_purposes_and_autofire_delays"
+note = "Establish button purposes and autofire delays"
+
+[[label]]
+addr = "a483"
+bank = 0xC3
+name = "update_non_time_based_joypad_keys"
+note = "Update non-time-based joypad keys"
+
+[[label]]
+addr = "a4bd"
+bank = 0xC3
+name = "update_slow_autofire_keys"
+note = "Update slow autofire keys"
+
+[[label]]
+addr = "a4f6"
+bank = 0xC3
+name = "adjust_slow_autofire_keys_for_battle"
+note = "Adjust slow autofire keys for battle"
+
+[[label]]
+addr = "a541"
+bank = 0xC3
+name = "convert_pushed_keys_based_on_user_settings_for"
+note = "Convert pushed keys based on user settings (for SFC)"
+
+[[label]]
+addr = "a581"
+bank = 0xC3
+name = "convert_two_pushed_keys_to_their_respective"
+note = "Convert two pushed keys to their respective purposes (for SFC)"
+
+[[label]]
+addr = "a5c4"
+bank = 0xC3
+name = "apply_player_s_button_settings_sfc"
+note = "Apply player's button settings (SFC)"
+
+[[label]]
+addr = "a5d1"
+bank = 0xC3
+name = "apply_default_button_settings"
+note = "Apply default button settings"
+
+[[label]]
+addr = "a5de"
+bank = 0xC3
+name = "clear_buffer_for_storing_actor_s_pseudonym_in"
+note = "Clear buffer for storing actor's pseudonym in ending"
+
+[[label]]
+addr = "a5f6"
+bank = 0xC3
+name = "upload_element_s_vwf_graphics_freeze_cgram"
+note = "Upload element's VWF graphics; freeze CGRAM"
+
+[[label]]
+addr = "a600"
+bank = 0xC3
+name = "set_to_upload_vwf_string_graphics_elements"
+note = "Set to upload VWF string graphics (elements, ending pseudonym)"
+
+[[label]]
+addr = "a611"
+bank = 0xC3
+name = "build_tilemap_for_actor_s_pseudonym_in_ending"
+note = "Build tilemap for actor's pseudonym in ending"
+
+[[label]]
+addr = "a63b"
+bank = 0xC3
+name = "load_and_set_to_upload_vwf_graphics_for_actor_s"
+note = "Load and set to upload VWF graphics for actor's pseudonym"
+
+[[label]]
+addr = "a662"
+bank = 0xC3
+name = "build_description_tilemap_for_skills_submenus"
+note = "Build description tilemap for Skills submenus"
+
+[[label]]
+addr = "a6ab"
+bank = 0xC3
+name = "build_description_tilemap_for_relic_menu"
+note = "Build description tilemap for Relic menu"
+
+[[label]]
+addr = "a6f4"
+bank = 0xC3
+name = "build_description_tilemap_for_shop_menu"
+note = "Build description tilemap for shop menu"
+
+[[label]]
+addr = "a73d"
+bank = 0xC3
+name = "build_description_tilemap_for_item_or_colosseum"
+note = "Build description tilemap for Item or Colosseum menu"
+
+[[label]]
+addr = "a796"
+bank = 0xC3
+name = "clear_buffer_for_vwf_description_graphics"
+note = "Clear buffer for VWF description graphics"
+
+[[label]]
+addr = "a8a9"
+bank = 0xC3
+name = "make_character_number_zero_based_clear_graphics"
+note = "Make character number zero-based, clear graphics table pointer"
+
+[[label]]
+addr = "a8b1"
+bank = 0xC3
+name = "load_vwf_character_s_graphics_into_string_add"
+note = "Load VWF character's graphics into string, add shadow effect"
+
+[[label]]
+addr = "a94f"
+bank = 0xC3
+name = "shift_vwf_character_s_row_for_string_insertion"
+note = "Shift VWF character's row for string insertion"
+
+[[label]]
+addr = "a991"
+bank = 0xC3
+name = "set_to_upload_vwf_description_freeze_cgram"
+note = "Set to upload VWF description, freeze CGRAM"
+
+[[label]]
+addr = "a9a9"
+bank = 0xC3
+name = "load_and_upload_vwf_graphics_for_all_elements"
+note = "Load and upload VWF graphics for all elements"
+
+[[label]]
+addr = "a9e5"
+bank = 0xC3
+name = "load_element_s_graphics_vwf"
+note = "Load element's graphics (VWF)"
+
+[[label]]
+addr = "aab2"
+bank = 0xC3
+name = "add_chosen_actor_to_player_s_list_for_final"
+note = "Add chosen actor to player's list for final battle"
+
+[[label]]
+addr = "aaca"
+bank = 0xC3
+name = "complete_player_s_actor_list_for_final_battle"
+note = "Complete player's actor list for final battle"
+
+[[label]]
+addr = "aaee"
+bank = 0xC3
+name = "clear_candidate_list_for_final_battle_four"
+note = "Clear candidate list for final battle (four unused slots)"
+
+[[label]]
+addr = "aafd"
+bank = 0xC3
+name = "reset_player_s_actor_list_for_final_battle"
+note = "Reset player's actor list for final battle"
+
+[[label]]
+addr = "ab13"
+bank = 0xC3
+name = "draw_menu_for_final_battle"
+note = "Draw menu for final battle"
+
+[[label]]
+addr = "ab4d"
+bank = 0xC3
+name = "compile_candidates_for_final_battle"
+note = "Compile candidates for final battle"
+
+[[label]]
+addr = "abb4"
+bank = 0xC3
+name = "draw_player_s_actor_list_for_final_battle"
+note = "Draw player's actor list for final battle"
+
+[[label]]
+addr = "abdc"
+bank = 0xC3
+name = "prepare_actor_name_drawing_for_final_battle"
+note = "Prepare actor name drawing for final battle lineup"
+
+[[label]]
+addr = "abf0"
+bank = 0xC3
+name = "draw_actor_s_name_for_final_battle_lineup"
+note = "Draw actor's name for final battle lineup"
+
+[[label]]
+addr = "abfe"
+bank = 0xC3
+name = "point_two_rows_down_in_tilemap"
+note = "Point two rows down in tilemap"
+
+[[label]]
+addr = "ac0b"
+bank = 0xC3
+name = "blank_actor_name_slot"
+note = "Blank actor name slot"
+
+[[label]]
+addr = "ac19"
+bank = 0xC3
+name = "draw_both_lists_of_numbers_for_final_battle"
+note = "Draw both lists of numbers for final battle lineup"
+
+[[label]]
+addr = "ac3b"
+bank = 0xC3
+name = "draw_current_list_of_numbers_for_final_battle"
+note = "Draw current list of numbers for final battle lineup"
+
+[[label]]
+addr = "ac54"
+bank = 0xC3
+name = "load_navigation_data_for_final_battle_lineup"
+note = "Load navigation data for final battle lineup"
+
+[[label]]
+addr = "ac5a"
+bank = 0xC3
+name = "handle_d_pad_for_final_battle_lineup"
+note = "Handle D-Pad for final battle lineup"
+
+[[label]]
+addr = "ad27"
+bank = 0xC3
+name = "draw_and_upload_colosseum_item_menu"
+note = "Draw and upload Colosseum item menu"
+
+[[label]]
+addr = "ad6e"
+bank = 0xC3
+name = "draw_colosseum_menu_title_clear_tilemap"
+note = "Draw Colosseum menu title, clear tilemap beforehand"
+
+[[label]]
+addr = "ad80"
+bank = 0xC3
+name = "build_bg3_tilemap_for_colosseum_item_menu"
+note = "Build BG3 tilemap for Colosseum item menu, excluding title"
+
+[[label]]
+addr = "ae07"
+bank = 0xC3
+name = "queue_oam_function_for_vs_symbol"
+note = "Queue OAM function for \"VS\" symbol"
+
+[[label]]
+addr = "ae34"
+bank = 0xC3
+name = "draw_colosseum_matchup_menu_and_create_members"
+note = "Draw Colosseum matchup menu and create members"
+
+[[label]]
+addr = "ae93"
+bank = 0xC3
+name = "check_if_betting_striker"
+note = "Check if betting Striker"
+
+[[label]]
+addr = "aea7"
+bank = 0xC3
+name = "create_shadow_s_name_and_sprite_for_colosseum"
+note = "Create Shadow's name and sprite for Colosseum"
+
+[[label]]
+addr = "aed9"
+bank = 0xC3
+name = "draw_shadow_s_name_at_colosseum"
+note = "Draw Shadow's name at Colosseum"
+
+[[label]]
+addr = "af00"
+bank = 0xC3
+name = "build_tilemap_for_colosseum_enemy"
+note = "Build tilemap for Colosseum enemy"
+
+[[label]]
+addr = "af46"
+bank = 0xC3
+name = "load_prize_and_enemy_data_for_colosseum_matchup"
+note = "Load prize and enemy data for Colosseum matchup"
+
+[[label]]
+addr = "b033"
+bank = 0xC3
+name = "position_colosseum_enemy_based_on_size"
+note = "Position Colosseum enemy based on size"
+
+[[label]]
+addr = "b10a"
+bank = 0xC3
+name = "create_a_blank_tile_at_current_location_in_vram"
+note = "Create a blank tile at current location in VRAM"
+
+[[label]]
+addr = "b11e"
+bank = 0xC3
+name = "upload_current_tile_from_monster_s_tileset"
+note = "Upload current tile from monster's tileset"
+
+[[label]]
+addr = "b145"
+bank = 0xC3
+name = "upload_specified_number_of_words"
+note = "Upload specified number of words"
+
+[[label]]
+addr = "b17d"
+bank = 0xC3
+name = "create_colosseum_member_1"
+note = "Create Colosseum member 1"
+
+[[label]]
+addr = "b197"
+bank = 0xC3
+name = "create_colosseum_member_2"
+note = "Create Colosseum member 2"
+
+[[label]]
+addr = "b1b1"
+bank = 0xC3
+name = "create_colosseum_member_3"
+note = "Create Colosseum member 3"
+
+[[label]]
+addr = "b1cb"
+bank = 0xC3
+name = "create_colosseum_member_4"
+note = "Create Colosseum member 4"
+
+[[label]]
+addr = "b1e5"
+bank = 0xC3
+name = "draw_colosseum_member_s_name_queue_sprite"
+note = "Draw Colosseum member's name, queue sprite function"
+
+[[label]]
+addr = "b1f3"
+bank = 0xC3
+name = "initialize_colosseum_actor_sprite_excluding"
+note = "Initialize Colosseum actor sprite, excluding enemy Shadow"
+
+[[label]]
+addr = "b22c"
+bank = 0xC3
+name = "load_opponent_and_prize_data_for_item_bet"
+note = "Load opponent and prize data for item bet"
+
+[[label]]
+addr = "b24d"
+bank = 0xC3
+name = "draw_colosseum_bet"
+note = "Draw Colosseum bet"
+
+[[label]]
+addr = "b255"
+bank = 0xC3
+name = "draw_colosseum_prize"
+note = "Draw Colosseum prize"
+
+[[label]]
+addr = "b28d"
+bank = 0xC3
+name = "draw_monster_s_name_for_colosseum"
+note = "Draw monster's name for Colosseum"
+
+[[label]]
+addr = "b2e5"
+bank = 0xC3
+name = "blank_challenger_s_name"
+note = "Blank challenger's name"
+
+[[label]]
+addr = "b2ec"
+bank = 0xC3
+name = "get_party_actor_indicated_by_cursor"
+note = "Get party actor indicated by cursor"
+
+[[label]]
+addr = "b323"
+bank = 0xC3
+name = "load_navigation_data_for_colosseum_matchup_menu"
+note = "Load navigation data for Colosseum matchup menu"
+
+[[label]]
+addr = "b329"
+bank = 0xC3
+name = "handle_d_pad_for_colosseum_matchup_menu"
+note = "Handle D-Pad for Colosseum matchup menu"
+
+[[label]]
+addr = "b3c6"
+bank = 0xC3
+name = "upload_current_graphics_set_for_arena_background"
+note = "Upload current graphics set for arena background"
+
+[[label]]
+addr = "b3d8"
+bank = 0xC3
+name = "convert_and_relocate_decompressed_arena_tilemap"
+note = "Convert and relocate decompressed arena tilemap"
+
+[[label]]
+addr = "b3f2"
+bank = 0xC3
+name = "decompress_data_for_arena_background"
+note = "Decompress data for arena background"
+
+[[label]]
+addr = "b437"
+bank = 0xC3
+name = "clear_buffer_for_storing_element_graphics_4"
+note = "Clear buffer for storing element graphics (4 tiles)"
+
+[[label]]
+addr = "b4e6"
+bank = 0xC3
+name = "set_description_to_be_displayed_and_to_ignore"
+note = "Set description to be displayed and to ignore joypad"
+
+[[label]]
+addr = "b4ef"
+bank = 0xC3
+name = "load_item_description_for_buy_menu"
+note = "Load item description for Buy menu"
+
+[[label]]
+addr = "b4f8"
+bank = 0xC3
+name = "load_item_description_for_sell_menu"
+note = "Load item description for Sell menu"
+
+[[label]]
+addr = "b7cf"
+bank = 0xC3
+name = "return_to_sell_menu"
+note = "Return to Sell menu"
+
+[[label]]
+addr = "b7e6"
+bank = 0xC3
+name = "invoke_buy_order_menu_if_justified"
+note = "Invoke buy order menu if justified"
+
+[[label]]
+addr = "b82f"
+bank = 0xC3
+name = "sub_define_buy_quantity_limit"
+note = "Sub: Define buy quantity limit"
+
+[[label]]
+addr = "b86d"
+bank = 0xC3
+name = "switch_screen"
+note = "Switch screen"
+
+[[label]]
+addr = "b886"
+bank = 0xC3
+name = "load_navigation_data_for_main_shop_menu"
+note = "Load navigation data for main shop menu"
+
+[[label]]
+addr = "b88c"
+bank = 0xC3
+name = "handle_d_pad_for_main_shop_menu"
+note = "Handle D-Pad for main shop menu"
+
+[[label]]
+addr = "b8a0"
+bank = 0xC3
+name = "load_navigation_data_for_buy_menu"
+note = "Load navigation data for Buy menu"
+
+[[label]]
+addr = "b8a6"
+bank = 0xC3
+name = "handle_d_pad_for_buy_menu"
+note = "Handle D-Pad for Buy menu"
+
+[[label]]
+addr = "b8c4"
+bank = 0xC3
+name = "draw_main_shop_menu_and_submenu_windows_set_to"
+note = "Draw main shop menu and submenu windows, set to update description"
+
+[[label]]
+addr = "b94e"
+bank = 0xC3
+name = "clear_bg1_tilemaps_for_shop"
+note = "Clear BG1 tilemaps (for shop)"
+
+[[label]]
+addr = "b95a"
+bank = 0xC3
+name = "draw_shop_title_and_party_s_gold_clear_rest_of"
+note = "Draw shop title and party's gold, clear rest of BG3"
+
+[[label]]
+addr = "b986"
+bank = 0xC3
+name = "draw_all_text_for_buy_menu"
+note = "Draw all text for Buy menu"
+
+[[label]]
+addr = "ba0c"
+bank = 0xC3
+name = "define_cost_to_buy_item"
+note = "Define cost to buy item"
+
+[[label]]
+addr = "ba2c"
+bank = 0xC3
+name = "apply_price_multiplier_for_buy_menu"
+note = "Apply price multiplier for Buy menu"
+
+[[label]]
+addr = "baa5"
+bank = 0xC3
+name = "draw_blue_text_for_shop_order_menu_position"
+note = "Draw blue text for shop order menu, position item name"
+
+[[label]]
+addr = "baba"
+bank = 0xC3
+name = "draw_item_specs_for_buy_order_menu_reset_buy"
+note = "Draw item specs for buy order menu, reset buy quantity"
+
+[[label]]
+addr = "bad3"
+bank = 0xC3
+name = "draw_item_specs_for_sell_order_menu_reset_sell"
+note = "Draw item specs for sell order menu, reset sell quantity"
+
+[[label]]
+addr = "baec"
+bank = 0xC3
+name = "draw_power_related_text_for_buy_menu"
+note = "Draw power-related text for Buy menu"
+
+[[label]]
+addr = "baf2"
+bank = 0xC3
+name = "draw_power_related_text_for_sell_menu"
+note = "Draw power-related text for Sell menu"
+
+[[label]]
+addr = "bb53"
+bank = 0xC3
+name = "compute_buy_order_value"
+note = "Compute buy order value"
+
+[[label]]
+addr = "bb65"
+bank = 0xC3
+name = "compute_sell_order_value"
+note = "Compute sell order value"
+
+[[label]]
+addr = "bbae"
+bank = 0xC3
+name = "draw_buy_order_size_and_value"
+note = "Draw buy order size and value"
+
+[[label]]
+addr = "bbb7"
+bank = 0xC3
+name = "draw_sell_order_size_and_value"
+note = "Draw sell order size and value"
+
+[[label]]
+addr = "bbc0"
+bank = 0xC3
+name = "draw_traded_item_s_quantity_and_gp_below"
+note = "Draw traded item's quantity and \"GP\" below"
+
+[[label]]
+addr = "bbe0"
+bank = 0xC3
+name = "initialize_cursor_data_and_draw_inventory_for"
+note = "Initialize cursor data and draw inventory for Sell menu"
+
+[[label]]
+addr = "bc57"
+bank = 0xC3
+name = "compile_quantity_owned_of_each_item_in_buy_menu"
+note = "Compile quantity owned of each item in Buy menu"
+
+[[label]]
+addr = "bc84"
+bank = 0xC3
+name = "load_and_draw_quantity_owned_of_item_in_buy_menu"
+note = "Load and draw quantity owned of item in Buy menu"
+
+[[label]]
+addr = "bc92"
+bank = 0xC3
+name = "get_quantity_owned_of_item_in_buy_menu"
+note = "Get quantity owned of item in Buy menu"
+
+[[label]]
+addr = "bc9d"
+bank = 0xC3
+name = "load_and_draw_quantity_owned_of_item_in_sell"
+note = "Load and draw quantity owned of item in Sell menu"
+
+[[label]]
+addr = "bca8"
+bank = 0xC3
+name = "count_and_draw_quantity_worn_of_item_in_buy_menu"
+note = "Count and draw quantity worn of item in Buy menu"
+
+[[label]]
+addr = "bcae"
+bank = 0xC3
+name = "get_sign_found_by_actor_for_shop_item"
+note = "Get sign found by actor for shop item"
+
+[[label]]
+addr = "bcc9"
+bank = 0xC3
+name = "check_whether_actor_can_equip_shop_item"
+note = "Check whether actor can equip shop item"
+
+[[label]]
+addr = "bcfd"
+bank = 0xC3
+name = "build_sign_list_for_each_item_in_buy_menu"
+note = "Build sign list for each item in Buy menu"
+
+[[label]]
+addr = "bf4f"
+bank = 0xC3
+name = "clear_sign_list_for_every_item_in_buy_menu_16"
+note = "Clear sign list for every item in Buy menu (16 actors per item)"
+
+[[label]]
+addr = "bf66"
+bank = 0xC3
+name = "count_and_draw_quantity_worn_of_item_in_sell"
+note = "Count and draw quantity worn of item in Sell menu"
+
+[[label]]
+addr = "bfc2"
+bank = 0xC3
+name = "get_item_by_cursor_in_buy_menu"
+note = "Get item by cursor in Buy menu"
+
+[[label]]
+addr = "bfcb"
+bank = 0xC3
+name = "get_item_selected_in_sell_menu"
+note = "Get item selected in Sell menu"
+
+[[label]]
+addr = "bfd3"
+bank = 0xC3
+name = "draw_shop_title_and_define_shop_index"
+note = "Draw shop title and define shop index"
+
+[[label]]
+addr = "c018"
+bank = 0xC3
+name = "set_to_condense_bg3_text_in_shop_menu"
+note = "Set to condense BG3 text in shop menu"
+
+[[label]]
+addr = "c068"
+bank = 0xC3
+name = "load_item_s_name"
+note = "Load item's name"
+
+[[label]]
+addr = "c09a"
+bank = 0xC3
+name = "compile_and_create_actors_for_buy_menu"
+note = "Compile and create actors for Buy menu"
+
+[[label]]
+addr = "c109"
+bank = 0xC3
+name = "compile_actors_for_buy_menu"
+note = "Compile actors for Buy menu"
+
+[[label]]
+addr = "c19c"
+bank = 0xC3
+name = "determine_whether_shop_actor_should_wave_its"
+note = "Determine whether shop actor should wave its arms"
+
+[[label]]
+addr = "c1cc"
+bank = 0xC3
+name = "compile_party_members_for_buy_menu"
+note = "Compile party members for Buy menu"
+
+[[label]]
+addr = "c1f0"
+bank = 0xC3
+name = "create_arrow_under_shop_actor_if_in_party"
+note = "Create arrow under shop actor if in party"
+
+[[label]]
+addr = "c23b"
+bank = 0xC3
+name = "create_sign_by_each_actor_in_buy_menu"
+note = "Create sign by each actor in Buy menu"
+
+[[label]]
+addr = "c2e1"
+bank = 0xC3
+name = "draw_owned_and_equipped_for_buy_menu"
+note = "Draw \"Owned:\" and \"Equipped:\" for Buy menu"
+
+[[label]]
+addr = "c2f2"
+bank = 0xC3
+name = "set_text_color_to_player_s_color"
+note = "Set text color to player's color"
+
+[[label]]
+addr = "c2f7"
+bank = 0xC3
+name = "set_text_color_to_blue"
+note = "Set text color to blue"
+
+[[label]]
+addr = "c576"
+bank = 0xC3
+name = "disable_screen_interrupts_joypad_and_hdma"
+note = "Disable screen, interrupts, joypad, and HDMA"
+
+[[label]]
+addr = "c586"
+bank = 0xC3
+name = "reset_variables_for_automatic_uploads_during_nmi"
+note = "Reset variables for automatic uploads during NMI"
+
+[[label]]
+addr = "c59f"
+bank = 0xC3
+name = "enable_color_addition_on_bg1"
+note = "Enable color addition on BG1"
+
+[[label]]
+addr = "c5a5"
+bank = 0xC3
+name = "handle_ending_sequence"
+note = "Handle ending sequence"
+
+[[label]]
+addr = "c5dc"
+bank = 0xC3
+name = "set_text_for_credits_to_be_blue"
+note = "Set text for credits to be blue"
+
+[[label]]
+addr = "c6bf"
+bank = 0xC3
+name = "scroll_clouds_under_sideview_airship"
+note = "Scroll clouds under sideview airship"
+
+[[label]]
+addr = "c6dc"
+bank = 0xC3
+name = "set_to_fade_credits"
+note = "Set to fade credits"
+
+[[label]]
+addr = "c703"
+bank = 0xC3
+name = "set_to_fade_in_credits_to_white_and_blue"
+note = "Set to fade in credits to white and blue"
+
+[[label]]
+addr = "c72a"
+bank = 0xC3
+name = "set_to_fade_in_credits_to_dark_blue"
+note = "Set to fade in credits to dark blue"
+
+[[label]]
+addr = "c751"
+bank = 0xC3
+name = "load_non_text_sprite_colors_for_mode_7_scene"
+note = "Load non-text sprite colors for Mode 7 scene"
+
+[[label]]
+addr = "c802"
+bank = 0xC3
+name = "create_aerial_view_airship_and_its_shadow"
+note = "Create aerial-view airship and its shadow"
+
+[[label]]
+addr = "c846"
+bank = 0xC3
+name = "queue_linearly_moving_temporary_sprite"
+note = "Queue linearly moving temporary sprite"
+
+[[label]]
+addr = "c84f"
+bank = 0xC3
+name = "initialize_data_for_aerial_view_airship_or_its"
+note = "Initialize data for aerial-view airship or its shadow"
+
+[[label]]
+addr = "c87e"
+bank = 0xC3
+name = "initialize_data_for_spinning_or_panning_clouds"
+note = "Initialize data for spinning or panning clouds"
+
+[[label]]
+addr = "c94e"
+bank = 0xC3
+name = "create_boat_sprite"
+note = "Create boat sprite"
+
+[[label]]
+addr = "ca71"
+bank = 0xC3
+name = "load_cloudy_sky_graphics_data_exclude_sky_from"
+note = "Load cloudy sky graphics data, exclude sky from Mode 7"
+
+[[label]]
+addr = "cac7"
+bank = 0xC3
+name = "create_birds_for_boat_scene"
+note = "Create birds for boat scene"
+
+[[label]]
+addr = "cafd"
+bank = 0xC3
+name = "create_oscillating_birds_around_skimming_airship"
+note = "Create oscillating birds around skimming airship"
+
+[[label]]
+addr = "cb2e"
+bank = 0xC3
+name = "create_birds_above_grassfield"
+note = "Create birds above grassfield"
+
+[[label]]
+addr = "cb5f"
+bank = 0xC3
+name = "queue_oscillating_bird"
+note = "Queue oscillating bird"
+
+[[label]]
+addr = "cb94"
+bank = 0xC3
+name = "update_bird_s_back_and_forth_motion_range_8_to_7"
+note = "Update bird's back-and-forth motion (range: -8 to +7)"
+
+[[label]]
+addr = "cbff"
+bank = 0xC3
+name = "update_airship_s_up_and_down_motion_range_8_to_7"
+note = "Update airship's up-and-down motion (range: -8 to +7)"
+
+[[label]]
+addr = "cc31"
+bank = 0xC3
+name = "divide_sprite_s_position_modifier_by_16"
+note = "Divide sprite's position modifier by 16"
+
+[[label]]
+addr = "cc38"
+bank = 0xC3
+name = "create_water_spray"
+note = "Create water spray"
+
+[[label]]
+addr = "cd97"
+bank = 0xC3
+name = "queue_bird_from_late_flock"
+note = "Queue bird from late flock"
+
+[[label]]
+addr = "ce43"
+bank = 0xC3
+name = "alter_course_of_bird_from_late_flock"
+note = "Alter course of bird from late flock"
+
+[[label]]
+addr = "cfb2"
+bank = 0xC3
+name = "queue_nw_or_sw_airship_rotor"
+note = "Queue NW or SW airship rotor"
+
+[[label]]
+addr = "cfc7"
+bank = 0xC3
+name = "queue_ne_or_se_airship_rotor"
+note = "Queue NE or SE airship rotor"
+
+[[label]]
+addr = "cfdc"
+bank = 0xC3
+name = "queue_frontview_or_rearview_airship_or_rotor"
+note = "Queue frontview or rearview airship or rotor"
+
+[[label]]
+addr = "cfe5"
+bank = 0xC3
+name = "decrease_sprite_s_animation_mode_timer"
+note = "Decrease sprite's animation mode timer"
+
+[[label]]
+addr = "d018"
+bank = 0xC3
+name = "load_colors_for_blue_sky_and_non_sprite_airships"
+note = "Load colors for blue sky and non-sprite airships"
+
+[[label]]
+addr = "d0d0"
+bank = 0xC3
+name = "set_to_refresh_final_airship_s_rotors"
+note = "Set to refresh final airship's rotors"
+
+[[label]]
+addr = "d10e"
+bank = 0xC3
+name = "set_to_refresh_sideview_airship_s_rotors"
+note = "Set to refresh sideview airship's rotors"
+
+[[label]]
+addr = "d127"
+bank = 0xC3
+name = "zoom_out_from_final_airship"
+note = "Zoom out from final airship"
+
+[[label]]
+addr = "d144"
+bank = 0xC3
+name = "upload_rearview_airship_s_balloon_graphics"
+note = "Upload rearview airship's balloon graphics"
+
+[[label]]
+addr = "d15c"
+bank = 0xC3
+name = "initialize_credits_colors_to_black_for_fade_in"
+note = "Initialize credits' colors to black for fade-in"
+
+[[label]]
+addr = "d173"
+bank = 0xC3
+name = "load_bg1_palettes_for_credits_scenes"
+note = "Load BG1 palettes for credits scenes"
+
+[[label]]
+addr = "d225"
+bank = 0xC3
+name = "queue_mode_7_animation_script_loading"
+note = "Queue Mode 7 animation script loading"
+
+[[label]]
+addr = "d263"
+bank = 0xC3
+name = "refresh_mode_7_registers_nmi"
+note = "Refresh Mode 7 registers (NMI)"
+
+[[label]]
+addr = "d2a0"
+bank = 0xC3
+name = "queue_mode_7_animation_script_decoding"
+note = "Queue Mode 7 animation script decoding"
+
+[[label]]
+addr = "d338"
+bank = 0xC3
+name = "keep_mode_7_center_x_and_y_within_boundaries"
+note = "Keep Mode 7 center X and Y within boundaries"
+
+[[label]]
+addr = "d34b"
+bank = 0xC3
+name = "configure_mode_7_not_to_apply_to_cloudy_sky"
+note = "Configure Mode 7 not to apply to cloudy sky"
+
+[[label]]
+addr = "d36f"
+bank = 0xC3
+name = "set_color_addition_and_math_for_field_and_for"
+note = "Set color addition and math for field and for cloudy sky"
+
+[[label]]
+addr = "d38c"
+bank = 0xC3
+name = "queue_gradient_effect_for_field_under_sky"
+note = "Queue gradient effect for field under sky"
+
+[[label]]
+addr = "d3e6"
+bank = 0xC3
+name = "reset_mode_7_parameters"
+note = "Reset Mode 7 parameters"
+
+[[label]]
+addr = "d40c"
+bank = 0xC3
+name = "unpack_and_upload_graphics_and_tilemaps_for"
+note = "Unpack and upload graphics and tilemaps for sideview airship scene"
+
+[[label]]
+addr = "d42a"
+bank = 0xC3
+name = "assemble_half_of_tilemap_for_sideview_airship"
+note = "Assemble half of tilemap for sideview airship scene"
+
+[[label]]
+addr = "d439"
+bank = 0xC3
+name = "unpack_and_upload_font_graphics_for_credits"
+note = "Unpack and upload font graphics for credits"
+
+[[label]]
+addr = "d497"
+bank = 0xC3
+name = "expand_large_font_graphics_to_16x16_for_credits"
+note = "Expand large font graphics to 16x16 for credits"
+
+[[label]]
+addr = "d4d3"
+bank = 0xC3
+name = "unpack_and_upload_cloudy_sky_graphics_and"
+note = "Unpack and upload cloudy sky graphics and tilemap"
+
+[[label]]
+addr = "d518"
+bank = 0xC3
+name = "set_source_for_uploading_decompressed_data"
+note = "Set source for uploading decompressed data"
+
+[[label]]
+addr = "d522"
+bank = 0xC3
+name = "unpack_and_upload_graphics_and_tilemaps_for_d522"
+note = "Unpack and upload graphics and tilemaps for dense clouds"
+
+[[label]]
+addr = "d543"
+bank = 0xC3
+name = "assemble_half_of_tilemap_for_dense_clouds"
+note = "Assemble half of tilemap for dense clouds"
+
+[[label]]
+addr = "d552"
+bank = 0xC3
+name = "add_4bpp_graphics_to_mode_7_map_first_128_tiles"
+note = "Add 4bpp graphics to Mode 7 map (first 128 tiles)"
+
+[[label]]
+addr = "d562"
+bank = 0xC3
+name = "add_4bpp_graphics_to_mode_7_map_last_128_tiles"
+note = "Add 4bpp graphics to Mode 7 map (last 128 tiles)"
+
+[[label]]
+addr = "d573"
+bank = 0xC3
+name = "unpack_and_upload_graphics_and_tilemaps_for_d573"
+note = "Unpack and upload graphics and tilemaps for grassfield scenes"
+
+[[label]]
+addr = "d59b"
+bank = 0xC3
+name = "assemble_half_of_grassfield_tilemap"
+note = "Assemble half of grassfield tilemap"
+
+[[label]]
+addr = "d5aa"
+bank = 0xC3
+name = "unpack_and_upload_graphics_and_tilemaps_for_d5aa"
+note = "Unpack and upload graphics and tilemaps for boat scene"
+
+[[label]]
+addr = "d5cb"
+bank = 0xC3
+name = "assemble_half_of_tilemap_for_sea_with_boat"
+note = "Assemble half of tilemap for sea with boat"
+
+[[label]]
+addr = "d5da"
+bank = 0xC3
+name = "unpack_and_upload_graphics_and_tilemaps_for_d5da"
+note = "Unpack and upload graphics and tilemaps for skimming airship scene"
+
+[[label]]
+addr = "d5fb"
+bank = 0xC3
+name = "assemble_half_of_tilemap_for_sea_without_boat"
+note = "Assemble half of tilemap for sea without boat"
+
+[[label]]
+addr = "d60a"
+bank = 0xC3
+name = "unpack_and_upload_graphics_and_tilemaps_for_d60a"
+note = "Unpack and upload graphics and tilemaps for final airship scene"
+
+[[label]]
+addr = "d625"
+bank = 0xC3
+name = "assemble_half_of_tilemap_for_final_airship_scene"
+note = "Assemble half of tilemap for final airship scene"
+
+[[label]]
+addr = "d634"
+bank = 0xC3
+name = "upload_upper_half_of_mode_7_map"
+note = "Upload upper half of Mode 7 map"
+
+[[label]]
+addr = "d64c"
+bank = 0xC3
+name = "upload_lower_half_of_mode_7_map"
+note = "Upload lower half of Mode 7 map"
+
+[[label]]
+addr = "d664"
+bank = 0xC3
+name = "set_palette_index_table_location_for_plains_or"
+note = "Set palette index table location for plains or sea"
+
+[[label]]
+addr = "d66b"
+bank = 0xC3
+name = "set_palette_index_table_location_for_sky_scenes"
+note = "Set palette index table location for sky scenes"
+
+[[label]]
+addr = "d675"
+bank = 0xC3
+name = "set_tilemap_pointer_table_location_for_final"
+note = "Set tilemap pointer table location for final scenes"
+
+[[label]]
+addr = "d67f"
+bank = 0xC3
+name = "set_tilemap_pointer_table_location_for_boat"
+note = "Set tilemap pointer table location for boat scene"
+
+[[label]]
+addr = "d686"
+bank = 0xC3
+name = "set_tilemap_pointer_table_location_for_skimming"
+note = "Set tilemap pointer table location for skimming airship and cloud scenes"
+
+[[label]]
+addr = "d68d"
+bank = 0xC3
+name = "set_tilemap_pointer_table_location_for_sideview"
+note = "Set tilemap pointer table location for sideview airship scene"
+
+[[label]]
+addr = "d694"
+bank = 0xC3
+name = "unpack_credits_scene_gfx_and_maps_move_ocean"
+note = "Unpack credits scene GFX and maps, move ocean and grassfield GFX"
+
+[[label]]
+addr = "d6b1"
+bank = 0xC3
+name = "unpack_credits_scene_gfx_and_tilemaps_move"
+note = "Unpack credits scene GFX and tilemaps, move cloud and BG airship GFX"
+
+[[label]]
+addr = "d6ce"
+bank = 0xC3
+name = "unpack_non_font_graphics_for_credits_scenes"
+note = "Unpack non-font graphics for credits scenes"
+
+[[label]]
+addr = "d6d6"
+bank = 0xC3
+name = "upload_non_font_sprite_graphics_for_credits"
+note = "Upload non-font sprite graphics for credits scenes"
+
+[[label]]
+addr = "d723"
+bank = 0xC3
+name = "add_a_32x32_tilemap_to_mode_7_map"
+note = "Add a 32x32 tilemap to Mode 7 map"
+
+[[label]]
+addr = "d96d"
+bank = 0xC3
+name = "build_credits_oam_table_for_sideview_airship"
+note = "Build credits' OAM table for sideview airship scene"
+
+[[label]]
+addr = "d983"
+bank = 0xC3
+name = "build_credits_oam_table_for_aerial_view_airship"
+note = "Build credits' OAM table for aerial-view airship scene"
+
+[[label]]
+addr = "d999"
+bank = 0xC3
+name = "build_credits_oam_table_for_boat_scene"
+note = "Build credits' OAM table for boat scene"
+
+[[label]]
+addr = "d9af"
+bank = 0xC3
+name = "build_credits_oam_table_for_skimming_airship"
+note = "Build credits' OAM table for skimming airship scene"
+
+[[label]]
+addr = "d9c5"
+bank = 0xC3
+name = "build_credits_oam_table_for_frontview_airship"
+note = "Build credits' OAM table for frontview airship scene"
+
+[[label]]
+addr = "d9db"
+bank = 0xC3
+name = "build_credits_oam_table_for_aerial_view_plains"
+note = "Build credits' OAM table for aerial-view plains scene"
+
+[[label]]
+addr = "d9e6"
+bank = 0xC3
+name = "build_credits_oam_table_for_rearview_airship"
+note = "Build credits' OAM table for rearview airship scene"
+
+[[label]]
+addr = "d9f1"
+bank = 0xC3
+name = "build_oam_table_for_scene_s_small_credits"
+note = "Build OAM table for scene's small credits strings; set source"
+
+[[label]]
+addr = "da03"
+bank = 0xC3
+name = "initialize_credits_for_producer"
+note = "Initialize credits for producer"
+
+[[label]]
+addr = "da0e"
+bank = 0xC3
+name = "initialize_credits_for_director"
+note = "Initialize credits for director"
+
+[[label]]
+addr = "da19"
+bank = 0xC3
+name = "initialize_credits_for_main_programmer"
+note = "Initialize credits for main programmer"
+
+[[label]]
+addr = "da24"
+bank = 0xC3
+name = "initialize_credits_for_graphic_director_page_1"
+note = "Initialize credits for graphic director, page 1"
+
+[[label]]
+addr = "da2f"
+bank = 0xC3
+name = "initialize_credits_for_graphic_director_page_2"
+note = "Initialize credits for graphic director, page 2"
+
+[[label]]
+addr = "da3a"
+bank = 0xC3
+name = "initialize_credits_for_music"
+note = "Initialize credits for music"
+
+[[label]]
+addr = "da45"
+bank = 0xC3
+name = "initialize_credits_for_image_design"
+note = "Initialize credits for image design"
+
+[[label]]
+addr = "da50"
+bank = 0xC3
+name = "initialize_credits_for_battle_planner"
+note = "Initialize credits for battle planner"
+
+[[label]]
+addr = "da5b"
+bank = 0xC3
+name = "initialize_credits_for_field_planner"
+note = "Initialize credits for field planner"
+
+[[label]]
+addr = "da66"
+bank = 0xC3
+name = "initialize_credits_for_event_planner"
+note = "Initialize credits for event planner"
+
+[[label]]
+addr = "da71"
+bank = 0xC3
+name = "initialize_credits_for_effect_programmer"
+note = "Initialize credits for effect programmer"
+
+[[label]]
+addr = "da7c"
+bank = 0xC3
+name = "initialize_credits_for_battle_programmer"
+note = "Initialize credits for battle programmer"
+
+[[label]]
+addr = "da87"
+bank = 0xC3
+name = "initialize_credits_for_sound_programmer"
+note = "Initialize credits for sound programmer"
+
+[[label]]
+addr = "da92"
+bank = 0xC3
+name = "initialize_credits_for_effect_graphic_designer"
+note = "Initialize credits for effect graphic designer"
+
+[[label]]
+addr = "da9d"
+bank = 0xC3
+name = "initialize_credits_for_field_graphic_designer"
+note = "Initialize credits for field graphic designer, page 1"
+
+[[label]]
+addr = "daa8"
+bank = 0xC3
+name = "initialize_credits_for_field_graphic_designer_daa8"
+note = "Initialize credits for field graphic designer, page 2"
+
+[[label]]
+addr = "dab3"
+bank = 0xC3
+name = "initialize_credits_for_field_graphic_designer_dab3"
+note = "Initialize credits for field graphic designer, page 3"
+
+[[label]]
+addr = "dabe"
+bank = 0xC3
+name = "initialize_credits_for_monster_graphic_designer"
+note = "Initialize credits for monster graphic designer"
+
+[[label]]
+addr = "dac9"
+bank = 0xC3
+name = "initialize_credits_for_object_graphic_designer"
+note = "Initialize credits for object graphic designer"
+
+[[label]]
+addr = "dad4"
+bank = 0xC3
+name = "initialize_credits_for_sound_engineer"
+note = "Initialize credits for sound engineer"
+
+[[label]]
+addr = "dadf"
+bank = 0xC3
+name = "initialize_credits_for_sound_effect_page_1"
+note = "Initialize credits for sound effect, page 1"
+
+[[label]]
+addr = "daea"
+bank = 0xC3
+name = "initialize_credits_for_sound_effect_page_2"
+note = "Initialize credits for sound effect, page 2"
+
+[[label]]
+addr = "daf5"
+bank = 0xC3
+name = "initialize_credits_for_remake_planner_and"
+note = "Initialize credits for remake planner and translator"
+
+[[label]]
+addr = "db00"
+bank = 0xC3
+name = "initialize_credits_for_system_engineer_page_1"
+note = "Initialize credits for system engineer, page 1"
+
+[[label]]
+addr = "db0b"
+bank = 0xC3
+name = "initialize_credits_for_system_engineer_page_2"
+note = "Initialize credits for system engineer, page 2"
+
+[[label]]
+addr = "db16"
+bank = 0xC3
+name = "initialize_credits_for_executive_producer"
+note = "Initialize credits for executive producer"
+
+[[label]]
+addr = "db21"
+bank = 0xC3
+name = "initialize_credits_for_test_coordinator"
+note = "Initialize credits for test coordinator"
+
+[[label]]
+addr = "db2c"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_1"
+note = "Initialize credits for special thanks, page 1"
+
+[[label]]
+addr = "db37"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_2"
+note = "Initialize credits for special thanks, page 2"
+
+[[label]]
+addr = "db42"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_3"
+note = "Initialize credits for special thanks, page 3"
+
+[[label]]
+addr = "db4d"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_4"
+note = "Initialize credits for special thanks, page 4"
+
+[[label]]
+addr = "db58"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_5"
+note = "Initialize credits for special thanks, page 5"
+
+[[label]]
+addr = "db63"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_6"
+note = "Initialize credits for special thanks, page 6"
+
+[[label]]
+addr = "db6e"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_7"
+note = "Initialize credits for special thanks, page 7"
+
+[[label]]
+addr = "db79"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_8"
+note = "Initialize credits for special thanks, page 8"
+
+[[label]]
+addr = "db84"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_9"
+note = "Initialize credits for special thanks, page 9"
+
+[[label]]
+addr = "db8f"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_10"
+note = "Initialize credits for special thanks, page 10"
+
+[[label]]
+addr = "db9a"
+bank = 0xC3
+name = "initialize_credits_for_special_thanks_page_11"
+note = "Initialize credits for special thanks, page 11"
+
+[[label]]
+addr = "dc08"
+bank = 0xC3
+name = "set_attribute_complements_for_small_credits"
+note = "Set attribute complements for small credits"
+
+[[label]]
+addr = "dc0e"
+bank = 0xC3
+name = "set_attribute_complements_for_large_credits"
+note = "Set attribute complements for large credits"
+
+[[label]]
+addr = "dc14"
+bank = 0xC3
+name = "initialize_sprite_for_current_credit_string"
+note = "Initialize sprite for current credit string"
+
+[[label]]
+addr = "dcbc"
+bank = 0xC3
+name = "build_oam_table_for_small_credit_string"
+note = "Build OAM table for small credit string"
+
+[[label]]
+addr = "dcd1"
+bank = 0xC3
+name = "build_oam_table_for_large_credit_string"
+note = "Build OAM table for large credit string"
+
+[[label]]
+addr = "dd02"
+bank = 0xC3
+name = "build_oam_for_small_credit_letter_clear_carry"
+note = "Build OAM for small credit letter, clear Carry if terminator"
+
+[[label]]
+addr = "dd25"
+bank = 0xC3
+name = "set_credit_string_s_size_and_reset_relative_x"
+note = "Set credit string's size and reset relative X position"
+
+[[label]]
+addr = "dd31"
+bank = 0xC3
+name = "set_oam_table_pointer_for_credit_string_compute"
+note = "Set OAM table pointer for credit string, compute string size"
+
+[[label]]
+addr = "dd61"
+bank = 0xC3
+name = "decompress_data"
+note = "Decompress data"
+
+[[label]]
+addr = "dd73"
+bank = 0xC3
+name = "clear_vram"
+note = "Clear VRAM"
+
+[[label]]
+addr = "dd86"
+bank = 0xC3
+name = "convert_and_upload_graphics_for_range_of_font"
+note = "Convert and upload graphics for range of font characters"
+
+[[label]]
+addr = "ddb9"
+bank = 0xC3
+name = "upload_data_manually_adjust_attributes_if"
+note = "Upload data manually, adjust attributes if tilemap"
+
+[[label]]
+addr = "ddd2"
+bank = 0xC3
+name = "build_mode_7_matrix_tables_for_hdma"
+note = "Build Mode 7 matrix tables for HDMA"
+
+[[label]]
+addr = "de76"
+bank = 0xC3
+name = "load_animation_modifier"
+note = "Load animation modifier"
+
+[[label]]
+addr = "dec0"
+bank = 0xC3
+name = "scroll_sprite_and_define_oam"
+note = "Scroll sprite and define OAM"
+
+[[label]]
+addr = "df4b"
+bank = 0xC3
+name = "decrease_animation_timer_advance_mode_if_expired"
+note = "Decrease animation timer, advance mode if expired"
+
+[[label]]
+addr = "df5f"
+bank = 0xC3
+name = "draw_center_and_set_to_upload_actor_s_pseudonym"
+note = "Draw, center, and set to upload actor's pseudonym"
+
+[[label]]
+addr = "dfb3"
+bank = 0xC3
+name = "center_bg3_camera_on_actor_s_pseudonym"
+note = "Center BG3 camera on actor's pseudonym"
+
+[[label]]
+addr = "e022"
+bank = 0xC3
+name = "create_actor_s_first_and_last_names"
+note = "Create actor's first and last names"
+
+[[label]]
+addr = "e08f"
+bank = 0xC3
+name = "queue_true_actor_name_or_and_you"
+note = "Queue true actor name or \"And you\""
+
+[[label]]
+addr = "e098"
+bank = 0xC3
+name = "create_and_you"
+note = "Create \"And you\""
+
+[[label]]
+addr = "e0b9"
+bank = 0xC3
+name = "initialize_font_bg_and_register_data_for_actor"
+note = "Initialize font, BG, and register data for actor scene"
+
+[[label]]
+addr = "e145"
+bank = 0xC3
+name = "set_to_fade_bg_elements_for_actor_scene_also"
+note = "Set to fade BG elements for actor scene (also final airship's)"
+
+[[label]]
+addr = "e192"
+bank = 0xC3
+name = "set_to_fade_in_bg_elements_for_actor_scene"
+note = "Set to fade in BG elements for actor scene"
+
+[[label]]
+addr = "e1df"
+bank = 0xC3
+name = "set_to_fade_in_actor_s_pseudonym_and_as"
+note = "Set to fade in actor's pseudonym and \"as\""
+
+[[label]]
+addr = "e206"
+bank = 0xC3
+name = "set_to_scroll_and_fade_actor_alias_fade_as_fade"
+note = "Set to scroll and fade actor alias, fade \"as\", fade in true name"
+
+[[label]]
+addr = "e241"
+bank = 0xC3
+name = "set_to_fade_background_palette_0"
+note = "Set to fade background palette 0"
+
+[[label]]
+addr = "e255"
+bank = 0xC3
+name = "set_to_fade_sprite_palette_0"
+note = "Set to fade sprite palette 0"
+
+[[label]]
+addr = "e28a"
+bank = 0xC3
+name = "set_to_fade_in_non_glint_sprites_on_table"
+note = "Set to fade in non-glint sprites on table"
+
+[[label]]
+addr = "e29e"
+bank = 0xC3
+name = "set_to_fade_sprite_palette_4"
+note = "Set to fade sprite palette 4"
+
+[[label]]
+addr = "e468"
+bank = 0xC3
+name = "set_to_fade_in_glint_on_table_object"
+note = "Set to fade in glint on table object"
+
+[[label]]
+addr = "e839"
+bank = 0xC3
+name = "set_to_scroll_bg1_westward_for_20_seconds"
+note = "Set to scroll BG1 westward for 20 seconds"
+
+[[label]]
+addr = "e83f"
+bank = 0xC3
+name = "set_to_scroll_bg1_westward_for_5_2_seconds"
+note = "Set to scroll BG1 westward for 5.2 seconds"
+
+[[label]]
+addr = "e845"
+bank = 0xC3
+name = "set_to_scroll_bg1_westward_for_3_seconds"
+note = "Set to scroll BG1 westward for 3 seconds"
+
+[[label]]
+addr = "e84b"
+bank = 0xC3
+name = "queue_mosaic_effect_for_book"
+note = "Queue mosaic effect for book"
+
+[[label]]
+addr = "e897"
+bank = 0xC3
+name = "create_as"
+note = "Create \"as\""
+
+[[label]]
+addr = "e8c4"
+bank = 0xC3
+name = "create_umaro_s_skull"
+note = "Create Umaro's skull"
+
+[[label]]
+addr = "e8e3"
+bank = 0xC3
+name = "create_four_playing_cards"
+note = "Create four playing cards"
+
+[[label]]
+addr = "e97a"
+bank = 0xC3
+name = "queue_current_playing_card"
+note = "Queue current playing card"
+
+[[label]]
+addr = "e994"
+bank = 0xC3
+name = "create_face_in_gau_s_diving_helmet"
+note = "Create face in Gau's diving helmet"
+
+[[label]]
+addr = "e9b3"
+bank = 0xC3
+name = "create_shadow_s_apple"
+note = "Create Shadow's apple"
+
+[[label]]
+addr = "e9d2"
+bank = 0xC3
+name = "queue_regular_permanent_sprite"
+note = "Queue regular permanent sprite"
+
+[[label]]
+addr = "e9e4"
+bank = 0xC3
+name = "create_glowing_eye_in_gogo_s_helmet"
+note = "Create glowing eye in Gogo's helmet"
+
+[[label]]
+addr = "ea03"
+bank = 0xC3
+name = "create_glint_on_terra_s_pendant"
+note = "Create glint on Terra's pendant"
+
+[[label]]
+addr = "ea24"
+bank = 0xC3
+name = "create_mog_s_mini_moogles_and_winding_key"
+note = "Create Mog's mini moogles and winding key"
+
+[[label]]
+addr = "ea68"
+bank = 0xC3
+name = "set_sprite_to_pan_with_bg1_define_y_position"
+note = "Set sprite to pan with BG1, define Y position"
+
+[[label]]
+addr = "ea73"
+bank = 0xC3
+name = "queue_current_mini_moogle"
+note = "Queue current mini moogle"
+
+[[label]]
+addr = "ea7c"
+bank = 0xC3
+name = "create_umaro_s_moogles"
+note = "Create Umaro's moogles"
+
+[[label]]
+addr = "eaf5"
+bank = 0xC3
+name = "initialize_moogle_s_animation_mode_for_umaro"
+note = "Initialize moogle's animation mode for Umaro"
+
+[[label]]
+addr = "ebd5"
+bank = 0xC3
+name = "set_mini_moogle_to_walk_eastward"
+note = "Set mini moogle to walk eastward"
+
+[[label]]
+addr = "ebf0"
+bank = 0xC3
+name = "adjust_jumping_mini_moogle_s_y_position"
+note = "Adjust jumping mini moogle's Y position"
+
+[[label]]
+addr = "ec24"
+bank = 0xC3
+name = "queue_double_headed_coin"
+note = "Queue double-headed coin"
+
+[[label]]
+addr = "ec2d"
+bank = 0xC3
+name = "set_to_create_glints_on_brush"
+note = "Set to create glints on brush"
+
+[[label]]
+addr = "ec36"
+bank = 0xC3
+name = "set_to_create_glints_on_katana"
+note = "Set to create glints on katana"
+
+[[label]]
+addr = "ec3f"
+bank = 0xC3
+name = "queue_brush_or_katana_glint"
+note = "Queue brush or katana glint"
+
+[[label]]
+addr = "ed7f"
+bank = 0xC3
+name = "set_to_animate_strago_s_book"
+note = "Set to animate Strago's book"
+
+[[label]]
+addr = "ed94"
+bank = 0xC3
+name = "set_to_animate_first_book"
+note = "Set to animate first book"
+
+[[label]]
+addr = "eda9"
+bank = 0xC3
+name = "set_to_animate_last_book"
+note = "Set to animate last book"
+
+[[label]]
+addr = "edbe"
+bank = 0xC3
+name = "set_to_animate_book"
+note = "Set to animate book"
+
+[[label]]
+addr = "edcd"
+bank = 0xC3
+name = "integrate_decompressed_tilemap_segment_adjust"
+note = "Integrate decompressed tilemap segment, adjust attributes"
+
+[[label]]
+addr = "ee74"
+bank = 0xC3
+name = "unpack_and_upload_large_font_graphics_for_actor"
+note = "Unpack and upload large font graphics for actor scene"
+
+[[label]]
+addr = "ef10"
+bank = 0xC3
+name = "relocate_decompressed_tilemap_for_table"
+note = "Relocate decompressed tilemap for table"
+
+[[label]]
+addr = "ef21"
+bank = 0xC3
+name = "set_to_upload_bg1_and_bg3_tilemaps_for_actor"
+note = "Set to upload BG1 and BG3 tilemaps for actor scene"
+
+[[label]]
+addr = "ef48"
+bank = 0xC3
+name = "unpack_and_upload_apple_and_shuriken_graphics"
+note = "Unpack and upload apple and shuriken graphics"
+
+[[label]]
+addr = "ef68"
+bank = 0xC3
+name = "draw_cyan_s_katana_unpack_and_upload_glint"
+note = "Draw Cyan's katana; unpack and upload glint"
+
+[[label]]
+addr = "ef7e"
+bank = 0xC3
+name = "unpack_and_upload_coin_graphics"
+note = "Unpack and upload coin graphics"
+
+[[label]]
+addr = "ef87"
+bank = 0xC3
+name = "unpack_skull_and_coin_graphics_prepare_upload"
+note = "Unpack skull and coin graphics; prepare upload"
+
+[[label]]
+addr = "efa2"
+bank = 0xC3
+name = "draw_mog_s_tree_unpack_and_upload_sprites"
+note = "Draw Mog's tree; unpack and upload sprites"
+
+[[label]]
+addr = "efb8"
+bank = 0xC3
+name = "draw_gogo_s_helmet_unpack_and_upload_glint"
+note = "Draw Gogo's helmet; unpack and upload glint"
+
+[[label]]
+addr = "efce"
+bank = 0xC3
+name = "draw_gau_s_diving_helmet_unpack_and_upload_face"
+note = "Draw Gau's diving helmet; unpack and upload face"
+
+[[label]]
+addr = "efe4"
+bank = 0xC3
+name = "draw_terra_s_cocktail_glasses_unpack_and_upload"
+note = "Draw Terra's cocktail glasses; unpack and upload glint"
+
+[[label]]
+addr = "effa"
+bank = 0xC3
+name = "draw_locke_and_celes_s_bouquet"
+note = "Draw Locke and Celes's bouquet"
+
+[[label]]
+addr = "f00d"
+bank = 0xC3
+name = "draw_relm_s_brush_unpack_and_upload_glint"
+note = "Draw Relm's brush; unpack and upload glint"
+
+[[label]]
+addr = "f023"
+bank = 0xC3
+name = "draw_an_open_book"
+note = "Draw an open book"
+
+[[label]]
+addr = "f036"
+bank = 0xC3
+name = "unpack_and_upload_card_glint_moogle_and_winding"
+note = "Unpack and upload card, glint, moogle, and winding key graphics"
+
+[[label]]
+addr = "f056"
+bank = 0xC3
+name = "unpack_and_upload_face_graphics_for_gau_s_scene"
+note = "Unpack and upload face graphics for Gau's scene"
+
+[[label]]
+addr = "f072"
+bank = 0xC3
+name = "draw_umaro_s_bones_unpack_and_upload_sprites"
+note = "Draw Umaro's bones; unpack and upload sprites"

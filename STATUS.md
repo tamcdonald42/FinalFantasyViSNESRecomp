@@ -1400,3 +1400,33 @@ picture pattern matches bsnes 5300-5850 (85.1% vs 85.0% non-black). Cold boot no
 opening mission (Vicks/Wedge dialogue, Terra, frozen Esper) through intro and title. Regression:
 C0 control and C0+C1+C2+C3 candidate both rebuilt under the fix, battery-save route 4,681 frames,
 7/7 dumps IDENTICAL, `ORACLE: clean`.
+
+## Step 28 — Bank `$C3` names imported (documentation, not behaviour)
+
+**Input.** `ff6_bank_c3.txt` — Novalia Spirit's commented disassembly of bank
+`$C3` (field menus, ending scenes): 26,852 annotated instructions, 2,520
+labelled blocks. Provenance check: 25,440 of 25,441 instruction rows are
+byte-identical to `ff3u11.sfc` at `C3:xxxx`, so the labels address this exact
+revision. (The single mismatch is a duplicated line in the source at `C3:2FC8`.)
+
+**What was imported.** 971 block names for the 1,036 `$C3` function entries in
+`recomp/candidate-roots-c3.toml`; the remaining 65 keep address names. Names
+are slugified to C identifiers (`Draw a menu window` -> `draw_a_menu_window`)
+and the prose is kept in `note`. Committed as `recomp/labels-c3.toml`.
+
+**Why it matters.** The project's own symbol map had two vectors and the
+disassembly authority had no labels at all, so every reader (human, debugger,
+future QoL hook) saw `sub_C30138`. The same file also settles widescreen
+questions by measurement: menu `VRAM` is BG1 `$0000` / BG2 `$1000` / BG3
+`$4000` over 32x32 tilemaps, i.e. 256 px, so menus must be letterboxed in a
+wider framebuffer rather than widened.
+
+**Verification.** Same ROM regenerated twice, with and without the naming pass:
+349 of 367 generated files byte-identical; 2 more identical after identifier
+normalisation; 15 differ only in the alphabetical order of the per-unit
+forward-declaration block; `module_v2.c` differs only in `build_digest` (a hash
+of the generated text; `program_digest` is unchanged). Analysis identical:
+26,300 roots, 30,536 variants, 12,789 AOT / 17,747 LLE. `clang -fsyntax-only`
+clean on four affected translation units. Regeneration is deterministic —
+a repeat run reproduced all 367 files byte for byte.
+

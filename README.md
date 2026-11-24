@@ -75,6 +75,10 @@ git submodule update --init --recursive
 python3 tools/gen_roots.py --done C0,C1,C2,C3,EE --bank none
 #   (on Windows without python3 on PATH, use: python tools/gen_roots.py ...)
 
+# Optional: name bank $C3's functions instead of addressing them
+# (sub_C30138 -> clear_cursor_position_restored_from_lineup_s).
+python3 tools/apply_labels.py
+
 bash tools/regen.sh --rom "/path/to/Final Fantasy III (USA) (Rev 1).sfc"
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release -j
@@ -84,6 +88,16 @@ cmake --build build --config Release -j
 `recomp/candidate-roots-*.toml` lists: 2,360 functions, which regen expands to
 26,300 roots (12,789 ahead-of-time, 17,747 interpreted) and about 210 MB of
 generated C. Expect the build to take 10–15 minutes.
+
+`apply_labels.py` is optional and changes identifiers only: `emit`, `entry_mx`
+and every tier decision stay as `gen_roots.py` wrote them. It merges the 971
+block names committed in `recomp/labels-c3.toml` — imported from a commented
+bank `$C3` disassembly whose instruction bytes agree with this ROM revision
+(25,440 of 25,441 sampled rows) — over the address-derived names. Checked by
+regenerating the same ROM with and without it: 349 of 367 generated files are
+byte-identical, the other 18 differ only by those names and the alphabetical
+order of each translation unit's forward declarations; the analysis is
+unchanged at 26,300 roots and 12,789 AOT variants.
 
 A verified from-scratch run of exactly these steps produced WRAM and
 framebuffers byte-identical to the reference build at frames 5200 and 9000.
