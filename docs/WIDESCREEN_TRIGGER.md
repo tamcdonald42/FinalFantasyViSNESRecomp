@@ -25,6 +25,7 @@ same for IRQ. Each subsystem rewrites that target when it takes over.
 | field | `JML $C0:0182` | `JML $C0:0262` |
 | battle | `JML $C1:0BA7` | `JML $C1:0D4A` |
 | menu | `JML $C3:1387` | `JML $C3:13C7` |
+| world map | `JML $EE:A509` | `JML $EE:A6B7` |
 
 Every address in that table was read out of a WRAM dump, not assumed. The menu
 entry path in bank `$C3` predicts them exactly:
@@ -38,6 +39,11 @@ entry path in bank `$C3` predicts them exactly:
 - `C3:01BA` — the menu loop: dispatches on `$26` every iteration and leaves when
   `$26` reads `$FF` (`C3:01BE`–`C3:01C2`); `C3:01D8` clears `$43` before the
   `RTS`, and `C3:00BF` `RTL`s back to whoever asked for the menu.
+
+Handler installation sites, found by scanning the ROM for stores to `$1500` /
+`$1504` / `$1503`: `C0:0575`, `C1:00FD`, `C2:68DD` and `C2:D432`, `C3:00C2`,
+`E5:F41C`, `EE:8F9E`/`914C`/`9187`/`91B1`. The `$C2` pair is the cinematic
+engine, so cutscenes are their own owner too — they do not look like menus.
 
 So the handler installation at `C3:00C0` happens *before* the first menu frame is
 drawn, and the field's own handlers are back in place by the time control returns.
@@ -65,6 +71,50 @@ bash tools/oracle/menu_probe.sh menu      # 4,551 frames, 6 dumps
 The battle column of the table above comes from dumps already in the oracle set
 (`tools/oracle/battle_route.sh`, dumps `b30`–`b60`): battle is `C1`, so the three
 subsystems are mutually exclusive and no two states share a bank.
+
+## The world map is a fourth owner: `$EE`
+
+Loading the world-map save (`ff6_world.srm`, party in the airship) and dumping
+gives NMI `JML $EE:A509`, IRQ `JML $EE:A6B7` — a bank no other state uses. Bank
+`$EE` installs its own handlers in four places (`$EE:8F9E`, `$EE:914C`,
+`$EE:9187`, `$EE:91B1`), so the world map puts them back on its own resume
+paths rather than relying on whoever ran last.
+
+**So the trigger does not fire on the world map.** `$1503` reads `EE`, not `C3`,
+and the overworld stays at 4:3 — which is the correct answer anyway, since it is
+Mode 7 with a minimap HUD and widening it is a separate problem.
+
+### A menu opened from the world map
+
+The world map asks for the menu through the same entry point as everything else:
+
+```
+EE:03AC  LDA $E9          ; menu disabled?
+EE:03AE  BIT #$10
+EE:03B0  BNE $03F1        ; skip if so
+EE:03B2  LDA $E8
+EE:03B4  BIT #$01
+EE:03B6  BEQ $03F1        ; skip if no request
+EE:03B8  JSR $2292
+EE:03BD  STA $2100        ; force blank
+EE:03CC  STZ $4200        ; NMI off
+EE:03D8  ..$1F60/$1F61/$1F68   ; save map position
+EE:03EA  JSL $C30000      ; the menu
+EE:03EE  JMP $83F6        ; resume the world map
+```
+
+`JSL $C30000` occurs exactly four times in the ROM: `C0:C6F9` (field),
+`C3:008E` and `C3:00AF` (the two naming menus) and `EE:03EB` (world map). A menu
+opened from the overworld is therefore the same menu, entered the same way, and
+`$C3` owns the handlers for as long as it runs — the trigger fires and the
+letterbox engages.
+
+That last step is the one thing here not confirmed by a dump. In this save the
+party is airborne, where `$E8` bit 0 stays clear and the menu request never
+happens: `X` disembarks to the airship deck instead (a normal field map, `$C0`),
+and `A`, `Y`, `Start`, `Select` all leave `$1503` at `EE`. Holding `$E8` bit 0
+with `poke` does not change it, because the disembark path consumes the button
+first. A world-map save on foot would settle it.
 
 ## Why this trigger and not another
 
@@ -117,10 +167,10 @@ exercises.
 
 ## Residual unknowns
 
-- **World map.** No route in the oracle set reaches it with a dump, so its
-  handler bank is unmeasured. If it turns out to be `C3` the trigger would
-  letterbox the world map, which is the wrong answer for phase 4; measure before
-  relying on the trigger there.
+- **World map on foot.** The airship case is measured (`$EE`); walking on the
+  overworld was not, because the save in the oracle set is airborne and the
+  menu request is gated off there. Same engine, so `$EE` is expected, but it is
+  an expectation rather than a dump.
 - **Battle menus** stay `C1`, so this trigger does not fire inside battles. That
   is intended: the battle HUD is a separate problem, handled by the sprite and
   OAM budget rules rather than by letterboxing.

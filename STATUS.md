@@ -1469,6 +1469,20 @@ unrooted `$C3` call targets are reached only with the menu open — `$C3:011A`,
 call (`JMP ($xxxx,X)` / `JSR ($xxxx,X)`), which is why the root finder never named
 them; they are a candidate-roots shortlist for phase 4.
 
-Full write-up, including the mechanism and the residual gaps (world map bank
+**World map: a fourth owner, `$EE`.** Loading `ff6_world.srm` and dumping the
+overworld gives NMI `JML $EE:A509`, IRQ `JML $EE:A6B7` -- a bank nothing else
+uses, so the `$C3` trigger does not fire there and the overworld stays at 4:3
+(correct: it is Mode 7 with a minimap HUD). Bank `$EE` installs handlers at
+`$EE:8F9E`/`914C`/`9187`/`91B1`, i.e. it restores its own. The overworld asks for
+the menu through the same door as everything else -- `JSL $C30000` at `EE:03EA`,
+one of only four such calls in the ROM (`C0:C6F9` field, `C3:008E`/`C3:00AF`
+naming menus) -- so a menu opened from the map is the same `$C3` menu and the
+trigger fires. Not confirmed by a dump: this save is airborne, where `$E8` bit 0
+is clear, `X` disembarks to the deck instead, and `A`/`Y`/`Start`/`Select` leave
+`$1503` at `EE`; holding the gate bit with `poke` does not help because the
+disembark path eats the button first. Handler install sites across the ROM also
+show a `$C2` owner (the cinematic engine), so cutscenes do not look like menus.
+
+Full write-up, including the mechanism and the residual gaps (world map on foot
 unmeasured; battle menus stay `C1`; ending scenes share `$C3`), is in
 `docs/WIDESCREEN_TRIGGER.md`.
