@@ -55,6 +55,16 @@ event VM's state is identical where it previously deadlocked.
 `tools/regen.sh` refuses to run against anything else, so a mismatched
 revision fails immediately instead of producing subtly wrong output.
 
+## Prerequisites
+
+| Component | Notes |
+|---|---|
+| **Rust** (cargo) | `regen.sh` builds the recompiler's native analyzer on first use. Install from rustup.rs, or set `SNESRECOMP_NATIVE_ANALYZER` to a prebuilt one. |
+| **Python 3** | Drives `tools/regen.sh`. |
+| **CMake 3.20+** | Build system. |
+| **A C/C++ compiler** | MSVC 2022, clang, or GCC (C11 / C++17). |
+| **Ninja** (optional) | Faster than the default generator. |
+
 ## Build
 
 ```sh
@@ -64,10 +74,22 @@ git submodule update --init --recursive
 git -C snesrecomp apply ../patches/framework/0001-ppu-guard-stale-mosaic-run-length.patch
 git -C snesrecomp apply ../patches/framework/0002-nmi-pending-latch.patch
 
+# Required: compose the analysis roots. Skipping this does not fail — regen
+# quietly emits a 4-root skeleton that boots to a blank screen instead.
+python3 tools/gen_roots.py --done C0,C1,C2,C3,EE --bank none
+
 bash tools/regen.sh --rom "/path/to/Final Fantasy III (USA) (Rev 1).sfc"
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
+cmake --build build --config Release -j
 ```
+
+`gen_roots.py` composes `recomp/symbols.toml` from the committed
+`recomp/candidate-roots-*.toml` lists: 2,360 functions, which regen expands to
+26,300 roots (12,789 ahead-of-time, 17,747 interpreted) and about 210 MB of
+generated C. Expect the build to take 10–15 minutes.
+
+A verified from-scratch run of exactly these steps produced WRAM and
+framebuffers byte-identical to the reference build at frames 5200 and 9000.
 
 The ROM does not have to live in the repository — keeping it on your own
 drive is the better habit, and `SNESRECOMP_ROM` sets the path once for a
@@ -97,8 +119,8 @@ The patches are LF line endings and apply on Windows, Linux and macOS.
 ## Run
 
 ```sh
-./build/FinalFantasyViSNESRecomp                     # launcher picks the ROM
-./build/FinalFantasyViSNESRecomp "/path/to/Final Fantasy III (USA) (Rev 1).sfc"   # name it and skip the launcher
+./build/Release/FinalFantasyViSNESRecomp                     # MSVC / multi-config
+./build/FinalFantasyViSNESRecomp                             # Ninja / Make
 ```
 
 With no ROM on the command line the build opens the recomp-ui launcher: a ROM
@@ -106,6 +128,11 @@ picker with a verification badge, plus display / audio / input settings. Your
 choice is cached in `rom.cfg` beside the executable, so the next launch opens
 on it and "Skip launcher on boot" makes it immediate. If the launcher is not
 built in (`--no-recomp-ui`), the host falls back to a native file picker.
+Pass the ROM as an argument to skip it entirely:
+
+```sh
+./build/Release/FinalFantasyViSNESRecomp "/path/to/Final Fantasy III (USA) (Rev 1).sfc"
+```
 
 Either way the ROM is checked against the digests above before anything boots
 — a dump that could not have produced this build is refused at the door rather
