@@ -1153,32 +1153,77 @@ and world map are covered; the opera, towns, shops/esper menus, multi-party batt
 Next step is therefore scene coverage, not optimisation: one save per unvisited region, one standard
 poke-around route, and the same three acceptance checks (`abandons=0`, no `SEH CRASH`, frames sane).
 
+## Step 23 — scene coverage: opera, Kefka's Tower, World-of-Ruin battle — no bugs, and bank EE is untouched (2026-11-24)
+
+Three saves from the community set (`fantasyanime` ff6save10/13/29) run through the standard poke route.
+All three load and run: `abandons=0`, `crashes=0`, 5,083 frames on the fixed route, 7–8 dumps each, three
+visually distinct scenes (identical hashes across saves would have meant the save never loaded — checked).
+
+What the frames show:
+
+- **Opera House** — interior, working dialogue box (`LOCKE: Right! If we could only grab him then...!`).
+  A deeper run (8,903 frames, 14 distinct dumps, coverage on) reached the **stage performance dialogue**
+  (`But I don't want Maria to be abducted...!`) and then the backstage decoy scene
+  (`LOCKE: That's why the decoy! We'll hide Maria somewhere safe!`). Font, dialogue layout, sprite layering
+  and tile alignment all correct.
+- **Albrook (World of Ruin)** — not the town: the route walked into a **WoR field battle**, Terra + Locke
+  with HP windows and `Fight / Morph / Magic / Item`. Menu, cursor and status windows all correct.
+- **Kefka's Tower (save 29, "Final Battle")** — the interior before the fight, one party sprite, coherent.
+  The final battle itself needs navigation the poke route did not do.
+- **Ending** — save 30 ships only a `.zst` savestate, no battery save, so it is unreachable this way until
+  something can load savestates.
+
+**No bugs.** Three new scenes, ~11,000 frames, zero abandons, zero crashes, every frame coherent. That is
+the first evidence the mosaic fix was not a one-off and the port holds up outside the routes it was built on.
+
+### The one real finding: bank EE
+
+Coverage on those runs, against the 857 sites already observed:
+
+| scene | sites | new sites | where they are |
+|---|---|---|---|
+| operahouse | 213 | 45 | **EE 41**, C0 2, C3 2 |
+| albrook | 365 | 66 | **EE 47**, C1 14, C2 3, C0 2 |
+| finalbattle | 172 | 2 | C3 2 |
+| opera (deep) | — | see run | EE-dominated |
+
+Every new EE site reports `fallback_reason=missing_entry` — the bank has no compiled functions at all, so
+all event/sprite/cutscene code runs in the interpreter. That is the largest wholly-unpromoted frontier left,
+and it is the bank every story scene lands in.
+
+Sizing it before spending a build is free: `tools/gen_symbols.py --bank EE` gives the root count, and
+`costs[]` gives the instruction share. Do that first — the Step-21 lesson is that a promotion's headline
+should be measured in interpreted *instructions*, not entries.
+
 ## Resume here (new session)
 
-**Head:** the Step-22 commit on `main`, tree clean, mirrored.
+**Head:** the Step-23 commit on `main`, tree clean, mirrored.
 **Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 AOT variants / 17,663 LLE**. Boot → save load
-→ field → walking → encounter → battle → victory → return → second encounter, menu, and **Mode 7 world map
-with airship flight** all run with `abandons=0`. Clean battle route: **74.5% interp / 25.5% AOT cycles**,
-73.4% of that interpretation being three flag-poll spins — and turbo measures **265 fps vs 59 paced**, so the
-polls are not worth touching (Step 22). Real code is 27.8M instructions (C5 7.97M, 7E RAM 6.63M, C3 4.28M,
-C1 4.22M, C0 3.47M, C2 1.23M).
+→ field → walking → encounter → battle → victory → return → menu → **Mode 7 world map + airship**, plus
+**opera house (stage dialogue + backstage)**, **WoR field battle** and **Kefka's Tower interior** all run with
+`abandons=0` and no crash. Clean battle route 74.5% interp / 25.5% AOT; turbo 265 fps vs 59 paced, so the three
+flag-poll spins (73% of interpretation) are not worth touching (Step 22).
 
 **Measure with `costs[].interpreted_instructions`, never `observed_hits`** (Step 21). Frame oracle:
 `build-c0/Release` is the control; compare `.fb.bmp` hashes at matching dumps.
 
-**Routes:** `tools/oracle/srm_route.sh <save.srm>`, `tools/oracle/battle_route.sh <save.srm> [--coverage]`,
-`tools/oracle/mode7_route.sh <worldmap.srm>`. Donor `.srm` files stay outside the repo.
+**Routes:** `tools/oracle/srm_route.sh <save.srm>`, `battle_route.sh <save.srm> [--coverage]`,
+`mode7_route.sh <worldmap.srm>`. Scene poke routes live in `/c/Temp/c1/{scenes,scenes2,opera_deep}.sh`.
+Donor `.srm` files stay outside the repo.
 
-**Next actions, in order — this is a coverage campaign now, not an optimisation one:**
+**Saves on hand** (`/opt/data/cache/scratch/c1/saves/`, mirrored to `C:/Temp/c1/`): narshe, maranda (world map),
+operahouse, albrook, finalbattle. The full fantasyanime set (30 saves) is enumerated in `ff6saves.html`;
+save 30 (Ending) has **no `.srm`**, only `.zst`, so the ending needs a savestate loader.
 
-1. **Unvisited scenes, one save each.** Highest risk first: the opera (scripted event + heavy sprite work),
-   a town with NPCs/shops, the esper/magic menus, a multi-party or boss battle, the world-map → field
-   transition on foot. Acceptance: `abandons=0`, no `SEH CRASH`, dumps sane, then analyse coverage for new
-   unresolved dispatches (they surface as `[unresolved-abandon] site=$XXnnnn` → size the table →
-   `indirect_dispatch` above the regen marker → regen → rebuild → rerun).
-2. **`ref_driver` SRAM support** (~30 lines) — gives any save route a second engine to diff against; it
-   catches recompiled-code bugs, not shared `ppu.c` bugs.
-3. **Promotion is polish** (27.8M spread thin, 4.5× headroom). Do not spend builds here without a reason.
+**Next actions, in order:**
+
+1. **Size bank EE, then promote it.** Every new story scene lands in EE and *every* EE site is
+   `missing_entry` — it is the last wholly-unpromoted bank. Size first (`gen_symbols.py --bank EE`, plus EE's
+   share of `costs[]`), then promote with the emit-counter and byte-identical-frame gates.
+2. **Shops and menus** — Albrook's route hit a battle instead of the town; the shop/esper/magic screens are
+   still unvisited and are pure C3 menu code.
+3. **`ref_driver` SRAM support** (~30 lines) — a second engine for any save route (recompiled-code bugs only,
+   not shared `ppu.c` bugs).
 4. **The prologue halt (Step 14) stays parked.**
 
 **Traps that cost real time — do not relearn these:**
