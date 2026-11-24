@@ -3,6 +3,10 @@
 # Imported by tools/import_labels.py from an external commented
 # disassembly; regenerate rather than hand-edit the generated block.
 #
+# Names by Novalia Spirit (Jame Coban), "Final Fantasy VI Bank C3
+# Compendium" (2016). Not redistributed with this project - see
+# README.md, "Credits".
+#
 # source:      ff6_bank_c3.txt
 # source_sha:  86a425837cda22821cbb15ccc88b7871eaa638a6647ea3d99d1c39cbf0ff863f
 # source_size: 1329609 bytes

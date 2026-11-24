@@ -39,6 +39,11 @@ from the source disassembly text, and only imports an address that is already
 a known function entry, so it cannot invent a root or name the middle of an
 instruction.
 
+The shipped `labels-c3.toml` was imported from the **Final Fantasy VI Bank C3
+Compendium** by Novalia Spirit (Jame Coban), 2016 — see `README.md`, "Credits".
+That archive is not redistributed here, so regenerating the label file needs
+your own copy passed to `import_labels.py --disasm`.
+
 `tools/apply_labels.py` merges the names into `symbols.toml` after gen_roots
 and before regen:
 
