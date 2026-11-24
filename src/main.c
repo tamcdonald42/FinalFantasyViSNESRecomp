@@ -27,6 +27,7 @@
 
 #include "host_main.h"
 #include "game_rtl.h"
+#include "qol_encounters.h"
 #include "snesrecomp_rom_identity.h"  /* generated from rom_identity.txt */
 
 #ifndef __ANDROID__
@@ -52,6 +53,10 @@ static const SnesDesktopHostGame kGameHost = {
     .game_id             = SNESRECOMP_ROM_GAME_ID,
     .build_version       = SNES_GAME_VERSION,
     .game_info           = &kGameInfo,
+    /* Quality of life: the encounter switch reads qol.ini and holds
+     * $7E11DF bit 1 while the player has encounters off. */
+    .after_config        = QolAfterConfig,
+    .before_run_frame    = QolBeforeFrame,
     .num_players         = 1,
     /* Battery-backed SRAM shows the launcher's SAVES panel. Leave NULL for a
      * title without one. The path is exe-relative. */

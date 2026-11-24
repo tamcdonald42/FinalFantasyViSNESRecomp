@@ -41,6 +41,7 @@ add_executable(FinalFantasyViSNESRecomp
     src/main.c
     src/host_contract.c
     src/game_rtl.c
+    src/qol_encounters.c
     src/gen_stubs.c
 )
 
@@ -155,6 +156,7 @@ if(SNESRECOMP_FF6_COSIM_A)
         ${SNESRECOMP_ROOT}/cosim/harness_glue.c   # Die, APU lock, WRAM hooks
         tools/cosim/a_glue.c                      # block-enter hook
         src/game_rtl.c
+    src/qol_encounters.c
         src/gen_stubs.c
     )
     snesrecomp_target_generated_code(ff6_cosim ${CMAKE_SOURCE_DIR}/src/gen)

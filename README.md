@@ -154,6 +154,49 @@ Keyboard defaults, from `keybinds.ini` (edit and restart to rebind):
 
 Gamepads are supported and map to the same buttons.
 
+## Quality of life
+
+Vanilla behaviour by default. These are additions, not changes: with every
+option at its default the game runs exactly as the cartridge does, and the
+frame oracle proves it (see below).
+
+### Random encounters on/off
+
+Press the <kbd>`</kbd> key (backquote, left of `1`) to switch random battles
+off and on. A toast confirms the state, and the choice is saved to
+`qol.ini` beside the executable, so it survives quitting.
+
+```ini
+[QoL]
+Encounters = on        ; on = vanilla random battles, off = disabled
+ToggleKey  = Grave     ; any SDL key name, or None to disable the hotkey
+```
+
+**How it works, and why it needs no patch.** FF6 chooses its encounter rate
+from a table of step incrementors in bank `$C0`, selected by bits 0-1 of
+`$7E11DF` — `$C0:C29F` on the world map, `$C0:C2BF` in dungeons, four rows of
+four random variants:
+
+| `$11DF` | World map | Dungeon |
+|---|---|---|
+| neither | 192, 96, 384, 0 | 112, 64, 352, 512 |
+| bit 0 (Charm Bangle) | 96, 48, 192, 0 | 56, 32, 176, 256 |
+| **bit 1** | **0, 0, 0, 0** | **0, 0, 0, 0** |
+
+Row 2 is all zeros: that is the switch the Moogle Charm relic uses. Holding
+bit 1 from the host stops encounters everywhere with no ROM edit, so it works
+alongside code patches and graphic hacks rather than fighting them. The host
+ORs the bit in (bit 0's Charm Bangle effect is left alone) and clears only a
+bit it set itself, so a party carrying the relic keeps working.
+
+Because the setting is host state rather than guest state, rewinding across
+the moment you flipped it restores memory and the next frame re-applies your
+current choice — a preference, not a game event.
+
+**Verified** on the Narshe battle route (same battery save, 7,749 frames,
+12 dumps): with the switch off the run never enters battle; with it on the
+run is byte-for-byte the vanilla control. Both 0 abandons, 0 crashes.
+
 ## Layout
 
 | Path | What lives there |
