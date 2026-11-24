@@ -1,6 +1,7 @@
+# Fork of mstan/snesrecomp carrying two framework fixes this port needs.
 [submodule "snesrecomp"]
 	path = snesrecomp
-	url = https://github.com/mstan/snesrecomp.git
+	url = https://github.com/tamcdonald42/snesrecomp.git
 [submodule "recomp-ui"]
 	path = recomp-ui
 	url = https://github.com/mstan/recomp-ui.git

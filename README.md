@@ -70,10 +70,6 @@ revision fails immediately instead of producing subtly wrong output.
 ```sh
 git submodule update --init --recursive
 
-# Required: the framework fixes this port depends on are not upstream yet.
-git -C snesrecomp apply ../patches/framework/0001-ppu-guard-stale-mosaic-run-length.patch
-git -C snesrecomp apply ../patches/framework/0002-nmi-pending-latch.patch
-
 # Required: compose the analysis roots. Skipping this does not fail — regen
 # quietly emits a 4-root skeleton that boots to a blank screen instead.
 python3 tools/gen_roots.py --done C0,C1,C2,C3,EE --bank none
@@ -101,21 +97,24 @@ both from ever being committed.
 `tools/regen.sh` verifies the ROM, generates `src/gen/*.c`, and re-syncs
 `recomp/funcs.h`. Re-run it whenever you change anything under `recomp/`.
 
-## Framework patches
+## Framework
 
-`snesrecomp` is pinned to a commit that `patches/framework/` patches on top of.
-Both patches are required, and skipping them produces a build that silently
-deadlocks in the prologue:
+`snesrecomp` is pinned to a fork
+([tamcdonald42/snesrecomp](https://github.com/tamcdonald42/snesrecomp), branch
+`ff6-pin`) that carries two fixes this port cannot run without. They are real
+commits, not patches, so `git submodule update --init --recursive` is all you
+need — but be aware that skipping the submodule update leaves an empty
+framework tree, and the build will fail confusingly rather than tell you why.
 
-- **0001 — mosaic run length.** A stale `mosaicModulo` table let a 4bpp
-  background read one run past its entry, corrupting mosaic'd layers.
-- **0002 — NMI-pending latch.** A `$4210` read taken while the NMI is being
-  serviced no longer consumes the pending latch, and the field wrap no longer
-  clears it. Without this the game's `lda hRDNMI / bpl` poll starved — the
-  handler's own acknowledgement read always won the race — and the intro ended
-  in a permanent blank screen at frame 5080.
+- **Mosaic run length.** A stale `mosaicModulo` table let a 4bpp background read
+  one run past its entry, corrupting mosaic'd layers.
+- **NMI-pending latch.** A `$4210` read taken while the NMI is being serviced no
+  longer consumes the pending latch, and the field wrap no longer clears it.
+  Without this the game's `lda hRDNMI / bpl` poll starved — the handler's own
+  acknowledgement read always won the race — and the intro ended in a permanent
+  blank screen at frame 5080.
 
-The patches are LF line endings and apply on Windows, Linux and macOS.
+Both are worth upstreaming; they are general fixes, not FF6-specific ones.
 
 ## Run
 
@@ -164,10 +163,9 @@ Gamepads are supported and map to the same buttons.
 | `src/` | Host code you own: `main.c`, `game_rtl.c` |
 | `src/gen/` | Generated C. Never committed — regenerate locally |
 | `snesrecomp/` | Framework submodule (owns `lib/recomp-net`, `lib/retcomm-rbengine`) |
-| `patches/framework/` | Required fixes applied on top of the pinned framework |
+| `framework_pins.txt` | The framework commit this project builds against |
 | `tools/` | `regen.sh` — the ROM → C pipeline; `oracle/` — the frame-oracle routes |
 | `scripts/` | `package_release.sh` — player-facing zip |
-| `framework_pins.txt` | Exact framework commit this project is built against |
 | `STATUS.md` | Step-by-step engineering log, including what was ruled out and how |
 
 ## How this was built
