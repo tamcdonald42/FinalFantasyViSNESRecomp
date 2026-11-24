@@ -255,30 +255,30 @@ Single player.
 
 ## Credits
 
-The names for bank `$C3` come from the **Final Fantasy VI Bank C3 Compendium**
-by **Novalia Spirit (Jame Coban)** — a fully commented, reassemblable
-disassembly of the bank that holds every field menu and the ending scenes,
-released July 2016 and revised that October. `tools/import_labels.py` reads the
-name above each block and turns it into a function name, so every name the
-import produces is his description rather than ours. His instruction listings
-also agree with this ROM revision in 25,440 of 25,441 rows, which is what made
-the import worth trusting: `sub_C30138` is a plausible name only because the
-note beside it says "Clear cursor position restored from Lineup's Status
-menu".
+**Documentation.** During development, the function names used for bank `$C3`
+come from the *Final Fantasy VI Bank C3 Compendium* by **Novalia Spirit (Jame
+Coban)** — a fully commented, reassemblable disassembly of the bank that holds
+every field menu and the ending scenes, released July 2016 and revised that
+October. It is a reference of the first order: 971 of the bank's 1,036 function
+entries stop being `sub_C30138` and start having names, and his instruction
+listings agree with this ROM revision in 25,440 of 25,441 rows, so the document
+describes exactly the code this project compiles.
 
-Neither the compendium nor the names extracted from it are redistributed here:
-`recomp/labels-*.toml` is generated locally and ignored by git, because his
-release notes reserve reproduction of the documents' contents and license
-distribution to romhacking.net alone. The documents are published at
+Function names in this repository are address-derived. The name extract built
+from his document (`recomp/labels-*.toml`) is generated locally, ignored by git
+and never redistributed, because his release notes reserve reproduction of the
+documents' contents for personal use and license distribution to
+romhacking.net alone. The documents themselves are published at
 [ff6hacking.com](https://www.ff6hacking.com/wiki/doku.php?id=ff3:ff3us:doc:game)
-under the author's terms.
+under his terms. If he would rather not be cited here at all, one line to that
+effect removes the citation.
 
-Thank you, Novalia. Being able to read the menu code as annotated code instead
-of as an address range is the difference between guessing and knowing.
+Thank you, Novalia. Reading the menu code as annotated code instead of as an
+address range is the difference between guessing and knowing.
 
-The disassembly authority is built from `everything8215/ff6`; the frame oracle
-runs on bsnes accuracy through `snesref`; the runtime, PPU and tooling are
-`snesrecomp` (see `snesrecomp/THIRD_PARTY_ATTRIBUTION.md`).
+**Dependencies.** The disassembly authority is built from `everything8215/ff6`;
+the frame oracle runs on bsnes accuracy through `snesref`; the runtime, PPU and
+tooling are `snesrecomp` (see `snesrecomp/THIRD_PARTY_ATTRIBUTION.md`).
 
 ## License
 

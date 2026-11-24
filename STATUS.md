@@ -1415,7 +1415,12 @@ are slugified to C identifiers (`Draw a menu window` -> `draw_a_menu_window`)
 and the prose is kept in `note`. Written to `recomp/labels-c3.toml`, which is
 gitignored rather than committed: the source document reserves reproduction of
 its contents, so the extract is generated locally from an owned copy (README
-"Credits").
+"Credits"). The author could not be reached for the permission his terms
+require (his site is gone; the ff6hacking wiki now hosts his archive), so the
+repository keeps address-derived names and cites the document as a reference
+instead. Local builds keep using the extract: his terms allow personal use,
+and the names live only in generated C on this machine.
+
 
 **Why it matters.** The project's own symbol map had two vectors and the
 disassembly authority had no labels at all, so every reader (human, debugger,
