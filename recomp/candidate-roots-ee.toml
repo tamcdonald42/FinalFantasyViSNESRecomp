@@ -1,0 +1,263 @@
+# Bank EE roots learned from battle-route + scene coverage.
+# EE is entered through computed dispatch (events/sprites), not jsr/jsl targets:
+# gen_symbols finds 2,430 call targets but roots only 97. These 60 were OBSERVED
+# to execute (missing_entry) and are ranked by interpreted instructions, per Step 21.
+
+[[func]]
+name = "sub_EE3E51"
+addr = "3E51"
+bank = 0xEE
+emit = true
+note = "3953 interpreted instructions, 3953 entries, M0X0"
+
+[[func]]
+name = "sub_EE47F3"
+addr = "47F3"
+bank = 0xEE
+emit = true
+note = "3926 interpreted instructions, 3837 entries, M1X1"
+
+[[func]]
+name = "sub_EE1D0E"
+addr = "1D0E"
+bank = 0xEE
+emit = true
+note = "3920 interpreted instructions, 3920 entries, M1X0"
+
+[[func]]
+name = "sub_EE43BD"
+addr = "43BD"
+bank = 0xEE
+emit = true
+note = "3919 interpreted instructions, 3919 entries, M0X1"
+
+[[func]]
+name = "sub_EE4302"
+addr = "4302"
+bank = 0xEE
+emit = true
+note = "3919 interpreted instructions, 3919 entries, M0X1"
+
+[[func]]
+name = "sub_EE3363"
+addr = "3363"
+bank = 0xEE
+emit = true
+note = "3919 interpreted instructions, 3919 entries, M0X0"
+
+[[func]]
+name = "sub_EEAAAD"
+addr = "AAAD"
+bank = 0xEE
+emit = true
+note = "3919 interpreted instructions, 3919 entries, M0X0"
+
+[[func]]
+name = "sub_EE41B5"
+addr = "41B5"
+bank = 0xEE
+emit = true
+note = "3919 interpreted instructions, 3919 entries, M0X0"
+
+[[func]]
+name = "sub_EE468E"
+addr = "468E"
+bank = 0xEE
+emit = true
+note = "3919 interpreted instructions, 3919 entries, M0X0"
+
+[[func]]
+name = "sub_EE21D7"
+addr = "21D7"
+bank = 0xEE
+emit = true
+note = "3855 interpreted instructions, 3855 entries, M0X0"
+
+[[func]]
+name = "sub_EE1EAD"
+addr = "1EAD"
+bank = 0xEE
+emit = true
+note = "3844 interpreted instructions, 3844 entries, M1X0"
+
+[[func]]
+name = "sub_EE47E3"
+addr = "47E3"
+bank = 0xEE
+emit = true
+note = "89 interpreted instructions, 89 entries, M1X1"
+
+[[func]]
+name = "sub_EE1864"
+addr = "1864"
+bank = 0xEE
+emit = true
+note = "75 interpreted instructions, 75 entries, M1X0"
+
+[[func]]
+name = "sub_EEA476"
+addr = "A476"
+bank = 0xEE
+emit = true
+note = "18 interpreted instructions, 18 entries, M1X0"
+
+[[func]]
+name = "sub_EE20B3"
+addr = "20B3"
+bank = 0xEE
+emit = true
+note = "7 interpreted instructions, 7 entries, M0X0"
+
+[[func]]
+name = "sub_EE20DF"
+addr = "20DF"
+bank = 0xEE
+emit = true
+note = "5 interpreted instructions, 5 entries, M1X0"
+
+[[func]]
+name = "sub_EE216C"
+addr = "216C"
+bank = 0xEE
+emit = true
+note = "5 interpreted instructions, 5 entries, M1X0"
+
+[[func]]
+name = "sub_EE9AF1"
+addr = "9AF1"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE8FAF"
+addr = "8FAF"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE908C"
+addr = "908C"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE909F"
+addr = "909F"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M0X0"
+
+[[func]]
+name = "sub_EE34D5"
+addr = "34D5"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE5711"
+addr = "5711"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE065F"
+addr = "065F"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE412D"
+addr = "412D"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE40BE"
+addr = "40BE"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EEAE75"
+addr = "AE75"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE079E"
+addr = "079E"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE3F4F"
+addr = "3F4F"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE4015"
+addr = "4015"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE4118"
+addr = "4118"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EEADD0"
+addr = "ADD0"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE942F"
+addr = "942F"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE90B2"
+addr = "90B2"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE90FC"
+addr = "90FC"
+bank = 0xEE
+emit = true
+note = "3 interpreted instructions, 3 entries, M1X0"
+
+[[func]]
+name = "sub_EE2292"
+addr = "2292"
+bank = 0xEE
+emit = true
+note = "2 interpreted instructions, 2 entries, M1X0"
+
+[[func]]
+name = "sub_EE2208"
+addr = "2208"
+bank = 0xEE
+emit = true
+note = "1 interpreted instructions, 1 entries, M1X0"

@@ -1195,36 +1195,88 @@ Sizing it before spending a build is free: `tools/gen_symbols.py --bank EE` give
 `costs[]` gives the instruction share. Do that first — the Step-21 lesson is that a promotion's headline
 should be measured in interpreted *instructions*, not entries.
 
+## Step 24 — bank EE promoted from coverage: −6.53M interpreted instructions, frames identical (2026-11-24)
+
+The biggest real win of the campaign, and it came from 37 roots.
+
+### Why static analysis could not do it
+
+`gen_symbols.py --bank EE --stats`: **2,430 call targets, only 97 rooted**. EE is entered through computed
+dispatch (event scripts, sprite/object tables), so almost none of it is reachable as a `jsr`/`jsl` target
+from analysed code. Promoting EE the C1/C3 way would have added 97 addresses and compiled little of the
+bank that every story scene actually runs.
+
+Coverage had already *observed* those entries. `recomp/candidate-roots-ee.toml` holds the 37 EE targets
+that were both seen as `missing_entry` and costed, ranked by `interpreted_instructions` (Step 21's rule).
+
+### Gates
+
+```
+emit       25,916 -> 26,300 roots, 12,479 -> 12,789 exact AOT variants (+310), LLE 17,663 -> 17,747
+build      46,951,936 B
+oracle A   battle route   7/7 dumps byte-identical to b8,   abandons=0 crashes=0
+oracle B   opera deep    14/14 dumps byte-identical to the pre-promotion run, abandons=0 crashes=0
+```
+
+### Effect, measured in instructions
+
+```
+opera route total   119,830,328 -> 113,312,265   (-5.4%)
+        bank EE      20,572,000 ->  14,038,873   (-6,533,127, -31.8%)
+        EE share          17.2% ->       12.4%
+```
+
+### The estimate was wrong by two orders of magnitude, in the good direction
+
+The selected 37 PCs carried only **43,268** instructions of cost data — 0.1% of EE — so the honest
+prediction was "this will do nothing". It removed **6.5M**, because the cost table only counts PCs the
+capture attributed to EE, while rooting a dispatcher entry lets the whole call subtree compile at once.
+
+Lessons worth carrying:
+
+- **Rank by instructions to choose roots, but do not predict a promotion's size from the root's own cost.**
+  A dispatcher root's value is its subtree. The only reliable measure is before/after on the same route.
+- **A promotion can be large and still be free of risk when two routes are byte-identical** — the battle
+  route and the opera route exercise different banks, so both passing is meaningful corroboration.
+- 37 roots is cheap: this took one regen, one build, two route runs. There was no reason to leave EE
+  unpromoted for the whole campaign except that nobody had looked at where the code was entered from.
+
+### Where this leaves the interpretation budget
+
+EE is down to 12.4% of the opera route. The remaining bulk is the three flag-poll spins (Step 22, not worth
+touching) plus C5 (sound driver) and 7E (WRAM-resident, not AOT-able). The next promotion candidates should
+be chosen the same way: find banks whose entry points are only reached by computed dispatch, and root what
+coverage actually saw.
+
 ## Resume here (new session)
 
-**Head:** the Step-23 commit on `main`, tree clean, mirrored.
-**Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 AOT variants / 17,663 LLE**. Boot → save load
-→ field → walking → encounter → battle → victory → return → menu → **Mode 7 world map + airship**, plus
-**opera house (stage dialogue + backstage)**, **WoR field battle** and **Kefka's Tower interior** all run with
-`abandons=0` and no crash. Clean battle route 74.5% interp / 25.5% AOT; turbo 265 fps vs 59 paced, so the three
-flag-poll spins (73% of interpretation) are not worth touching (Step 22).
+**Head:** the Step-24 commit on `main`, tree clean, mirrored.
+**Verified state:** 2,360 funcs; regen emits **26,300 roots / 12,789 exact AOT variants / 17,747 LLE**; build
+46,951,936 B. Boot → save load → field → walking → encounter → battle → victory → return → menu → **Mode 7
+world map + airship** → **opera house (stage dialogue + backstage)** → **WoR field battle** → **Kefka's Tower
+interior**, all with `abandons=0`, no crash. Clean battle route 74.5% interp / 25.5% AOT; turbo 265 fps vs 59
+paced.
 
-**Measure with `costs[].interpreted_instructions`, never `observed_hits`** (Step 21). Frame oracle:
-`build-c0/Release` is the control; compare `.fb.bmp` hashes at matching dumps.
+**Promotion method that works** (Steps 19/24): take coverage targets with `fallback_reason=missing_entry`,
+append them to `recomp/candidate-roots-<bank>.toml`, `gen_roots.py --bank none --done C0,C1,C2,C3,EE`, regen,
+build, then require **byte-identical dumps on two different routes** (`build-c0` control / previous run) before
+committing. Rank roots by `costs[].interpreted_instructions`, but never predict a promotion's size from the
+root's own cost — a dispatcher root compiles its whole subtree (37 EE roots = −6.5M instructions).
 
 **Routes:** `tools/oracle/srm_route.sh <save.srm>`, `battle_route.sh <save.srm> [--coverage]`,
-`mode7_route.sh <worldmap.srm>`. Scene poke routes live in `/c/Temp/c1/{scenes,scenes2,opera_deep}.sh`.
+`mode7_route.sh <worldmap.srm>`; scene poke routes in `/c/Temp/c1/{scenes,scenes2,opera_deep}.sh`.
 Donor `.srm` files stay outside the repo.
-
-**Saves on hand** (`/opt/data/cache/scratch/c1/saves/`, mirrored to `C:/Temp/c1/`): narshe, maranda (world map),
-operahouse, albrook, finalbattle. The full fantasyanime set (30 saves) is enumerated in `ff6saves.html`;
-save 30 (Ending) has **no `.srm`**, only `.zst`, so the ending needs a savestate loader.
 
 **Next actions, in order:**
 
-1. **Size bank EE, then promote it.** Every new story scene lands in EE and *every* EE site is
-   `missing_entry` — it is the last wholly-unpromoted bank. Size first (`gen_symbols.py --bank EE`, plus EE's
-   share of `costs[]`), then promote with the emit-counter and byte-identical-frame gates.
-2. **Shops and menus** — Albrook's route hit a battle instead of the town; the shop/esper/magic screens are
-   still unvisited and are pure C3 menu code.
-3. **`ref_driver` SRAM support** (~30 lines) — a second engine for any save route (recompiled-code bugs only,
-   not shared `ppu.c` bugs).
-4. **The prologue halt (Step 14) stays parked.**
+1. **Repeat the EE trick on the other dispatch-entered banks.** EE went 17.2% → 12.4% of the opera route.
+   Check `fallback_reason=missing_entry` counts per bank across the scene captures (C5 is the biggest
+   remaining *real* block at 7.97M on the battle route; 7E is WRAM-resident and cannot be AOT-compiled).
+2. **Shops and the esper/magic menus** — still unvisited; pure C3 menu code.
+3. **Re-run the walking crash route** (the mosaic fix's original repro) once more against this build — it has
+   not been exercised since the dispatches landed, and it is the only known-crash route.
+4. **`ref_driver` SRAM support** (~30 lines) — a second engine for any save route.
+5. **The prologue halt (Step 14) stays parked.**
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
