@@ -77,6 +77,7 @@ git -C snesrecomp apply ../patches/framework/0002-nmi-pending-latch.patch
 # Required: compose the analysis roots. Skipping this does not fail — regen
 # quietly emits a 4-root skeleton that boots to a blank screen instead.
 python3 tools/gen_roots.py --done C0,C1,C2,C3,EE --bank none
+#   (on Windows without python3 on PATH, use: python tools/gen_roots.py ...)
 
 bash tools/regen.sh --rom "/path/to/Final Fantasy III (USA) (Rev 1).sfc"
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
