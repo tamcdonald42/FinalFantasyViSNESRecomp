@@ -978,6 +978,10 @@ triggered by walking on. Battle start, battle execution, victory and return-to-f
 
 ## Step 19 — promoting C1 coverage gaps: 30 roots, 56% of C1's interpretation gone (2026-11-23)
 
+> **Correction (Step 21): the 56% below counts interpreted *entries*. Measured by
+> `costs[].interpreted_instructions` the same promotion moved 104,636,202 -> 104,628,241
+> (-0.008%). Read Step 21 before quoting these numbers.**
+
 First promotion driven by battle coverage rather than by bank size.
 
 ### Baseline
