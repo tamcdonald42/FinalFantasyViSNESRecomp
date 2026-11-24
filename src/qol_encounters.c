@@ -23,11 +23,14 @@
  * qol.ini beside the executable:
  *
  *   [QoL]
- *   Encounters = on        ; on = vanilla encounters, off = disabled
- *   ToggleKey  = Grave (the ` key) ; any SDL key name, or None
+ *   Encounters    = on     ; on = vanilla encounters, off = disabled
+ *   EncountersKey = Grave  ; any SDL key name, or None
+ *   (the first release spelled the key ToggleKey; that still loads)
  */
 
 #include "qol_encounters.h"
+
+#include "qol_ini.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -55,82 +58,36 @@ static SDL_Scancode s_toggle_key = SDL_SCANCODE_GRAVE;
 static int          s_key_was_down;
 static int          s_reported;
 
-static void IniPath(char *out, size_t cap)
-{
-  out[0] = '\0';
-  char *base = SDL_GetBasePath();
-  if (!base) {
-    snprintf(out, cap, "%s", QOL_INI_NAME);
-    return;
-  }
-  snprintf(out, cap, "%s%s", base, QOL_INI_NAME);
-  SDL_free(base);
-}
-
-static char *Trim(char *s)
-{
-  while (*s == ' ' || *s == '\t' || *s == '\r') s++;
-  char *end = s + strlen(s);
-  while (end > s && (end[-1] == ' ' || end[-1] == '\t' ||
-                     end[-1] == '\r' || end[-1] == '\n'))
-    *--end = '\0';
-  return s;
-}
-
+/* The settings file belongs to qol_ini.c: several QoL features share it, and a
+ * per-feature writer that rewrote the whole file would delete the others. */
 static void SaveIni(void)
 {
-  char path[1024];
-  IniPath(path, sizeof path);
-  FILE *f = fopen(path, "wb");
-  if (!f) {
-    fprintf(stderr, "[qol] encounters: cannot write %s\n", path);
-    return;
-  }
-  fprintf(f,
-          "# Final Fantasy VI — quality of life settings.\n"
-          "# Encounters: on = vanilla random battles, off = disabled.\n"
-          "# ToggleKey: any SDL key name (Backquote, F2, ...), or None.\n"
-          "\n[QoL]\n"
-          "Encounters = %s\n",
-          s_disabled ? "off" : "on");
-  fclose(f);
+  QolIniSet("Encounters", s_disabled ? "off" : "on");
 }
 
 static void LoadIni(void)
 {
-  char path[1024];
-  IniPath(path, sizeof path);
+  QolIniEnsureDefaults();
 
-  FILE *f = fopen(path, "rb");
-  if (!f) {
-    /* First run: leave the vanilla behaviour on and write the file so the
-     * setting is discoverable instead of living only in this source file. */
-    SaveIni();
+  char val[256];
+  if (QolIniGet("Encounters", val, sizeof val)) {
+    s_disabled = (strcasecmp(val, "off") == 0 || strcasecmp(val, "false") == 0 ||
+                  strcmp(val, "0") == 0);
+  }
+  /* EncountersKey is the current spelling; ToggleKey is what the first
+   * release wrote, and a player's file must keep working. */
+  if (!QolIniGet("EncountersKey", val, sizeof val) &&
+      !QolIniGet("ToggleKey", val, sizeof val)) {
     return;
   }
-
-  char line[512];
-  while (fgets(line, sizeof line, f)) {
-    char *s = Trim(line);
-    if (!*s || *s == '#' || *s == ';' || *s == '[') continue;
-    char *eq = strchr(s, '=');
-    if (!eq) continue;
-    *eq = '\0';
-    char *key = Trim(s);
-    char *val = Trim(eq + 1);
-
-    if (strcasecmp(key, "Encounters") == 0) {
-      s_disabled = (strcasecmp(val, "off") == 0 || strcasecmp(val, "false") == 0 ||
-                    strcmp(val, "0") == 0);
-    } else if (strcasecmp(key, "ToggleKey") == 0) {
-      SDL_Scancode sc = SDL_GetScancodeFromName(val);
-      s_toggle_key = (sc == SDL_SCANCODE_UNKNOWN) ? SDL_SCANCODE_GRAVE : sc;
-    }
+  if (strcasecmp(val, "none") == 0) {
+    s_toggle_key = SDL_SCANCODE_UNKNOWN;
+  } else {
+    SDL_Scancode sc = SDL_GetScancodeFromName(val);
+    s_toggle_key = (sc == SDL_SCANCODE_UNKNOWN) ? SDL_SCANCODE_GRAVE : sc;
   }
-  fclose(f);
 }
 
-/* Hold or release bit 1 of $11DF, touching nothing else. */
 static void ApplyFlag(void)
 {
   if (!g_snes || !g_snes->ram) return;

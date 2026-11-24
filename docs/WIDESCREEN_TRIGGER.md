@@ -176,3 +176,32 @@ exercises.
   OAM budget rules rather than by letterboxing.
 - **Ending scenes** live in bank `C3` too. If they install `C3` handlers they
   will letterbox, which agrees with the "cutscenes forced 4:3" rule.
+
+---
+
+## What the widened frame actually shows
+
+The trigger decides *when* the margins are offered; it says nothing about
+whether there is anything in them. Measured on `build-c1/Release`, 52 frames
+sampled every 10 frames across a field / menu / submenu / close route:
+
+| | result |
+|---|---|
+| frame width, off / on | 256x224 / 384x224, 52/52 each |
+| authentic centre vs 4:3 baseline | identical, 52/52, zero differing pixels |
+| margin pixels (both sides, all frames) | 0 non-black |
+
+So the PPU does render the extra columns -- that is what moves the authentic
+window to x=64 -- and finds nothing there. FF6's field renderer fills a
+256-pixel tilemap window around the camera, so the columns beside it hold no
+tilemap data and the backdrop comes through as black.
+
+Consequence for the plan: the renderer half of widescreen is done and verified;
+a wider field of view is engine work -- the field camera clamp and the tilemap
+window the engine writes -- and belongs with the `$C3` menu work, not with the
+settings layer. Until then, widescreen on means the authentic picture centred in
+a 384-wide frame with menus pillarboxed on the `$1503` trigger.
+
+Reproduce with `tools/oracle/ws_verify.sh off` then `ws_verify.sh on` on the host,
+which writes the setting into the build's `qol.ini`, runs the route and dumps
+presented frames to `C:\Temp\ws\{off,on}\frames`.

@@ -1486,3 +1486,48 @@ show a `$C2` owner (the cinematic engine), so cutscenes do not look like menus.
 Full write-up, including the mechanism and the residual gaps (world map on foot
 unmeasured; battle menus stay `C1`; ending scenes share `$C3`), is in
 `docs/WIDESCREEN_TRIGGER.md`.
+
+## Step 30 -- Widescreen module built, default off, and its ceiling measured
+
+**Built.** `src/qol_ini.{c,h}` is the shared `qol.ini` reader/writer and
+`src/qol_encounters.c` was refactored onto it, so two features no longer rewrite
+each other's keys; unknown keys survive an edit. `src/qol_widescreen.{c,h}` holds
+the policy, wired into `src/main.c` at `after_config`, `prepare_frame` and
+`before_run_frame`. Off hands the host 256 wide, which leaves `g_ws_extra` at 0,
+so "off" is not a policy the renderer has to honour -- it is a width the renderer
+is never given.
+
+**Two bugs, both found by running it rather than reading it.**
+
+- `QolIniPath` called `SDL_GetBasePath()` and `SDL_free()`d the answer on every
+  lookup. From `after_config`, i.e. *before* `SDL_Init`, the second call killed
+  the process: exit 127, no message, no crash report, log truncated mid-line.
+  Instrumented prints (stderr needed an explicit `fflush` -- redirected stderr is
+  block-buffered, so a hard exit loses the tail) put the fault between the second
+  `QolIniPath` call and the next statement. Resolved once, cached in a static.
+- First-run `qol.ini` creation wrote the `[QoL]` header but not the key it was
+  asked for. Both paths now create the file with all four keys.
+
+**Verified** on `build-c1/Release` with `tools/oracle/ws_verify.sh off|on`, same
+route, same battery save, 4,567 frames each, exit 0, 0 abandons, 0 crashes:
+
+    off   52/52 frames 256x224
+    on    52/52 frames 384x224
+    centre (x=64..319) pixel-identical to the 4:3 baseline: 52/52, diff 0
+    owner log: $C0 -> wide, $C3 -> pillarboxed, twice each across a menu
+               round trip; $00 and $7E pillarboxed during boot
+
+**The ceiling, measured.** The margin columns are black in every frame captured:
+0 of 52 had a single non-black pixel outside the authentic window. The PPU is
+rendering them -- that is why the authentic picture sits at x=64 rather than x=0
+-- but FF6's field renderer fills a 256-pixel tilemap window, so there is nothing
+in VRAM to sample beside it. A real field of view needs the field engine's camera
+clamp and tilemap window to come along, which is engine work, not a setting. So
+today `Widescreen = on` means: authentic picture, centred, in a 384-wide frame,
+menus pillarboxed on the measured `$1503` trigger. That is the renderer half of
+the feature finished and the game-data half still owed.
+
+**Play copy updated.** `C:\FF6Recomp\FinalFantasyViSNESRecomp.exe` (47,000,064 B,
+15:24) with `qol.ini` carrying `Widescreen = off`, `WidescreenKey = F10`,
+`Encounters = on`, `EncountersKey = Grave`. The previous exe is kept beside it as
+`.bak-encounters`; `saves\save.srm` untouched.

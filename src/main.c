@@ -28,6 +28,7 @@
 #include "host_main.h"
 #include "game_rtl.h"
 #include "qol_encounters.h"
+#include "qol_widescreen.h"
 #include "snesrecomp_rom_identity.h"  /* generated from rom_identity.txt */
 
 #ifndef __ANDROID__
@@ -43,6 +44,20 @@
 #define SNES_GAME_VERSION "dev"
 #endif
 
+/* Both QoL features hang off the same two host hooks, so the shim fans out
+ * rather than one feature reaching into the other. */
+static void AfterConfig(void)
+{
+    QolAfterConfig();
+    QolWidescreenAfterConfig();
+}
+
+static void BeforeFrame(void)
+{
+    QolBeforeFrame();
+    QolWidescreenBeforeFrame();
+}
+
 static const SnesDesktopHostGame kGameHost = {
     .display_name        = "Final Fantasy VI",
     .window_title        = "Final Fantasy VI",
@@ -55,8 +70,12 @@ static const SnesDesktopHostGame kGameHost = {
     .game_info           = &kGameInfo,
     /* Quality of life: the encounter switch reads qol.ini and holds
      * $7E11DF bit 1 while the player has encounters off. */
-    .after_config        = QolAfterConfig,
-    .before_run_frame    = QolBeforeFrame,
+    .after_config        = AfterConfig,
+    .before_run_frame    = BeforeFrame,
+    /* Widescreen: default off, and when it is off this returns 256, so the
+     * host never activates its wide path (see qol_widescreen.c). */
+    .prepare_frame       = QolWidescreenPrepareFrame,
+    .native_widescreen   = 1,
     .num_players         = 1,
     /* Battery-backed SRAM shows the launcher's SAVES panel. Leave NULL for a
      * title without one. The path is exe-relative. */

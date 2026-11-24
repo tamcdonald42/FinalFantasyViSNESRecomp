@@ -177,6 +177,41 @@ Vanilla behaviour by default. These are additions, not changes: with every
 option at its default the game runs exactly as the cartridge does, and the
 frame oracle proves it (see below).
 
+### Widescreen (off by default)
+
+Press <kbd>F10</kbd> for a 384x224 frame. Off is the authentic 256x224 picture,
+byte-for-byte the verified baseline; the mod only ever hands the renderer a
+wider frame, so with it off there is nothing to honour.
+
+```ini
+[QoL]
+Widescreen    = off    ; off = 4:3 baseline, on = 384x224 frame
+WidescreenKey = F10    ; any SDL key name, or None
+```
+
+**What is verified today.** With it on, the frame is 384x224 and the authentic
+256 columns sit at x=64..319, pixel-identical to the 4:3 baseline: 52 of 52
+sampled frames across a field / menu / submenu / close route, zero differing
+pixels. Menus, battles, the world map and cutscenes are pillarboxed rather than
+stretched, so the picture does not resize when a menu opens — the game simply
+stops using the extra columns.
+
+**What is not there yet.** The margin columns are black on the field. The PPU
+will render them, but FF6's field renderer only fills a 256-pixel tilemap
+window, so there is nothing in VRAM to sample beside it. A genuinely wider
+field needs the field engine's camera clamp and tilemap window, which is engine
+work rather than a setting; the renderer side is wired and waiting for it.
+
+**The trigger** is `$7E1503`, the bank of the installed NMI handler, which each
+subsystem rewrites when it takes over: `$C0` field, `$C1` battle, `$C3` menu,
+`$EE` world map. That table came out of WRAM dumps rather than the listing —
+`docs/WIDESCREEN_TRIGGER.md` has the routes, the dumps and the candidates that
+were rejected. Reading one byte per frame needs no hook, no patch and no guest
+write, the same shape as the encounter switch.
+
+**Known limitation:** sprites use 9-bit OAM x-positions, so an actor standing in
+the margin is drawn at the edge of the authentic window rather than beyond it.
+
 ### Random encounters on/off
 
 Press the <kbd>`</kbd> key (backquote, left of `1`) to switch random battles
@@ -185,8 +220,8 @@ off and on. A toast confirms the state, and the choice is saved to
 
 ```ini
 [QoL]
-Encounters = on        ; on = vanilla random battles, off = disabled
-ToggleKey  = Grave     ; any SDL key name, or None to disable the hotkey
+Encounters    = on     ; on = vanilla random battles, off = disabled
+EncountersKey = Grave  ; any SDL key name, or None to disable the hotkey
 ```
 
 **How it works, and why it needs no patch.** FF6 chooses its encounter rate

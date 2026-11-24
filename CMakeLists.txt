@@ -42,6 +42,8 @@ add_executable(FinalFantasyViSNESRecomp
     src/host_contract.c
     src/game_rtl.c
     src/qol_encounters.c
+    src/qol_ini.c
+    src/qol_widescreen.c
     src/gen_stubs.c
 )
 
