@@ -1119,34 +1119,67 @@ each — the loop Step 16 could not root) and C5:01B5/01B8, C5:06AF/06B2.
 Recorded rather than fixed: the honest state is "the port runs the whole game, one quarter of cycles are
 AOT, three quarters are 73% idle polling, and the metric I was reporting was entry counts".
 
+## Step 22 — measuring the polls instead of optimising them: no work needed (2026-11-24)
+
+Step 21 left one question open: 73.4% of interpreted instructions are three flag-poll spins, so should
+they be fast-forwarded? Measured before building anything:
+
+```
+turbo on, Mode 7 route:  4,197 frames in 15.8 s = 265 fps
+paced (no turbo):        4,719 frames in 80 s   =  59 fps
+```
+
+**4.5× headroom.** The port is not CPU-bound; the spins cost nothing observable at real time. A
+poll fast-forward would be a framework patch with a real regression surface (the Star Ocean `$4212`
+table shows how carefully those have to be validated per site) for a win nobody can see.
+
+The remaining motive was diagnosis — naming a stall instead of crawling. That is already covered:
+the post-mortem cost table reports the top interpreted PC after any run, which is exactly how the
+38-minute `C1:0000` crawl was diagnosed (`[interp_cap] entry=$C10005 last=$C11A28` plus `C1:1A26/1A28`
+at the top of `costs[]`). A live watchdog would surface the same fact earlier; it is convenience, not
+capability.
+
+**Decision: no poll work.** The three hot spins are the game waiting for its own frame flag, faithfully
+reproduced. Do not revisit without a measurement showing the port CPU-bound (i.e. turbo ≈ paced fps).
+
+### What that means for the campaign
+
+Every instrumentation question now has an answer: what's reachable (routes), what's wrong (symbolised
+crashes), what's unexecuted (coverage by instruction), what's fast enough (turbo headroom). The open
+risk is no longer performance or tooling — it is **unvisited content**. Every real bug so far was found
+by running somewhere new: the mosaic crash by walking, the three dispatches by fighting. Field, battle
+and world map are covered; the opera, towns, shops/esper menus, multi-party battles and the ending are not.
+
+Next step is therefore scene coverage, not optimisation: one save per unvisited region, one standard
+poke-around route, and the same three acceptance checks (`abandons=0`, no `SEH CRASH`, frames sane).
+
 ## Resume here (new session)
 
-**Head:** the Step-21 commit on `main`, tree clean, mirrored.
-**Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 exact AOT variants / 17,663 LLE**.
-Boot → save load → field → walking → encounter → battle → victory → return to field → second encounter
-all run with `abandons=0`; the in-game menu works; **Mode 7 works on the world map** (mode 7, per-scanline
-matrix, rotation term live). Clean battle route measures **74.5% interp / 25.5% AOT cycles**, but **73.4% of
-those interpreted instructions are three flag-poll spins** (`C0:0566/0568`, `C1:1A26/1A28`, `7E:7206/7208`);
-real code is only 27.8M instructions, led by C5 (7.97M), 7E RAM code (6.63M), C3 (4.28M), C1 (4.22M), C0 (3.47M).
+**Head:** the Step-22 commit on `main`, tree clean, mirrored.
+**Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 AOT variants / 17,663 LLE**. Boot → save load
+→ field → walking → encounter → battle → victory → return → second encounter, menu, and **Mode 7 world map
+with airship flight** all run with `abandons=0`. Clean battle route: **74.5% interp / 25.5% AOT cycles**,
+73.4% of that interpretation being three flag-poll spins — and turbo measures **265 fps vs 59 paced**, so the
+polls are not worth touching (Step 22). Real code is 27.8M instructions (C5 7.97M, 7E RAM 6.63M, C3 4.28M,
+C1 4.22M, C0 3.47M, C2 1.23M).
 
-**Measure with `costs[]`, not entry counts.** The tier-2 manifest carries an instruction-weighted table;
-`discoveries[].observed_hits` counts entries and will mislead you (Step 19 looked like −56% and was −0.008%).
+**Measure with `costs[].interpreted_instructions`, never `observed_hits`** (Step 21). Frame oracle:
+`build-c0/Release` is the control; compare `.fb.bmp` hashes at matching dumps.
 
 **Routes:** `tools/oracle/srm_route.sh <save.srm>`, `tools/oracle/battle_route.sh <save.srm> [--coverage]`,
 `tools/oracle/mode7_route.sh <worldmap.srm>`. Donor `.srm` files stay outside the repo.
 
-**Next actions, in order:**
+**Next actions, in order — this is a coverage campaign now, not an optimisation one:**
 
-1. **Poll-spin handling** — the reason to do it is diagnosis, not speed: a never-cleared flag currently
-   crawls instead of stalling (that cost a session on `C1:0000`). Find the existing poll-shape recognition
-   in `interp_bridge.c`, apply it to the three hot spins, and verify frames stay byte-identical.
-2. **Sample the C3/C5 loops by instructions** (`C3:1370/1372` 1.92M each, `C5:01B5/01B8`, `C5:06AF/06B2`)
-   — these are real work and were invisible under entry-count ranking.
-3. **Give the world map and the crash class a second engine**: `ref_driver` still cannot load a `.srm`
-   (~30 lines). Note the limit: the reference links the same `ppu.c`, so it catches recompiled-code bugs,
-   not shared device-model bugs.
-4. **Promotion is now polish** — the remaining 27.8M is spread thin and does not limit anything at 17 ms/frame.
-5. **The prologue halt (Step 14) stays parked.**
+1. **Unvisited scenes, one save each.** Highest risk first: the opera (scripted event + heavy sprite work),
+   a town with NPCs/shops, the esper/magic menus, a multi-party or boss battle, the world-map → field
+   transition on foot. Acceptance: `abandons=0`, no `SEH CRASH`, dumps sane, then analyse coverage for new
+   unresolved dispatches (they surface as `[unresolved-abandon] site=$XXnnnn` → size the table →
+   `indirect_dispatch` above the regen marker → regen → rebuild → rerun).
+2. **`ref_driver` SRAM support** (~30 lines) — gives any save route a second engine to diff against; it
+   catches recompiled-code bugs, not shared `ppu.c` bugs.
+3. **Promotion is polish** (27.8M spread thin, 4.5× headroom). Do not spend builds here without a reason.
+4. **The prologue halt (Step 14) stays parked.**
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
