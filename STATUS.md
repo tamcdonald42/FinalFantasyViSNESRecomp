@@ -1018,33 +1018,80 @@ The top 30 C1 `missing_entry` targets by hit count (22,800 hits covered), append
   *identical* across runs of different length, so it reads as deduped or capped accounting rather
   than a per-run count; treat the total as a floor, not an exact number.
 
+## Step 20 — Mode 7 works: the world map renders and the matrix is driven per scanline (2026-11-24)
+
+Mode 7 was the last PPU path with no route coverage. Everything until now ran in mode 1 (field,
+menus) or mode 9; the opening's snow march only *pokes* `$211B`/`$211C` while the display stays in
+mode 1, so nothing had ever executed the perspective renderer.
+
+### Getting there
+
+A world map needs a save that is standing on it. `ff6save18Perfect_Maranda` ("you now have an
+airship, and the freedom to roam around the World of Ruin") is exactly that — and the donor `.srm`
+stays out of the repo, as always; it is a path argument to `tools/oracle/mode7_route.sh`.
+
+Route: load the slot → `m1`/`m2` on the world map → `A` to board the airship (`m3`) → fly north,
+east, south (`m4`–`m6`). Flying matters: a static world map exercises the matrix, but only turning
+the airship varies all four terms.
+
+### What the machine says
+
+- `bgmode = 7` in all six dumps. `$2105` is written **4× per frame with 2 distinct values**, i.e.
+  the frame switches to mode 7 for the map and back to mode 1 for the HUD strip.
+- `$211B`–`$211E` (M7A–M7D) are written **450× per frame each**, with **~110 / 39 / 1 / 110
+  distinct values** while flying straight — one matrix row per scanline, which is what a
+  perspective plane *is*.
+- After turning: distinct counts go to **101 / 106 / 92 / 101**, i.e. `$211D` (the rotation term)
+  stops being constant. That is the airship turning, not a stuck matrix.
+- All six frame hashes differ; `abandons=0`, no crash, 4,719 frames in 80 s.
+- Visually (`m1`): the World of Ruin from the air — Mode 7 terrain receding into a banded horizon,
+  the airship sprite centred, minimap lower-right. Coherent, no striping or garbage.
+
+### Why this one has no frame oracle
+
+The reference driver cannot load a `.srm` (`ref_driver.c` takes only frames/dump/input), so there is
+no independent second implementation to diff against on the world map. What stands in for it: the
+register evidence above (mode 7 + per-scanline matrix + a turntaking rotation term) plus a visual
+check. That is weaker than the byte-identical dumps used for every promotion — worth remembering if
+a world-map rendering bug ever appears. Adding SRAM support to `ref_driver` (~30 lines) would close
+the gap and also give the walk/battle crash class a second implementation to compare against.
+
+### The tool
+
+`tools/oracle/mode7_route.sh <worldmap.srm> [build-dir]` — installs the save, runs the six-dump
+route, and prints `bgmode`, the matrix write counts and the distinct-value counts per dump, so
+"working" is a report rather than an impression.
+
 ## Resume here (new session)
 
-**Head:** the Step-19 commit on `main`, tree clean, mirrored.
+**Head:** the Step-20 commit on `main`, tree clean, mirrored.
 **Verified state:** 2,323 funcs; regen emits **25,916 roots / 12,479 exact AOT variants / 17,663 LLE**.
-Field, menu and battle all run with `abandons=0`; the battle route resolves a fight, returns to the
-field and triggers a second encounter. Battle-route interpretation is down to **144,260 hits / 523
-sites** (from 163,941 / 547), with **C1 15,601** (from 35,282) — C0 28,884, C3 3,778, C2 2,051,
-7E 93,946. `build-c1/Release/...` is the full binary, `build-c0/Release/...` the C0-only control,
-`build-dbg/RelWithDebInfo/...` the symbolized build for crash work.
+Boot → save load → field → walking → encounter → battle → victory → return to field → second encounter
+all run with `abandons=0`; the in-game menu works; **Mode 7 works on the world map** (mode 7 with a
+per-scanline matrix, 450 writes/frame, rotation term varying once the airship turns). Battle-route
+interpretation is 144,260 hits / 523 sites (C1 15,601, C0 28,884, C3 3,778, C2 2,051, 7E 93,946).
+Builds: `build-c1/Release` (full), `build-c0/Release` (C0-only control), `build-dbg/RelWithDebInfo`
+(symbols for crash work).
 
-**Routes:** `tools/oracle/srm_route.sh <save.srm>` (field + menu) and
-`tools/oracle/battle_route.sh <save.srm> [--coverage]` (encounter → victory → field → second
-encounter). Both are deterministic; both are oracles. Always diff dumps before and after a promotion.
+**Routes:** `tools/oracle/srm_route.sh <save.srm>` (field + menu), `tools/oracle/battle_route.sh
+<save.srm> [--coverage]` (encounter → victory → field → second encounter),
+`tools/oracle/mode7_route.sh <worldmap.srm>` (world map + airship). Donor `.srm` files stay outside
+the repo — they are path arguments.
 
 **The next actions, in order:**
 
-1. **Sample the C1 tail before promoting it.** 15,601 hits across 174 sites is a long tail: check
-   whether the remaining sites are `goto_gap/missing_entry` (compilable, worth another pass) or
-   `missing_exact_variant` (a cfg `entry_mx` question, not a root question).
-2. **Mode 7 is still untested.** The world map is the path that exercises it — the opening only pokes
-   `$211B`/`$211C` while the display stays in mode 1. Crash diagnosis works now
-   (`tools/oracle/symdump.py` + `build-dbg`), so a world-map save is a cheap, high-value test.
-3. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
-4. **C0 still interprets ~28,884 hits on this route.** Same gap-target method as Step 19 applies.
-5. **Expect more dispatch authorizations** as new scenes become reachable — battle code is built from
-   computed jump tables. Loop: run → read `[unresolved-abandon] site=$XXnnnn` → size the table →
-   `indirect_dispatch` above the regen marker → regen → rebuild → rerun.
+1. **Give the world map a real oracle.** `ref_driver.c` cannot load SRAM, so Mode 7 has only
+   register evidence + a visual check, not byte-identical frames. ~30 lines to load a `.srm` into the
+   battery buffer would give the world map — and every other save route — a second implementation to
+   diff against.
+2. **Sample the C1 tail before promoting it.** 15,601 hits across 174 sites: check `fallback_reason`
+   first — `goto_gap/missing_entry` is another compilable pass (Step 19's method), while
+   `missing_exact_variant` is an `entry_mx` cfg question, not a root question.
+3. **C0 still interprets 28,884 hits** on the battle route — same gap-target method applies.
+4. **The prologue halt (Step 14) is parked, not solved.** It does not block the campaign.
+5. **Expect more dispatch authorizations** as new scenes become reachable. Loop: run → read
+   `[unresolved-abandon] site=$XXnnnn` → size the table → `indirect_dispatch` above the regen marker
+   → regen → rebuild → rerun.
 
 **Traps that cost real time — do not relearn these:**
 - `tools/regen.sh` reuses cached published output. After a *failed* regen the build still succeeds
