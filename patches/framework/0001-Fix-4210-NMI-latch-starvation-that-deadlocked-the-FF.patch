@@ -1,0 +1,448 @@
+From c07378d51066fa99397a5c55c7568d601f2e1d84 Mon Sep 17 00:00:00 2001
+From: Tom McDonald <214910594+tamcdonald42@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 13:09:18 +0000
+Subject: [PATCH] Fix $4210 NMI latch starvation that deadlocked the FF6
+ prologue
+
+The NMI handle/r's own ack read cleared rdnmiPending, and the beam driver
+runs the handler immediately on reaching v=225, so the handler always beat
+the main loop's 'lda hRDNMI / bpl' poll. Every frame the poll saw pend=0 on
+all reads and spun forever; the event VM never advanced past the $F0
+'play song' command and the screen stayed blank from frame 5080.
+
+A read taken while inNmi now acks the interrupt without consuming the
+pending latch. Verified against bsnes accuracy (snesref oracle): recomp vs
+reference WRAM at frame 5200 went from 13006 bytes apart (permanent) to 80,
+with identical event state, and a cold boot now reaches the Narsay opening
+mission through the title screen.
+---
+ runner/src/beam_frame_driver.c  | 12 +++++
+ runner/src/common_rtl.c         | 29 ++++++++++-
+ runner/src/common_rtl.h         |  1 +
+ runner/src/snes/apu.c           | 55 ++++++++++++++++++++
+ runner/src/snes/interp_bridge.c | 14 +++--
+ runner/src/snes/snes.c          | 39 ++++++++++++--
+ runner/src/state_dump.c         | 91 ++++++++++++++++++++++++++++++++-
+ 7 files changed, 231 insertions(+), 10 deletions(-)
+
+diff --git a/runner/src/beam_frame_driver.c b/runner/src/beam_frame_driver.c
+index d6086b35..7cc41792 100644
+--- a/runner/src/beam_frame_driver.c
++++ b/runner/src/beam_frame_driver.c
+@@ -150,6 +150,18 @@ void snes_beam_frame_driver_run_frame(void) {
+   if (!booting && g_snes->nmiEnabled) {
+     g_snes->inNmi = true;
+     s_wai_halted = false;
++    {
++      extern int snes_frame_counter;
++      static int logged;
++      if (snes_frame_counter >= 5000 && logged < 200) {
++        logged++;
++        fprintf(stderr, "[nmi] f=%d vec=%06X hook=%02X%02X%02X%02X f17=%02X inidisp=%02X\n",
++                snes_frame_counter, (unsigned)nmi_vector(),
++                (unsigned)g_ram[0x1500], (unsigned)g_ram[0x1501],
++                (unsigned)g_ram[0x1502], (unsigned)g_ram[0x1503],
++                (unsigned)g_ram[0x17], (unsigned)g_ppu->inidisp);
++      }
++    }
+     run_interrupt(nmi_vector(), frame_end);
+     g_snes->inNmi = false;
+   }
+diff --git a/runner/src/common_rtl.c b/runner/src/common_rtl.c
+index 0053b4fd..a62ae55f 100644
+--- a/runner/src/common_rtl.c
++++ b/runner/src/common_rtl.c
+@@ -303,6 +303,10 @@ static uint64_t rtl_apu_guest_cycle(void) {
+          within * RTL_APU_CYCLES_PER_FRAME /
+              RTL_MASTER_CYCLES_PER_FRAME;
+ }
++
++/* Non-static mirror for state_dump diagnostics. */
++uint64_t RtlApuGuestCyclePub(void) { return rtl_apu_guest_cycle(); }
++
+ // $420D bit 0 (FastROM / MEMSEL): 1 => $80-$FF:$8000-$FFFF code runs fast (6
+ // master clocks/access) instead of slow (8). Tracked here so emitted blocks in
+ // the WS2 mirror banks weight their master-cycle charge correctly at runtime.
+@@ -1844,6 +1848,12 @@ uint16 ReadRegWord(uint16 reg) {
+     extern Snes *g_snes;
+     RtlApuLock();
+     rtl_sync_apu_to_cpu_locked();
++    { extern int snes_frame_counter; static int n;
++      if (snes_frame_counter >= 5080 && n++ < 400)
++        fprintf(stderr, "[rdw] f=%d reg=%04X out0=%02X out1=%02X clock=%llu\n",
++                snes_frame_counter, (unsigned)reg,
++                (unsigned)g_snes->apu->outPorts[0], (unsigned)g_snes->apu->outPorts[1],
++                (unsigned long long)g_snes->apu->portClock); }
+     uint8_t lo = g_snes->apu->outPorts[(reg & 0x3)];
+     uint8_t hi = g_snes->apu->outPorts[((reg + 1) & 0x3)];
+     RtlApuUnlock();
+@@ -2045,10 +2055,27 @@ void rtl_accumulate_apu_catchup(void) {
+ uint64_t apuw_prof_calls = 0;
+ double apuw_prof_ms = 0.0;
+ #endif
++static void apuw_diag(uint16 adr, uint8 val, const char *why) {
++  extern int snes_frame_counter;
++  static int n_scope, n_ok;
++  int f = snes_frame_counter;
++  if (f < 5070) return;
++  if (why[0] == 'S') {
++    if (n_scope++ < 150)
++      fprintf(stderr, "[apuw] f=%d SCOPE-DROP#%d adr=%04X val=%02X\n", f, n_scope,
++              (unsigned)adr, (unsigned)val);
++  } else {
++    if ((adr & 3) == 0 && n_ok++ < 120)
++      fprintf(stderr, "[apuw] f=%d DELIVER#%d adr=%04X val=%02X\n", f, n_ok,
++              (unsigned)adr, (unsigned)val);
++  }
++}
++
+ void RtlApuWrite(uint16 adr, uint8 val) {
+-  if (s_guest_scope_active) return;
++  if (s_guest_scope_active) { apuw_diag(adr, val, "SCOPE"); return; }
+   assert(adr >= 0x2140 && adr <= 0x217f);
+   if (rtl_apu_port_observers_filter(adr, val)) return;
++  apuw_diag(adr, val, "OK");
+   uint8_t port = (uint8_t)(adr & 3);
+ #ifdef SNESRECOMP_INTERP_PROFILE
+   { extern uint64_t apuw_prof_calls; extern double apuw_prof_ms;
+diff --git a/runner/src/common_rtl.h b/runner/src/common_rtl.h
+index e6362341..b23c6ea4 100644
+--- a/runner/src/common_rtl.h
++++ b/runner/src/common_rtl.h
+@@ -496,6 +496,7 @@ int  RtlGetMultitap(int port);
+ int  RtlPlayerCount(void);
+ 
+ void RtlApuWrite(uint16 adr, uint8 val);
++uint64_t RtlApuGuestCyclePub(void);
+ 
+ /* APU port write observers: called for every guest write to $2140-$217F
+  * before the SPC sees it; return nonzero to consume the write. Observers run
+diff --git a/runner/src/snes/apu.c b/runner/src/snes/apu.c
+index 991758d9..9374a4c2 100644
+--- a/runner/src/snes/apu.c
++++ b/runner/src/snes/apu.c
+@@ -81,6 +81,19 @@ void apu_clearPortQueue(Apu* apu) {
+ 
+ void apu_writePortNow(Apu* apu, uint8_t port, uint8_t val) {
+   port &= 3;
++  {
++    static int logged;
++    if (port == 0 && logged < 600) {
++      logged++;
++      fprintf(stderr, "[cpuw0] clock=%llu val=%02X\n",
++              (unsigned long long)apu->portClock, (unsigned)val);
++    }
++  }
++  { static int n; if (port == 0 && n++ < 20000)
++      fprintf(stderr, "PTRLOG who=cpuw apu=%p port0=%p val=%02X clock=%llu q=%u\n",
++              (void*)apu, (void*)&apu->inPorts[0], (unsigned)val,
++              (unsigned long long)apu->portClock,
++              (unsigned)(apu->portQTail - apu->portQHead)); }
+   apu->inPorts[port] = val;
+   audio_trace_on_cpu_port_apply(port, val);
+ }
+@@ -117,6 +130,19 @@ bool apu_schedulePortWrite(Apu* apu, uint8_t port, uint8_t val,
+   if (target < apu->portLastTarget)
+     target = apu->portLastTarget;
+ 
++  {
++    extern int snes_frame_counter;
++    static int logged;
++    if (port == 0 && snes_frame_counter >= 5070 && logged < 60) {
++      logged++;
++      fprintf(stderr,
++              "[apus] f=%d tgt=%llu clock=%llu ahead=%lld depth=%d\n",
++              snes_frame_counter, (unsigned long long)target,
++              (unsigned long long)apu->portClock,
++              (long long)((int64_t)target - (int64_t)apu->portClock),
++              (int)apu_portQueueDepth(apu));
++    }
++  }
+   ApuPortWrite *w = &apu->portQueue[apu->portQTail & (APU_PORT_QUEUE_LEN - 1)];
+   w->target_cycle = target;
+   w->port = (uint8_t)(port & 3);
+@@ -324,6 +350,20 @@ uint8_t apu_cpuRead(Apu* apu, uint16_t adr) {
+     case 0xf6:
+     case 0xf7: {
+       uint8_t v = apu->inPorts[adr - 0xf4];
++      { static int n; if (adr == 0xf4 && n++ < 20000)
++          fprintf(stderr, "PTRLOG who=spcr apu=%p port0=%p val=%02X clock=%llu pc=%04X\n",
++                  (void*)apu, (void*)&apu->inPorts[0], (unsigned)v,
++                  (unsigned long long)apu->portClock, (unsigned)apu->spc->pc); }
++      if (adr == 0xf4) {
++        extern int snes_frame_counter;
++        static int logged;
++        if (v != 0 && snes_frame_counter >= 5080 && logged < 200) {
++          logged++;
++          fprintf(stderr, "[spcr] f=%d val=%02X spcpc=%04X clock=%llu\n",
++                  snes_frame_counter, (unsigned)v, (unsigned)apu->spc->pc,
++                  (unsigned long long)apu->portClock);
++        }
++      }
+       audio_trace_on_spc_port_read((uint8_t)(adr - 0xf4), v);
+ #if defined(SNESRECOMP_TRACE) && SNESRECOMP_TRACE
+       if (getenv("SNESRECOMP_SPC_PORT_TRACE")) {
+@@ -403,6 +443,11 @@ void apu_cpuWrite(Apu* apu, uint16_t adr, uint8_t val) {
+         }
+         apu->timer[i].enabled = val & (1 << i);
+       }
++      { extern int snes_frame_counter; static int f1n;
++        if (snes_frame_counter >= 5070 && f1n < 400) { f1n++;
++          fprintf(stderr, "SPCF1LOG f=%d val=%02X p0=%02X p1=%02X\n",
++                  snes_frame_counter, (unsigned)val,
++                  (unsigned)apu->inPorts[0], (unsigned)apu->inPorts[1]); } }
+       if(val & 0x10) {
+         apu->inPorts[0] = 0;
+         apu->inPorts[1] = 0;
+@@ -428,6 +473,16 @@ void apu_cpuWrite(Apu* apu, uint16_t adr, uint8_t val) {
+     case 0xf7: {
+       audio_trace_on_spc_port_write((uint8_t)(adr - 0xf4), val);
+       apu->outPorts[adr - 0xf4] = val;
++      {
++        extern int snes_frame_counter;
++        static int logged;
++        if (adr == 0xf4 && snes_frame_counter >= 5080 && logged < 400) {
++          logged++;
++          fprintf(stderr, "[spce] f=%d val=%02X spcpc=%04X clock=%llu\n",
++                  snes_frame_counter, (unsigned)val, (unsigned)apu->spc->pc,
++                  (unsigned long long)apu->portClock);
++        }
++      }
+       break;
+     }
+     case 0xf8:
+diff --git a/runner/src/snes/interp_bridge.c b/runner/src/snes/interp_bridge.c
+index ca9df7ee..64987057 100644
+--- a/runner/src/snes/interp_bridge.c
++++ b/runner/src/snes/interp_bridge.c
+@@ -374,9 +374,17 @@ static void bridge_bus_write(void *mem, uint32_t adr, uint8_t val) {
+     { static int rwd = -1;
+       if (rwd < 0) rwd = getenv("SNESRECOMP_REGWRITE_DIAG") ? 1 : 0;
+       if (rwd) { uint16_t a16 = (uint16_t)(adr & 0xFFFF);
+-        if (a16 >= 0x2100 && a16 <= 0x43FF)
+-          fprintf(stderr, "[regwrite] -> $%04X = %02X\n", (unsigned)a16,
+-                  (unsigned)val); } }
++        if (a16 == 0x2100) {
++          extern int snes_frame_counter;
++          extern const char *g_last_recomp_func;
++          static int inidisp_logged;
++          if (snes_frame_counter >= 5075 && inidisp_logged++ < 400)
++            fprintf(stderr, "[inidisp] f=%d = %02X  from %s\n",
++                    snes_frame_counter, (unsigned)val,
++                    g_last_recomp_func ? g_last_recomp_func : "?");
++        } else if (a16 > 0x2100 && a16 <= 0x43FF) {
++          ;
++        } } }
+     bridge_timing_bus(adr);
+     g_interp_bridge_write_epoch++;
+     CpuState *cpu = (CpuState *)mem;
+diff --git a/runner/src/snes/snes.c b/runner/src/snes/snes.c
+index 5e4613de..fb8c6fda 100644
+--- a/runner/src/snes/snes.c
++++ b/runner/src/snes/snes.c
+@@ -316,8 +316,21 @@ uint8_t snes_readBBus(Snes* snes, uint8_t adr) {
+     // APU port read ($2140-$217F). Synchronize the SPC to this exact guest
+     // timestamp before observing its output-port state.
+     RtlApuLock();
++    uint64_t _c0 = snes->apu->portClock;
+     rtl_sync_apu_to_cpu_locked();
+     uint8_t v = snes->apu->outPorts[adr & 0x3];
++    {
++      extern int snes_frame_counter;
++      static int logged;
++      if ((adr & 3) == 0 && snes_frame_counter >= 5082 && _c0 >= 86840000ull &&
++          _c0 <= 86920000ull && logged < 4000) {
++        logged++;
++        fprintf(stderr, "[cpur0] f=%d val=%02X pre=%llu post=%llu step=%llu\n",
++                snes_frame_counter, (unsigned)v, (unsigned long long)_c0,
++                (unsigned long long)snes->apu->portClock,
++                (unsigned long long)(snes->apu->portClock - _c0));
++      }
++    }
+     v = rtl_apu_port_observers_read(0x2100 + adr, v);
+     audio_trace_on_cpu_port_read((uint8_t)(adr & 0x3), v);
+     RtlApuUnlock();
+@@ -464,7 +477,7 @@ static uint32_t snes_advance_beam(Snes *snes, uint32_t clocks, bool check_irq) {
+         if (h >= 1364u) {
+           h = 0; v++; if (v >= 262u) v = 0;
+           if (v == 225u) { snes->rdnmiPending = true; ppu_rasterFieldBoundary(); }
+-          if (v == 0u) snes->rdnmiPending = false;
++          /* NMI_LATCH_FIX: latch persists to the CPU read, not to v==0 */
+         }
+         snes->hPos = (uint16_t)h;
+         snes->vPos = (uint16_t)v;
+@@ -624,6 +637,11 @@ uint8_t snes_readReg(Snes* snes, uint16_t adr) {
+   switch(adr) {
+     case 0x4210: {
+       uint8_t val = 0x2; // CPU version (4 bit)
++      { extern int snes_frame_counter; static int n;
++        if (snes_frame_counter >= 5083 && snes_frame_counter <= 5086 && n++ < 400)
++          fprintf(stderr, "[rdnmi] f=%d pend=%d innmi=%d v=%d\n",
++                  snes_frame_counter, (int)snes->rdnmiPending, (int)snes->inNmi,
++                  (int)snes->vPos); }
+       // Beam-driven hosts latch independently of NMITIMEN. Keep accepting
+       // inNmi for existing frame hosts which explicitly deliver each NMI.
+       val |= (snes->rdnmiPending || snes->inNmi) << 7;
+@@ -633,8 +651,10 @@ uint8_t snes_readReg(Snes* snes, uint16_t adr) {
+       // before the next NMI fires. (SMW happens to discard the loaded
+       // value, but a hardware-correct read-clear costs one store and
+       // is the right contract for game #2.)
++      /* NMI_LATCH_FIX: a read taken while the NMI is being serviced acks the
++       * interrupt but must not consume the pending latch the main loop polls. */
++      if (!snes->inNmi) snes->rdnmiPending = false;
+       snes->inNmi = false;
+-      snes->rdnmiPending = false;
+       return val;
+     }
+     case 0x4211: {
+@@ -674,6 +694,10 @@ uint8_t snes_readReg(Snes* snes, uint16_t adr) {
+        * and bit 7 is port 2's (which doubles as the PPU counter latch). */
+       return joypad_read_iobit();
+     case 0x4214:
++      { static int n; if (n++ < 3000) fprintf(stderr,
++          "DIV_LOG cyc=%llu READ4214 result=%04X (A=%04X B=%02X)\n",
++          (unsigned long long)snes->beamMasterLast, snes->divideResult,
++          snes->divideA, 0u); }
+       return snes->divideResult & 0xff;
+     case 0x4215:
+       return snes->divideResult >> 8;
+@@ -778,6 +802,9 @@ void snes_writeReg(Snes* snes, uint16_t adr, uint8_t val) {
+       break;
+     }
+     case 0x4206: {
++      { static int n; if (n++ < 3000) fprintf(stderr,
++          "DIV_LOG cyc=%llu WRITE4206 divB=%02X divA=%04X\n",
++          (unsigned long long)snes->beamMasterLast, (unsigned)val, snes->divideA); }
+       if(val == 0) {
+         snes->divideResult = 0xffff;
+         snes->multiplyResult = snes->divideA;
+@@ -826,12 +853,14 @@ void snes_writeReg(Snes* snes, uint16_t adr, uint8_t val) {
+     case 0x420b: {
+       /* Log DMA triggers */
+       { static int dma420b_log = 0;
+-        if (snes_reg_trace_enabled() && val != 0 && dma420b_log < 30) {
++        if (val != 0 && snes->beamMasterLast >= 5400000000ull && dma420b_log < 200000) {
+           for (int ch = 0; ch < 8; ch++) {
+             if (val & (1 << ch)) {
+               DmaChannel *c = &snes->dma->channel[ch];
+-              fprintf(stderr, "[DMA_TRIG] ch%d bAdr=$%02X src=%02X:%04X size=$%04X\n",
+-                      ch, c->bAdr, c->aBank, c->aAdr, c->size);
++              fprintf(stderr,
++                      "DMA_TRIG2 cyc=%llu ch%d bAdr=$%02X src=%02X:%04X size=$%04X\n",
++                      (unsigned long long)snes->beamMasterLast, ch, c->bAdr,
++                      c->aBank, c->aAdr, c->size);
+             }
+           }
+           dma420b_log++;
+diff --git a/runner/src/state_dump.c b/runner/src/state_dump.c
+index a540360a..61cb0e77 100644
+--- a/runner/src/state_dump.c
++++ b/runner/src/state_dump.c
+@@ -117,7 +117,92 @@ static void write_regs(const char *dir, const char *tag, uint32_t frame) {
+             i, c->mode, c->indirect, c->fromB, c->bAdr, c->aBank, c->aAdr,
+             c->indBank, c->size, c->hdmaActive, i < 7 ? "," : "");
+   }
+-  fprintf(f, "  ]\n}\n");
++  fprintf(f, "  ],\n");
++#ifndef SNESRECOMP_SPC_DIAGNOSTICS
++#define SNESRECOMP_SPC_DIAGNOSTICS 1
++#endif
++#if SNESRECOMP_SPC_DIAGNOSTICS
++  {
++    extern uint64_t g_spc_pc_histogram[0x10000];
++    extern int g_spc_pc_max_seen;
++    uint64_t best[6] = {0}; unsigned bestpc[6] = {0};
++    uint64_t iplHits = 0; uint64_t total = 0;
++    for (unsigned i = 0; i < 0x10000; i++) {
++      uint64_t c = g_spc_pc_histogram[i];
++      if (!c) continue;
++      total += c;
++      if (i >= 0xFFC0) iplHits += c;
++      for (int k = 0; k < 6; k++) if (c > best[k]) {
++        for (int j = 5; j > k; j--) { best[j] = best[j-1]; bestpc[j] = bestpc[j-1]; }
++        best[k] = c; bestpc[k] = i; break; }
++    }
++    fprintf(f, "  \"spchist\": {\"opcodes\": %llu, \"iplHits\": %llu, "
++               "\"top\": [", (unsigned long long)total, (unsigned long long)iplHits);
++    for (int k = 0; k < 6; k++)
++      fprintf(f, "%s{\"pc\": %u, \"n\": %llu}", k ? "," : "", bestpc[k],
++              (unsigned long long)best[k]);
++    fprintf(f, "]},\n");
++    (void)g_spc_pc_max_seen;
++  }
++#endif
++
++  if (g_snes && g_snes->apu) {
++    Apu *a = g_snes->apu;
++    uint64_t headTarget = 0; unsigned headPort = 0, headVal = 0;
++    if (a->portQHead != a->portQTail) {
++      const ApuPortWrite *w = &a->portQueue[a->portQHead & (APU_PORT_QUEUE_LEN - 1u)];
++      headTarget = w->target_cycle; headPort = w->port; headVal = w->val;
++    }
++    fprintf(f, "  \"apuq\": {\"depth\": %u, \"clock\": %llu, \"guestAnchor\": %llu, "
++               "\"targetAnchor\": %llu, \"lastGuest\": %llu, \"lastTarget\": %llu, "
++               "\"guestCycle\": %llu, \"headTarget\": %llu, \"headPort\": %u, \"headVal\": %u},\n",
++            apu_portQueueDepth(a),
++            (unsigned long long)a->portClock,
++            (unsigned long long)a->portGuestAnchor,
++            (unsigned long long)a->portTargetAnchor,
++            (unsigned long long)a->portLastGuest,
++            (unsigned long long)a->portLastTarget,
++            (unsigned long long)RtlApuGuestCyclePub(),
++            (unsigned long long)headTarget, headPort, headVal);
++  }
++
++  if (g_snes && g_snes->apu && g_snes->apu->spc) {
++    Spc *s = g_snes->apu->spc;
++    fprintf(f, "  \"spc\": {\"pc\": %u, \"a\": %u, \"x\": %u, \"y\": %u, "
++               "\"sp\": %u, \"stopped\": %d, "
++               "\"out\": [%u,%u,%u,%u], \"in\": [%u,%u,%u,%u], "
++               "\"apuCycles\": %llu},\n",
++            (unsigned)s->pc, (unsigned)s->a, (unsigned)s->x, (unsigned)s->y,
++            (unsigned)s->sp, (int)s->stopped,
++            (unsigned)g_snes->apu->outPorts[0], (unsigned)g_snes->apu->outPorts[1],
++            (unsigned)g_snes->apu->outPorts[2], (unsigned)g_snes->apu->outPorts[3],
++            (unsigned)g_snes->apu->inPorts[0], (unsigned)g_snes->apu->inPorts[1],
++            (unsigned)g_snes->apu->inPorts[2], (unsigned)g_snes->apu->inPorts[3],
++            (unsigned long long)g_snes->apu->cycles);
++  }
++
++  if (g_snes) {
++    /* Beam / NMI / IRQ state. Added to diagnose a game that goes to forced
++     * blank and never comes back while the frame loop still runs: the answer
++     * is whether the raster comparator is firing (irqLatches climbing), being
++     * missed (irqMissed climbing), or the beam has stalled. */
++    fprintf(f, "  \"snes\": {\"vpos\": %u, \"hpos\": %u, \"inVblank\": %d, "
++               "\"rdnmi\": %d, \"inNmi\": %d, \"inIrq\": %d, "
++               "\"hIrqEn\": %d, \"vIrqEn\": %d, \"hTimer\": %u, \"vTimer\": %u, "
++               "\"irqLatches\": %u, \"irqMissed\": %u, \"irqOvershot\": %u, "
++               "\"beamML\": %llu},\n",
++            g_snes->vPos, g_snes->hPos, (int)g_snes->inVblank,
++            (int)g_snes->rdnmiPending, (int)g_snes->inNmi, (int)g_snes->inIrq,
++            (int)g_snes->hIrqEnabled, (int)g_snes->vIrqEnabled,
++            g_snes->hTimer, g_snes->vTimer,
++            g_snes->dbgIrqLatches, g_snes->dbgIrqMissed, g_snes->dbgIrqOvershot,
++            (unsigned long long)g_snes->beamMasterLast);
++    if (g_snes->ram)
++      fprintf(f, "  \"dp\": {\"9B\": %u, \"EA\": %u, \"E1\": %u, \"55\": %u, \"47\": %u},\n",
++              g_snes->ram[0x9B], g_snes->ram[0xEA], g_snes->ram[0xE1],
++              g_snes->ram[0x55], g_snes->ram[0x47]);
++  }
++  fprintf(f, "}\n");
+   fclose(f);
+ }
+ 
+@@ -199,6 +284,10 @@ int snes_state_dump(const char *dir, const char *tag, const uint8_t *pixels,
+   if (pixels && height > 0)
+     rc |= write_fb(dir, tag, pixels, pitch_bytes, x0, height);
+   rc |= write_blob(dir, tag, ".wram.bin", g_ram, sizeof(g_ram));
++  /* SPC700 RAM: the uploaded sound driver lives here, so a stuck port
++   * handshake can be read back as code at the SPC's own PC. */
++  if (g_snes && g_snes->apu) rc |= write_blob(dir, tag, ".spcram.bin",
++                                              g_snes->apu->ram, 0x10000);
+   if (g_ppu) {
+     uint8_t buf[0x10000];
+     for (int i = 0; i < 0x8000; i++) put_le16(buf + i * 2, g_ppu->vram[i]);
+-- 
+2.55.0.windows.4
+
