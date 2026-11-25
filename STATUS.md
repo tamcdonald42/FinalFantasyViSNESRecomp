@@ -1531,3 +1531,27 @@ the feature finished and the game-data half still owed.
 15:24) with `qol.ini` carrying `Widescreen = off`, `WidescreenKey = F10`,
 `Encounters = on`, `EncountersKey = Grave`. The previous exe is kept beside it as
 `.bak-encounters`; `saves\save.srm` untouched.
+
+**Step 31 — the attract loop's second pass, measured (2026-11-24).** The player
+reported an infinite black screen "after the intro". It is the *attract loop*:
+left idle, the game plays the whole opening demo, fades back to the title,
+starts it again and blanks the screen at frame 26,280 -- deterministically,
+three independent runs, no input at all. The PPU is in forced blank
+(`$2100 = $80`, `tm = $1F`, no HDMA), so the game suppressed the picture itself;
+the emulator is healthy throughout (59.99 fps, 0 abandons, 0 crashes, clean
+exit), and the APU port trace goes silent at frame 26,277, so the CPU is not
+blocked on the sound driver. Against bsnes on the same route the two states
+agree to within 20-200 bytes (RNG and counters) up to 26,160 and come apart at
+the blank (745 bytes at 26,280, 26,408 at 26,400), while the reference draws the
+prologue narration at 27,000. The intro's own fade is *not* the bug: the port
+reproduces it (black 7,860, picture 8,220) against the cartridge's
+(7,960/8,080, 8,200). Documents: `docs/ATTRACT_LOOP_BLACK.md`, route:
+`tools/oracle/attract_probe.sh`.
+
+**The launcher crash was the settings layer, fixed.** `qol_ini.c` asked SDL for
+the exe folder before `SDL_Init` and freed the answer, corrupting the heap; the
+launcher then died on open (`exit=-1073740940`, nothing logged past
+"launcher: opening GUI"). It now takes the folder from `GetModuleFileNameA` and
+touches no SDL. Verified: the launcher opens and stays up where it used to die
+inside a second. `src/qol_ini.c` is the fix; the pre-fix exe is kept on the play
+copy as `FinalFantasyViSNESRecomp.exe.bak-heapbug`.

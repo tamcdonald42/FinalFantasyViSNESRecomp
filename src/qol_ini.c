@@ -5,7 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "desktop/sdl_compat.h" /* SDL_GetBasePath / SDL_free */
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#elif defined(__linux__)
+#include <unistd.h>
+#endif
 
 #define QOL_INI_NAME "qol.ini"
 #define QOL_INI_MAX  (16 * 1024) /* the file is a dozen lines */
@@ -36,21 +43,51 @@ static const char kDefaultText[] =
 static char s_text[QOL_INI_MAX];
 static char s_next[QOL_INI_MAX];
 
-/* Resolved once. SDL_GetBasePath allocates through SDL's allocator, and this
- * runs from after_config -- before SDL_Init -- so asking it repeatedly and
- * freeing each answer is asking for an uninitialised allocator to be used
- * twice. One call, one cached string. */
+/* The directory the executable lives in, without touching SDL.
+ *
+ * after_config runs before SDL_Init, and SDL_GetBasePath allocates through the
+ * allocator SDL installs when it initialises -- calling it that early and then
+ * freeing the answer corrupted the heap, which surfaced later as 0xC0000374
+ * anywhere from the launcher's first allocation to shutdown. A path needs
+ * neither SDL nor its allocator. Resolved once, then cached. */
+static void ExeDir(char *out, size_t cap)
+{
+  out[0] = '\0';
+#if defined(_WIN32)
+  char buf[MAX_PATH * 4];
+  DWORD n = GetModuleFileNameA(NULL, buf, (DWORD)sizeof buf);
+  if (n == 0 || n >= sizeof buf) return;
+  char *slash = strrchr(buf, '\\');
+  if (!slash) slash = strrchr(buf, '/');
+  if (!slash) return;
+  *slash = '\0';
+  snprintf(out, cap, "%s", buf);
+#elif defined(__linux__)
+  char buf[1024];
+  ssize_t n = readlink("/proc/self/exe", buf, sizeof buf - 1);
+  if (n <= 0) return;
+  buf[n] = '\0';
+  char *slash = strrchr(buf, '/');
+  if (!slash) return;
+  *slash = '\0';
+  snprintf(out, cap, "%s", buf);
+#else
+  (void)out; (void)cap;
+#endif
+}
+
 void QolIniPath(char *out, size_t cap)
 {
   static char resolved[1024];
   if (!resolved[0]) {
-    char *base = SDL_GetBasePath();
-    if (base) {
-      snprintf(resolved, sizeof resolved, "%s%s", base, QOL_INI_NAME);
-      SDL_free(base);
-    } else {
-      snprintf(resolved, sizeof resolved, "%s", QOL_INI_NAME);
-    }
+    char dir[1024];
+    ExeDir(dir, sizeof dir);
+#if defined(_WIN32)
+    if (dir[0]) snprintf(resolved, sizeof resolved, "%s\\%s", dir, QOL_INI_NAME);
+#else
+    if (dir[0]) snprintf(resolved, sizeof resolved, "%s/%s", dir, QOL_INI_NAME);
+#endif
+    else snprintf(resolved, sizeof resolved, "%s", QOL_INI_NAME);
   }
   snprintf(out, cap, "%s", resolved);
 }
