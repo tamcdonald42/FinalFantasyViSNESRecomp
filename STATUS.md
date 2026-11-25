@@ -1555,3 +1555,43 @@ launcher then died on open (`exit=-1073740940`, nothing logged past
 touches no SDL. Verified: the launcher opens and stays up where it used to die
 inside a second. `src/qol_ini.c` is the fix; the pre-fix exe is kept on the play
 copy as `FinalFantasyViSNESRecomp.exe.bak-heapbug`.
+
+## Step 32 — the attract-loop deadlock: `play_song` waiting on `$4210` (2026-11-24)
+
+Step 31 left the second-pass black screen measured but unexplained. It is now
+fixed, and it was never a scene load.
+
+The event-script pointer was frozen on `$CC:985D`, the first command of the
+prologue-narration script — `play_song SILENCE`. `EventCmd_f0` finishes with
+
+```
+@b7a0:  lda hRDNMI       ; $4210
+        bpl @b7a0        ; wait for the vblank bit
+```
+
+so the whole field engine was parked in a two-instruction poll. Interrupts were
+being delivered the entire time (the handler's `$45`/`$46` counters advanced once
+per field), which is why the machine looked alive and only the picture was gone.
+
+Three framework defects had to coincide:
+
+1. the frame hosts deliver the NMI at the start of the field and never armed
+   `rdnmiPending`, the `$4210` "NMI occurred" latch that `snes_runClocks` arms at
+   V=225 on the beam path;
+2. `snes_runClocks` cleared that latch at the field wrap (`v >= 262`), wiping the
+   one a frame host had just set;
+3. `snes_readReg($4210)` cleared `inNmi` on every read, so the handler's own
+   acknowledgement read ended the "inside the handler" window and a second read
+   cleared the latch before the main loop could observe it.
+
+Fix: latch `rdnmiPending` in both frame hosts at dispatch, stop clearing it at the
+field wrap (hardware keeps the bit set until the CPU reads it), and leave `inNmi`
+to the host, which sets it around the dispatch and clears it after the handler
+returns.
+
+Verified on the same cold-boot, no-input route: the screen was black from 26,280
+to the end of the run before, and now goes black only for the two scene loads
+(26,320-26,440, 27,160) with the narration scene and the next scene rendering in
+between; the event pointer advances `$CC:985D -> $CC:98CA` and the map index
+`$0012 -> $00F4`.
+
