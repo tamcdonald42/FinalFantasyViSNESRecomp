@@ -77,6 +77,12 @@ static const SnesDesktopHostGame kGameHost = {
     .prepare_frame       = QolWidescreenPrepareFrame,
     .native_widescreen   = 1,
     .num_players         = 1,
+    /* Rewind: the engine's ring has always been there, but it only
+     * initialises for a host whose descriptor asks for it, so F12 did
+     * nothing and the launcher showed no rewind rows. The ring keeps
+     * whole-machine snapshots on a frame cadence (
+     * `[Rewind]` in config.ini: Enabled / Depth / Interval). */
+    .rewind_settings     = 1,
     /* Battery-backed SRAM shows the launcher's SAVES panel. Leave NULL for a
      * title without one. The path is exe-relative. */
     .sram_path           = "saves/save.srm",
