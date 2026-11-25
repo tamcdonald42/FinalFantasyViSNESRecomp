@@ -108,6 +108,16 @@ snesrecomp_target_desktop_host(FinalFantasyViSNESRecomp)
 # opens on that dump rather than asking for one.
 snesrecomp_target_rom_cache(FinalFantasyViSNESRecomp)
 
+# Shader presets: three curated CRT tiers plus the vendored RetroArch
+# sources they reference (_retroarch/, skipped by the launcher's picker
+# because its name begins with '_'). Staged beside the exe so a build is
+# self-sufficient and the picker lists them without setup.
+add_custom_command(TARGET FinalFantasyViSNESRecomp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets/shaders"
+        "$<TARGET_FILE_DIR:FinalFantasyViSNESRecomp>/assets/shaders"
+    COMMENT "Staging shader presets")
+
 # Shared Dear ImGui pre-boot launcher (ROM picker, verification, display /
 # audio / input settings). Self-contained: it brings its own ImGui, GL link and
 # staged assets, and defines RECOMP_LAUNCHER so src/main.c compiles its GUI path.

@@ -1687,3 +1687,51 @@ added to the play copy's `qol.ini`. Panels are inert while `Widescreen = off`,
 which is still the shipped default.
 
 Full write-up: `docs/BEZEL.md`.
+
+
+## Step 35 — shaders: the engine already had them, the port did not say so (2026-11-24)
+
+The framework ships a complete RetroArch-format GLSL pipeline (`.glslp` presets,
+multi-pass chains, LUT textures, `#pragma` parameters, `FrameCount`,
+`Prev1..7`/`PassPrev` feedback, per-pass scale types and wrap modes) plus four
+CC0 presets of its own. The port never exposed it: the host descriptor omitted
+`.shader_supported`, so the launcher hid the shader row, and no preset files
+were staged beside the exe.
+
+Proved before changing anything, on the deployed build: a deliberately broken
+preset produced
+`Error compiling fragment shader in file '_passes/broken.glsl'` while the
+bundled `crt-soft` compiled silently — i.e. the loading and compiling path was
+live all along.
+
+Changes:
+- `.shader_supported = 1` in the descriptor — the launcher now lists presets.
+- `assets/shaders` staged beside the exe by a POST_BUILD copy in CMakeLists, so
+  a build is self-sufficient and the picker has something to show.
+- Twelve curated CRT presets from libretro/glsl-shaders in three tiers
+  (`Tier 1 Potato`, `Tier 2 Balanced`, `Tier 3 Heavy`) plus their vendored
+  sources under `_retroarch/` — the picker skips that folder because its name
+  starts with `_`, so 12 curated entries appear, not 200 upstream ones.
+- `Shader` stays empty in the shipped config: nothing changes until a preset is
+  picked.
+
+Two compatibility facts worth keeping:
+- **A preset must not carry its own `#version`.** The presenter injects one and
+  a second is a compile error; CRT Hyllian failed for exactly this until the
+  vendored copy had `#version` stripped at import.
+- **Frames dumps do not contain the shader** (dumps precede presentation), so the
+  machine-checkable gate is the compile log, not a pixel diff.
+
+Measured (RTX 4060, 1600x1200, vsync off, 900 frames): no shader 328 fps;
+Tier 1 313-324; Tier 2 308-326; Guest Dr Venom 313 (fast variant 323); Royale
+234. At 3200x2400 every preset sat within noise of the 266 fps baseline. With
+vsync on, all twelve hold 60.09 fps at 1600x1200. So on this GPU the tiers are
+not an fps ladder — they are ordered by per-pixel cost (passes, taps, mask
+fetches), which is what decides on integrated graphics or a handheld. Royale is
+the only preset whose cost is visible on a discrete GPU at all.
+
+Validation: 12 of 12 curated presets compile clean from the staged assets, and
+the six end-to-end runs (baseline, Zfast, Geom, Hyllian, Royale, Dr Venom) all
+exit 0 at 60.09 fps with a `Shader` path set the way the launcher writes it.
+
+Full write-up: `docs/SHADERS.md`.

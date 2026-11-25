@@ -82,6 +82,11 @@ static const SnesDesktopHostGame kGameHost = {
      * frame is 256 wide, so 4:3 never enters this code. */
     .draw_frame          = QolBezelDrawFrame,
     .native_widescreen   = 1,
+    /* Shader presets: the launcher lists everything under
+     * assets/shaders and the OpenGL presenter compiles the chain.
+     * Paths beginning with '_' are hidden from the picker, which is
+     * how the vendored RetroArch sources stay out of the list. */
+    .shader_supported    = 1,
     .num_players         = 1,
     /* Rewind: the engine's ring has always been there, but it only
      * initialises for a host whose descriptor asks for it, so F12 did

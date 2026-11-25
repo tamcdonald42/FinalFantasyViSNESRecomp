@@ -1,0 +1,8 @@
+shaders = 2
+
+shader0 = ../_retroarch/crt/shaders/guest/d65-d50.glsl
+filter_linear0 = false
+scale_type0 = source
+scale0 = 1.0
+
+shader1 = ../_retroarch/crt/shaders/guest/crt-guest-sm.glsl

@@ -1,0 +1,11 @@
+CRT shaders in this folder come from libretro/glsl-shaders
+https://github.com/libretro/glsl-shaders
+
+Each .glsl file keeps its original header, including its author and
+licence. The repository as a whole is distributed under GPL-2.0; some
+individual shaders carry their own (often more permissive) terms, stated
+in the file header.
+
+Only the files needed by the presets in the tier folders are included.
+Presets were rewritten so their shader paths point here; nothing else
+about them was changed.
