@@ -14,11 +14,13 @@ Shipped default is `slate` — visible only while widescreen is on.
 
 ```ini
 [QoL]
-Widescreen    = on          ; panels only exist when the frame is wider than 256
-Bezel         = slate       ; none | slate | dim | ink | custom
-BezelImage    = bezels/panel.png
-BezelOpacity  = 100         ; 0..100, blended toward black
-BezelMirror   = 1           ; mirror the right panel
+Widescreen      = on        ; panels only exist when the frame is wider than 256
+Bezel           = slate     ; none | slate | dim | ink | custom
+BezelImage      = bezels/panel.png   ; both sides, mirrored
+BezelImageLeft  = bezels/left.png    ; left only, never mirrored
+BezelImageRight = bezels/right.png   ; right only, never mirrored
+BezelOpacity    = 100       ; 0..100, blended toward black
+BezelMirror     = 1         ; mirrors a single shared image
 ```
 
 | style | what it looks like |
@@ -27,7 +29,7 @@ BezelMirror   = 1           ; mirror the right panel
 | `slate` | flat near-black panel, hairline rule at the inner edge — reads as a deliberate pillarbox |
 | `dim` | soft vertical gradient, a little light bleeding off the picture |
 | `ink` | near-black with a faint diagonal hatch |
-| `custom` | the player's own picture: scaled to one panel, mirrored on the right unless `BezelMirror = 0` |
+| `custom` | the player's own art: one picture for both panels (mirrored unless `BezelMirror = 0`), or a dedicated picture per side |
 
 `BezelImage` accepts PNG, JPG and BMP, either absolute or relative to the exe
 folder. A picture that fails to load logs why and falls back to `slate` — it
@@ -87,8 +89,13 @@ a margin-pixel test that assumes pure black will report a false positive.
 - Panels only exist while widescreen is on; with a 256-wide frame there are no
   margins to fill. A 4:3-with-side-art presentation would need a different
   window/present contract, not this module.
-- The custom image is stretched to one panel (nearest-neighbour) and mirrored.
-  It is not a full-frame overlay with a hole cut in it.
+- Custom art is stretched to one 64x224 panel (nearest-neighbour). `BezelImageLeft`
+  and `BezelImageRight` take independent art and are never mirrored; a side with
+  no art of its own falls back to `BezelImage`, then to the other side, then to
+  slate. Alpha is not composited, so transparent pixels read as black.
+- Still not a full-frame overlay with a hole cut in it: the art is two strips,
+  not a 16:9 canvas. `docs/BEZEL_ART.md` has the geometry and an adaptation
+  recipe for third-party packs.
 - No hotkey: the style is a startup setting. Adding one is cheap if it earns its
   place.
 - If the field-of-view work lands, the panels become the frame around a real

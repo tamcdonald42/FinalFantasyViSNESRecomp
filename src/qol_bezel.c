@@ -46,8 +46,21 @@
  *           deliberate letterbox rather than a missing picture
  *   dim     soft vertical gradient, a little light bleeding off the picture
  *   ink     near-black with a faint diagonal hatch
- *   custom  the player's own image (BezelImage), scaled to one panel and
- *           mirrored on the right when BezelMirror is on
+ *   custom  the player's own art, one panel per side
+ *
+ * CUSTOM ART: ONE IMAGE OR TWO
+ *
+ *   BezelImage       fills both panels — the same picture, mirrored when
+ *                    BezelMirror is on. The simple case.
+ *   BezelImageLeft   fills the left panel only.
+ *   BezelImageRight  fills the right panel only.
+ *
+ * The per-side keys win over BezelImage for their own side, so a pair of
+ * hand-drawn panels needs no mirroring and no symmetry. Anything missing falls
+ * back: explicit side -> BezelImage -> the other side (mirrored) -> slate. A
+ * picture that will not load logs why and never leaves a black gap.
+ *
+ * See docs/BEZEL_ART.md for the geometry art should be drawn at.
  *
  * Panels are built once into two row-major ARGB buffers (extra x frame_h per
  * side), with BezelOpacity baked in, so the per-frame cost is two row copies —
@@ -88,14 +101,18 @@ typedef enum {
 
 static BezelStyle s_style = kBezelNone;
 static int         s_opacity = 100;   /* 0..100, scaled toward black */
-static int         s_mirror = 1;
-static char        s_image[512];
+static int         s_mirror = 1;      /* mirror one shared image on the right */
+static char        s_img_shared[512];
+static char        s_img_left[512];
+static char        s_img_right[512];
 
 /* Built lazily: the panel size depends on the frame the host asks for. */
 static uint32_t *s_left;
 static uint32_t *s_right;
 static int       s_panel_w;
 static int       s_panel_h;
+static int       s_custom_have_l;   /* custom mode: which sides loaded */
+static int       s_custom_have_r;
 
 static int EqNoCase(const char *a, const char *b)
 {
@@ -181,25 +198,27 @@ static uint32_t InkPixel(int x, int w, int y, int h)
   return ARGB(255, v, v + 1, v + 4);
 }
 
-/* ── the player's own image ─────────────────────────────────────────────── */
+/* ── the player's own art ───────────────────────────────────────────────── */
 
-static int BuildCustom(int w, int h)
+/* Resolve a configured path against the exe folder, then load, scale to one
+ * panel and (optionally) mirror it. Returns 0 when the file cannot be read. */
+static int LoadPanel(const char *image, uint32_t *dst, int w, int h, int flip)
 {
-  if (!s_image[0]) return 0;
+  if (!image || !image[0]) return 0;
   char path[768];
-  if (s_image[0] == '\\' || s_image[0] == '/' ||
-      (s_image[1] == ':' && (s_image[2] == '\\' || s_image[2] == '/'))) {
-    snprintf(path, sizeof path, "%s", s_image);
+  if (image[0] == '\\' || image[0] == '/' ||
+      (image[1] == ':' && (image[2] == '\\' || image[2] == '/'))) {
+    snprintf(path, sizeof path, "%s", image);
   } else {
     char dir[512];
     ExeDir(dir, sizeof dir);
-    snprintf(path, sizeof path, "%s/%s", dir, s_image);
+    snprintf(path, sizeof path, "%s/%s", dir, image);
   }
 
   int iw = 0, ih = 0, ic = 0;
   unsigned char *px = stbi_load(path, &iw, &ih, &ic, 4);
   if (!px || iw <= 0 || ih <= 0) {
-    fprintf(stderr, "[qol] bezel: cannot load '%s' (%s); using slate\n",
+    fprintf(stderr, "[qol] bezel: cannot load '%s' (%s)\n",
             path, stbi_failure_reason());
     if (px) stbi_image_free(px);
     return 0;
@@ -212,16 +231,24 @@ static int BuildCustom(int w, int h)
     for (int x = 0; x < w; x++) {
       const int sx = (int)((long long)x * iw / (w > 0 ? w : 1));
       const unsigned char *p = px + ((size_t)sy * (size_t)iw + (size_t)sx) * 4u;
-      const uint32_t c = Fade(ARGB(p[3], p[0], p[1], p[2]));
-      s_left[(size_t)y * (size_t)w + (size_t)x] = c;
-      const int rx = s_mirror ? (w - 1 - x) : x;
-      s_right[(size_t)y * (size_t)w + (size_t)rx] = c;
+      const int dx = flip ? (w - 1 - x) : x;
+      dst[(size_t)y * (size_t)w + (size_t)dx] = Fade(ARGB(p[3], p[0], p[1], p[2]));
     }
   }
   stbi_image_free(px);
-  fprintf(stderr, "[qol] bezel: custom '%s' %dx%d -> panel %dx%d%s\n",
-          path, iw, ih, w, h, s_mirror ? " (mirrored)" : "");
+  fprintf(stderr, "[qol] bezel: loaded '%s' %dx%d -> panel %dx%d%s\n",
+          path, iw, ih, w, h, flip ? " (mirrored)" : "");
   return 1;
+}
+
+static const char *LeftSource(void)
+{
+  return s_img_left[0] ? s_img_left : s_img_shared;
+}
+
+static const char *RightSource(void)
+{
+  return s_img_right[0] ? s_img_right : s_img_shared;
 }
 
 /* ── panel cache ────────────────────────────────────────────────────────── */
@@ -243,7 +270,33 @@ static int BuildPanels(int w, int h)
   s_panel_w = w;
   s_panel_h = h;
 
-  if (s_style == kBezelCustom && BuildCustom(w, h)) return 1;
+  if (s_style == kBezelCustom) {
+    const char *ls = LeftSource();
+    const char *rs = RightSource();
+    int have_l = 0, have_r = 0;
+    if (ls && ls[0]) have_l = LoadPanel(ls, s_left, w, h, 0);
+    /* One shared picture on both sides gets mirrored unless BezelMirror says
+     * otherwise; a dedicated right panel is drawn the way the artist made it. */
+    const int same_file = ls && rs && strcmp(rs, ls) == 0;
+    if (rs && rs[0]) have_r = LoadPanel(rs, s_right, w, h, same_file && s_mirror);
+    /* A side with nothing of its own borrows the other side, mirrored. This sits
+     * outside the block above on purpose: with only BezelImageLeft set, the right
+     * source is empty, and the documented fallback is "mirror the left", not
+     * "paint slate". */
+    if (!have_r && ls && ls[0]) have_r = LoadPanel(ls, s_right, w, h, s_mirror);
+    if (!have_l && rs && rs[0]) have_l = LoadPanel(rs, s_left, w, h, s_mirror);
+    if (have_l && have_r) {
+      fprintf(stderr, "[qol] bezel: custom panels %dx%d, opacity %d%%%s\n",
+              w, h, s_opacity,
+              (ls && rs && strcmp(ls, rs) == 0 && s_mirror) ? ", one image mirrored" : "");
+      return 1;
+    }
+    /* One side (or both) failed to load: keep whatever did load and let the
+     * style fill only the gap, never paint over good art. */
+    s_custom_have_l = have_l;
+    s_custom_have_r = have_r;
+    fprintf(stderr, "[qol] bezel: custom art incomplete; filling gaps with slate\n");
+  }
 
   for (int y = 0; y < h; y++) {
     for (int x = 0; x < w; x++) {
@@ -257,9 +310,11 @@ static int BuildPanels(int w, int h)
       default:              c = ARGB(255, 0, 0, 0);     break;
       }
       const uint32_t f = Fade(c);
-      s_left[(size_t)y * (size_t)w + (size_t)x] = f;
+      if (!(s_style == kBezelCustom && s_custom_have_l))
+        s_left[(size_t)y * (size_t)w + (size_t)x] = f;
       const int rx = s_mirror ? (w - 1 - x) : x;
-      s_right[(size_t)y * (size_t)w + (size_t)rx] = f;
+      if (!(s_style == kBezelCustom && s_custom_have_r))
+        s_right[(size_t)y * (size_t)w + (size_t)rx] = f;
     }
   }
   fprintf(stderr, "[qol] bezel: %s panels %dx%d, opacity %d%%%s\n",
@@ -279,7 +334,10 @@ void QolBezelAfterConfig(void)
   s_style = kBezelNone;
   s_opacity = 100;
   s_mirror = 1;
-  s_image[0] = '\0';
+  s_img_shared[0] = '\0';
+  s_img_left[0] = '\0';
+  s_img_right[0] = '\0';
+  s_custom_have_l = s_custom_have_r = 0;
 
   if (QolIniGet("Bezel", v, sizeof v)) {
     Trim(v);
@@ -291,7 +349,15 @@ void QolBezelAfterConfig(void)
   }
   if (QolIniGet("BezelImage", v, sizeof v)) {
     Trim(v);
-    snprintf(s_image, sizeof s_image, "%s", v);
+    snprintf(s_img_shared, sizeof s_img_shared, "%s", v);
+  }
+  if (QolIniGet("BezelImageLeft", v, sizeof v)) {
+    Trim(v);
+    snprintf(s_img_left, sizeof s_img_left, "%s", v);
+  }
+  if (QolIniGet("BezelImageRight", v, sizeof v)) {
+    Trim(v);
+    snprintf(s_img_right, sizeof s_img_right, "%s", v);
   }
   if (QolIniGet("BezelOpacity", v, sizeof v)) {
     const int n = atoi(v);
@@ -303,11 +369,13 @@ void QolBezelAfterConfig(void)
   }
 
   FreePanels();
+  s_custom_have_l = s_custom_have_r = 0;
   if (s_style == kBezelNone) {
     fprintf(stderr, "[qol] bezel=none (margins stay black)\n");
   } else if (s_style == kBezelCustom) {
-    fprintf(stderr, "[qol] bezel=custom image=%s opacity=%d%% mirror=%d\n",
-            s_image, s_opacity, s_mirror);
+    fprintf(stderr, "[qol] bezel=custom shared='%s' left='%s' right='%s' "
+                    "opacity=%d%% mirror=%d\n",
+            s_img_shared, s_img_left, s_img_right, s_opacity, s_mirror);
   } else {
     fprintf(stderr, "[qol] bezel=%s opacity=%d%% mirror=%d\n",
             s_style == kBezelSlate ? "slate" :

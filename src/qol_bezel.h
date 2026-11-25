@@ -9,13 +9,20 @@
  * wide, so the 4:3 baseline never goes through this code.
  *
  * qol.ini [QoL]:
- *   Bezel        = none | slate | dim | ink | custom
- *   BezelImage   = bezels/panel.png     ; custom only; PNG/JPG/BMP
- *   BezelOpacity = 100                  ; 0..100, blended toward black
- *   BezelMirror  = 1                    ; mirror the right panel
+ *   Bezel           = none | slate | dim | ink | custom
+ *   BezelImage      = bezels/panel.png    ; both sides, mirrored when BezelMirror
+ *   BezelImageLeft  = bezels/left.png     ; this side only, never mirrored
+ *   BezelImageRight = bezels/right.png    ; this side only, never mirrored
+ *   BezelOpacity    = 100                 ; 0..100, blended toward black
+ *   BezelMirror     = 1                   ; mirrors a single shared image
+ *
+ * Per-side keys win over BezelImage for their own side. A side with no art of
+ * its own falls back to BezelImage, then to the other side (mirrored), then to
+ * the slate panel — a missing file never leaves a black gap.
  *
  * See qol_bezel.c for what each style is, and for why the panels are painted
  * into the field's backdrop rather than composed into a finished frame.
+ * docs/BEZEL_ART.md carries the geometry art should be drawn at.
  */
 
 #include <stddef.h>

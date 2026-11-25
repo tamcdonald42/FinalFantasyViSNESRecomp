@@ -1735,3 +1735,39 @@ the six end-to-end runs (baseline, Zfast, Geom, Hyllian, Royale, Dr Venom) all
 exit 0 at 60.09 fps with a `Shader` path set the way the launcher writes it.
 
 Full write-up: `docs/SHADERS.md`.
+
+
+## Step 36 — bezel art: one picture per side, and a spec for making it (2026-11-24)
+
+The bezel module took one image and mirrored it. Bezel Project art showed why
+that is not enough: their packs are per-game 1920x1080 overlays, and a mirrored
+single image cannot honour art that is drawn for a specific side.
+
+Two changes:
+- `BezelImageLeft` / `BezelImageRight` — independent art per side, never mirrored.
+  `BezelImage` still fills both, mirrored per `BezelMirror`. Per-side keys beat
+  the shared one for their own side, and a side with no art falls back
+  shared -> other side (mirrored) -> slate, so a bad path never leaves a gap.
+- `docs/BEZEL_ART.md` — the geometry (384x224 frame, 64x224 panels either side of
+  a 256x224 picture), authoring sizes (3x = 192x672 recommended), the fallback
+  order, and the two rules the renderer imposes: opaque RGB only (alpha is not
+  composited) and static panels.
+
+Third-party bezel packs, measured rather than assumed:
+- The Bezel Project's 157 repositories declare **no licence** — 18,790 files in
+  the SNES pack, no LICENSE or COPYING, no terms in the README. All rights
+  reserved, and the art is game-derived, so it cannot be bundled here.
+- Their geometry does not fit ours anyway: their Final Fantasy III (USA) (Rev 1)
+  bezel is 1920x1080 with a clear hole of 1405x1046 (73.2% of the width). Our
+  frame's hole is 66.7%. At our height their panel is ~53 px against our 64, and
+  dropping it in whole would overlap the picture by ~17 px per side.
+- The art doc records the workaround: crop their panel (`x 0..255` /
+  `x 1661..1919`, `y 17..1062`) and scale to 64x224 — usable personally, never
+  redistributed.
+
+Verification: four configurations, same cold boot and frame (3000), dumps through
+the framework path — a red left panel and a blue right panel load to their own
+sides (`left=RED right=BLUE`, no mirroring); one shared image still mirrors;
+left-only art mirrors into the empty right side; a deliberately missing
+`BezelImageRight` falls back to the mirrored left panel with the failure logged
+and no black gap. The 256-column picture area stays byte-identical in all four.
