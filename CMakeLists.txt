@@ -44,6 +44,7 @@ add_executable(FinalFantasyViSNESRecomp
     src/qol_encounters.c
     src/qol_ini.c
     src/qol_widescreen.c
+    src/qol_bezel.c
     src/gen_stubs.c
 )
 

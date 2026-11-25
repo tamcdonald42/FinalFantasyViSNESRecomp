@@ -30,13 +30,25 @@ static const char kDefaultText[] =
     "#              on = 384x224 field view. Menus, battles, the world map and\n"
     "#              cutscenes stay 4:3 and are pillarboxed inside the wider\n"
     "#              frame; only the field widens.\n"
+    "#\n"
+    "# Bezel        fills the widescreen margins instead of leaving them\n"
+    "#              black. none | slate | dim | ink | custom.\n"
+    "# BezelImage   your own picture for custom (PNG/JPG/BMP), relative to\n"
+    "#              the exe folder: it fills one side panel and is mirrored\n"
+    "#              on the right unless BezelMirror = 0.\n"
+    "# BezelOpacity 0..100. Only visible while Widescreen is on.\n"
+    "#\n"
     "# Keys: any SDL key name (Grave, F10, ...), or None.\n"
     "\n"
     "[QoL]\n"
     "Encounters    = on\n"
     "EncountersKey = Grave\n"
     "Widescreen    = off\n"
-    "WidescreenKey = F10\n";
+    "WidescreenKey = F10\n"
+    "Bezel         = none\n"
+    "BezelImage    = bezels/panel.png\n"
+    "BezelOpacity  = 100\n"
+    "BezelMirror   = 1\n";
 
 /* File-scope scratch: the file is a few hundred bytes, and an edit path with
  * no allocation cannot fail on the one run where memory is short. */

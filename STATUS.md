@@ -1629,3 +1629,61 @@ Startup now logs `[snes_rewind] 200 snapshots every 3 frames (10.0s of history)`
 and the ring costs nothing measurable at 60 fps (59.88 fps with it armed vs 59.99
 without). The play copy ships the block above; the pre-changer config is kept as
 `config.ini.bak-prerewind`, and the previous exe as `.bak-norewind`.
+
+
+
+## Step 34 — side panels (bezel) for the widescreen margins (2026-11-24)
+
+Field of view is parked. The measurement that parked it: FF6's field background
+is a 32x32-tile map — exactly 256 pixels — hard-coded at field init
+(`lda #$48 / sta hBG1SC`, `src/field/reset.asm:835`; live `$2107 = $48`). Decoding
+the tilemap beside the camera returned `$2000` (empty tile, palette 0) in every
+margin column, and `$2107`/`$2108` report a single 32x32 screen for both layers.
+There is no ring of spare columns to reveal: the engine builds a 256-pixel window
+and nothing else. Widening means enlarging the map to 64 columns and retargeting
+the column-streaming routine that fills it, plus the camera-relative cull sweep
+every such port has had to do — its own project, not a setting.
+
+What shipped instead is the RetroArch answer: dress the margins on purpose.
+
+```
+[QoL]
+Bezel         = slate       ; none | slate | dim | ink | custom
+BezelImage    = bezels/panel.png    ; custom: PNG/JPG/BMP, exe-relative
+BezelOpacity  = 100         ; 0..100, blended toward black
+BezelMirror   = 1           ; mirror the right panel
+```
+
+`draw_frame` runs after the PPU renders and before presentation, so the module
+paints the margin strips into the field's own backdrop and returns 0 — the host
+then runs its normal present path over the thickened frame. The rejected
+alternative was composing a finished frame into the host buffer and returning 1:
+that bypasses `RtlWidescreenPresent`, which is also what writes frame dumps, the
+debug capture and the OSD composite. Measured: `frames=0` on every dumping run
+with the composed path, so it was abandoned before it shipped.
+
+Verification — five cold boots, same game frame (3000), dumps through the
+framework's own `SNESRECOMP_FRAME_BMP_DIR` path:
+
+| run | frame | margins | centre 64..319 |
+|---|---|---|---|
+| widescreen on, `none` | 384x224 | backdrop (24,24,33) | reference |
+| widescreen on, `slate` | 384x224 | (26,30,39) + rules | identical |
+| widescreen on, `ink` | 384x224 | (22,23,26) | identical |
+| widescreen on, `custom` (64x224 test BMP) | 384x224 | (126,0,64)/(126,255,64) | identical |
+| widescreen off, `slate` | 256x224 | not painted | identical |
+
+So the gate holds in both directions: a bezel changes only the margins, and with
+widescreen off the code never runs. `custom` also proves the decoder, the panel
+scale and the mirror — the two panels read as exact mirrors in the dumped frame.
+
+Operational note recorded because it invalidated one earlier claim: "the margins
+are black" is only true when the scene's backdrop is black. On the title screen
+the backdrop is (24,24,33), so a margin test that assumes pure black reports a
+false positive.
+
+Shipped: exe deployed to `C:\FF6Recomp` (previous kept as `.bak-bezel`), `Bezel = slate`
+added to the play copy's `qol.ini`. Panels are inert while `Widescreen = off`,
+which is still the shipped default.
+
+Full write-up: `docs/BEZEL.md`.

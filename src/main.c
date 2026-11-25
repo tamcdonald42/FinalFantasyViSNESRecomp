@@ -29,6 +29,7 @@
 #include "game_rtl.h"
 #include "qol_encounters.h"
 #include "qol_widescreen.h"
+#include "qol_bezel.h"
 #include "snesrecomp_rom_identity.h"  /* generated from rom_identity.txt */
 
 #ifndef __ANDROID__
@@ -50,6 +51,7 @@ static void AfterConfig(void)
 {
     QolAfterConfig();
     QolWidescreenAfterConfig();
+    QolBezelAfterConfig();
 }
 
 static void BeforeFrame(void)
@@ -75,6 +77,10 @@ static const SnesDesktopHostGame kGameHost = {
     /* Widescreen: default off, and when it is off this returns 256, so the
      * host never activates its wide path (see qol_widescreen.c). */
     .prepare_frame       = QolWidescreenPrepareFrame,
+    /* Side panels: fills the widescreen margins instead of leaving
+     * them black. Returns 0 (host copies the field as before) when the
+     * frame is 256 wide, so 4:3 never enters this code. */
+    .draw_frame          = QolBezelDrawFrame,
     .native_widescreen   = 1,
     .num_players         = 1,
     /* Rewind: the engine's ring has always been there, but it only
