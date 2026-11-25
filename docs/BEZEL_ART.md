@@ -75,6 +75,38 @@ panel. A broken path never leaves a black gap, and the log says what happened.
 - **No per-game art.** One pair of panels applies to the whole session; the
   module has no title-aware switching.
 
+## Full-frame overlays: what shape fits
+
+The most common way people get bezel art is as one wide picture with a window in
+the middle — from an image generator, a wallpaper, or a bezel pack. Only the two
+side strips are used, so **the middle is discarded**: it may be transparent, flat
+black, or a painted checkerboard, and it makes no difference. That means a
+flattened JPEG works as well as a proper alpha PNG.
+
+The one number that decides whether the art fits is the **window's share of the
+image width**:
+
+| window share | verdict |
+|---|---|
+| 60–70% | ideal. Crop the strips, scale to 64x224, no visible distortion. |
+| 70–74% | usable, but the panels stretch ~5–17% horizontally to fill 64 px. |
+| 75%+ (a 4:3 window on a 16:9 canvas — the RetroArch standard) | recut the art; cropping leaves ~53 px strips that stretch 17% and lose sharpness. |
+
+Measured example on the ideal side: an image generated from this page's geometry
+came out at **66.2%** (1360x784, window x 228–1127) against our 66.7%. Half a
+percent — at 384 px wide that is under one pixel, so the strips went in unscaled.
+
+Recipe, given any such image:
+
+1. Note where the window starts and ends (x0, x1) — any editor shows it, or
+   sample a column in the middle to see if it is flat.
+2. Left strip = `x 0..x0-1`, right strip = `x x1+1..width-1`, both full height.
+3. Scale each to 192x672 (3x) or 64x224 (1x).
+4. Save as PNG and point `BezelImageLeft` / `BezelImageRight` at them.
+
+Slide the crop a few pixels inward if a sliver of window edge or checkerboard
+survives at the inner border.
+
 ## Reusing a third-party bezel pack
 
 Two hard limits, both measured:
