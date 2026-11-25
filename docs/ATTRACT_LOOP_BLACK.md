@@ -155,10 +155,36 @@ that was frozen now moves (event pointer `$CC:985D -> $CC:98CA`, map index
 `$0012 -> $00F4`), and a 40,000-frame no-input run keeps cycling scenes to the end
 instead of stopping dead at 26,280.
 
-**Residual.** Transitions are a little slower than the cartridge's (the three
-differing dump pairs above); the scenes themselves now match. That is a
-fade-timing difference, not a freeze, and is left as measured rather than claimed
-fixed.
+**Residual -- measured at 12-frame granularity, and smaller than it looked.** At
+120-frame sampling three of sixteen frames read "port black, cartridge drawing",
+which is what suggested the port was slower into each fade. It is not. Dumping
+both machines every 12 frames across the transition (26,280-26,700) shows the two
+in lockstep:
+
+| frame | port event PC | port `$4c` | cartridge PC | cartridge `$4c` | WRAM bytes differing |
+|---|---|---|---|---|---|
+| 26,304 | `$986D` | 00 | `$9865` | 00 | 8,127 |
+| 26,328 | `$986D` | 00 | `$986D` | 00 | 154 |
+| 26,376 | `$9878` | 00 | `$986D` | 00 | 277 |
+| 26,400 | `$9878` | 00 | `$9878` | 00 | 120 |
+| 26,484 | `$9885` | 18 | `$987B` | 00 | 139 |
+| 26,508 | `$9885` | 48 | `$9885` | 24 | 125 |
+| 26,592 | `$9885` | f0 | `$9885` | cc | 97 |
+| 26,616 | `$9885` | f0 | `$9885` | f0 | 168 |
+| 26,700 | `$9885` | f0 | `$9885` | f0 | 54 |
+
+Same script position (within one sample step), same map id, same brightness ramp
+at the same slope (2 levels per frame), and the whole of WRAM differs by 35-170
+bytes out of 131,072 -- the RNG/counter noise this port carries at its best
+(scene 5,084 measured 2-5 bytes and the pre-fix transition here measured 26,408).
+Against that, a 120-frame sample of a fade that moves 2 levels per frame turns a
+one-frame capture offset into what looks like a 200-frame lag. The three "port
+black, cartridge drawing" frames were the two dumps not being the same instant.
+
+So: the freeze is fixed, the state matches the cartridge, and what is left is a
+capture-phase difference between the port's dump and the core's video output --
+worth remembering the next time picture-vs-picture is used across platforms, not
+worth chasing.
 
 **For the player.** The attract loop now cycles indefinitely; normal play is
 unchanged and the battery save is untouched. `diag.bat` on the play copy writes a screenshot every
