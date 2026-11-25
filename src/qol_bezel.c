@@ -71,6 +71,24 @@
  */
 
 #include "qol_bezel.h"
+#include "widescreen.h"   /* RtlWidescreenPostPresent: the hook we install */
+
+/* Published by the GL presenter (snesrecomp/runner/src/desktop/opengl.c). NULL
+ * under the SDL renderer, which is how the framebuffer path knows to keep
+ * painting its own panels instead. Declared here rather than including the
+ * presenter's header so the game build stays independent of its include path. */
+extern void (*SnesOpenGLBezelImage)(const unsigned char *left, int left_w,
+                                    int left_h, const unsigned char *right,
+                                    int right_w, int right_h);
+extern void (*SnesOpenGLBezelFrame)(int visible, float margin_fraction);
+
+/* The same art at full resolution, for the presenter's bezel layer: the panel
+ * above is 64x224 because the frame is, and upscaling that is what looked
+ * muddy. Kept as raw RGBA, uploaded once by the GL presenter. */
+static unsigned char *s_art_l;
+static unsigned char *s_art_r;
+static int       s_art_lw, s_art_lh, s_art_rw, s_art_rh;
+static int       s_art_sent;
 
 #include <stdint.h>
 #include <stdio.h>
@@ -111,6 +129,46 @@ static uint32_t *s_left;
 static uint32_t *s_right;
 static int       s_panel_w;
 static int       s_panel_h;
+/* Defined below: the verdict for the frame being presented. */
+static int MarginFlat(const uint8_t *base, size_t pitch, int x0, int width,
+                      int h);
+
+/* Defined at the bottom: the presenter calls it on every frame. */
+
+/* Tell the GL presenter what to draw. Uploads the art the first time the
+ * presenter exists (after_config runs before there is a GL context). */
+static void PublishGlBezel(int visible, float frac)
+{
+  if (!SnesOpenGLBezelImage) return;
+  if (!s_art_sent) {
+    s_art_sent = 1;
+    SnesOpenGLBezelImage(s_art_l, s_art_lw, s_art_lh,
+                         s_art_r, s_art_rw, s_art_rh);
+  }
+  if (SnesOpenGLBezelFrame) SnesOpenGLBezelFrame(visible, frac);
+}
+
+static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
+                             int frame_h);
+
+static int       s_margin_free_l;   /* verdict for the frame being presented */
+static int       s_margin_free_r;
+static int       s_share_l, s_share_r;
+/* How many consecutive frames must agree before the panels follow a new
+ * verdict. The opening's logo flash wanders into the margins for two or three
+ * frames at a time; without this the panels strobe in step with it (the
+ * flicker seen on the title screen). A genuinely wide scene holds far longer
+ * than this, so it still takes over, only a fifth of a second later. */
+#define kBezelDwellFrames 12
+/* Share of a margin that must be one colour for it to count as backdrop.
+ * Measured on the title screen: its glow sits at 92-93%, a genuinely wide
+ * scene at 82%, an untouched margin at 100%. 94 cut through the gloss and
+ * made the panels step aside for a scene that was not there; 90 leaves the
+ * glow alone and still catches every real wide scene. */
+#define kBezelFlatPercent 90
+static int       s_paint = 1;      /* committed verdict: panels on? */
+static int       s_paint_run;      /* frames spent agreeing with a new one */
+static int       s_calls;
 static int       s_custom_have_l;   /* custom mode: which sides loaded */
 static int       s_custom_have_r;
 
@@ -147,12 +205,21 @@ static uint32_t Fade(uint32_t c)
   return ARGB(a, r, g, b);
 }
 
+static void FreeArt(void)
+{
+  if (s_art_l) { stbi_image_free(s_art_l); s_art_l = NULL; }
+  if (s_art_r) { stbi_image_free(s_art_r); s_art_r = NULL; }
+  s_art_lw = s_art_lh = s_art_rw = s_art_rh = 0;
+  s_art_sent = 0;
+}
+
 static void FreePanels(void)
 {
   free(s_left);
   free(s_right);
   s_left = s_right = NULL;
   s_panel_w = s_panel_h = 0;
+  FreeArt();
 }
 
 /* Directory of the executable, taken from qol.ini's own path. */
@@ -251,6 +318,47 @@ static const char *RightSource(void)
   return s_img_right[0] ? s_img_right : s_img_shared;
 }
 
+
+
+/* Resolve a configured path against the exe folder. */
+static void ArtPath(const char *image, char *out, size_t cap)
+{
+  if (image[0] == '\\' || image[0] == '/' ||
+      (image[1] == ':' && (image[2] == '\\' || image[2] == '/'))) {
+    snprintf(out, cap, "%s", image);
+  } else {
+    char dir[512];
+    ExeDir(dir, sizeof dir);
+    snprintf(out, cap, "%s/%s", dir, image);
+  }
+}
+
+/* Full-resolution copy for the presenter, opacity baked in so the GPU pass and
+ * the framebuffer pass agree. NULL when the file cannot be read. */
+static unsigned char *LoadNative(const char *image, int *w, int *h)
+{
+  if (!image || !image[0]) return NULL;
+  char path[768];
+  ArtPath(image, path, sizeof path);
+  int iw = 0, ih = 0, ic = 0;
+  unsigned char *px = stbi_load(path, &iw, &ih, &ic, 4);
+  if (!px || iw <= 0 || ih <= 0) {
+    if (px) stbi_image_free(px);
+    return NULL;
+  }
+  if (s_opacity < 100) {
+    const size_t n = (size_t)iw * (size_t)ih;
+    for (size_t i = 0; i < n; i++) {
+      unsigned char *c = px + i * 4u;
+      c[0] = (unsigned char)(c[0] * s_opacity / 100);
+      c[1] = (unsigned char)(c[1] * s_opacity / 100);
+      c[2] = (unsigned char)(c[2] * s_opacity / 100);
+    }
+  }
+  *w = iw; *h = ih;
+  return px;
+}
+
 /* ── panel cache ────────────────────────────────────────────────────────── */
 
 static int BuildPanels(int w, int h)
@@ -285,6 +393,17 @@ static int BuildPanels(int w, int h)
      * "paint slate". */
     if (!have_r && ls && ls[0]) have_r = LoadPanel(ls, s_right, w, h, s_mirror);
     if (!have_l && rs && rs[0]) have_l = LoadPanel(rs, s_left, w, h, s_mirror);
+    /* Art for the GL layer: same files, native size. Uploaded by the presenter
+     * on the first frame it exists, so this can run before any GL context. */
+    FreeArt();
+    s_art_l = LoadNative(ls, &s_art_lw, &s_art_lh);
+    s_art_r = LoadNative(rs, &s_art_rw, &s_art_rh);
+    if (!s_art_r && s_art_l) {              /* shared picture: reuse it */
+      s_art_r = LoadNative(ls, &s_art_rw, &s_art_rh);
+    }
+    if (!s_art_l && s_art_r) {
+      s_art_l = LoadNative(rs, &s_art_lw, &s_art_lh);
+    }
     if (have_l && have_r) {
       fprintf(stderr, "[qol] bezel: custom panels %dx%d, opacity %d%%%s\n",
               w, h, s_opacity,
@@ -368,8 +487,12 @@ void QolBezelAfterConfig(void)
                  v[0] == 'f' || v[0] == 'F');
   }
 
+  s_margin_free_l = s_margin_free_r = 0;
   FreePanels();
   s_custom_have_l = s_custom_have_r = 0;
+  /* The presenter calls this on every frame; keep the pointer even when the
+   * style is none so a later F10 or ini edit does not need a restart. */
+  RtlWidescreenPostPresent = BezelPostPresent;
   if (s_style == kBezelNone) {
     fprintf(stderr, "[qol] bezel=none (margins stay black)\n");
   } else if (s_style == kBezelCustom) {
@@ -387,29 +510,99 @@ void QolBezelAfterConfig(void)
 int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
                       int frame_w, int frame_h, double alpha)
 {
-  (void)dst;    /* returning 0 asks the host to copy the field for us */
-  (void)pitch;
-  (void)alpha;  /* panels are static, so an interpolated frame is the same */
+  /* Nothing is drawn here any more. Panels go on in RtlWidescreenPostPresent,
+   * because the frame the player sees is the one the presenter builds: painting
+   * the PPU field meant a scene that renders real content into the wide columns
+   * (the opening's snow, for one) came out from under the art, leaving panels
+   * cut off halfway down the screen. */
+  (void)dst; (void)pitch; (void)alpha;
+  s_margin_free_l = s_margin_free_r = 0;
   if (s_style == kBezelNone || !field) return 0;
   if (frame_w <= FF6_AUTHENTIC_W || frame_h <= 0) return 0;
-
   const int extra = (frame_w - FF6_AUTHENTIC_W) / 2;
   if (extra <= 0) return 0;
-  if (!BuildPanels(extra, frame_h)) return 0;
+  /* Measured on the PPU field, never on the buffer we paint: the presenter's
+   * output is the same buffer from one frame to the next, so a scan of it would
+   * find last frame's panels and call them picture (panels flickered on and off
+   * once per frame before this moved here). */
+  s_calls++;
+  const int share_l = MarginShare(field, (size_t)frame_w * 4u, 0, extra, frame_h);
+  const int share_r = MarginShare(field, (size_t)frame_w * 4u, frame_w - extra,
+                                  extra, frame_h);
+  s_share_l = share_l; s_share_r = share_r;
+  s_margin_free_l = share_l >= kBezelFlatPercent;
+  s_margin_free_r = share_r >= kBezelFlatPercent;
+  const int want = s_margin_free_l && s_margin_free_r;
+  if (want != s_paint) {
+    if (++s_paint_run >= kBezelDwellFrames) {
+      s_paint = want;
+      s_paint_run = 0;
+    }
+  } else {
+    s_paint_run = 0;
+  }
+  return 0;
+}
 
-  /* The field is the PPU's render buffer; the margins are backdrop pixels it
-   * rewrites every frame, which is why writing them here is safe and why the
-   * host's own copy then carries the panels into presentation, the frame
-   * dumps and the debug capture without further plumbing. */
-  uint8_t *f = (uint8_t *)(uintptr_t)field;
-  const size_t row_bytes = (size_t)frame_w * 4u;
-  const size_t panel_bytes = (size_t)extra * sizeof(uint32_t);
-  const size_t right_off = (size_t)(frame_w - extra) * 4u;
+/* Is this strip still empty, or has the renderer put picture in it? A margin
+ * the game leaves alone is a single flat colour; a wide BG fills it with tiles.
+ * Flat means "safe to paint panels over". */
+static int MarginShare(const uint8_t *base, size_t pitch, int x0, int width,
+                       int h)
+{
+  if (width <= 0 || h <= 0) return 0;
+  uint16_t hist[4096];
+  memset(hist, 0, sizeof hist);
+  int sampled = 0;
+  for (int y = 0; y < h; y += 2) {
+    const uint8_t *p = base + (size_t)y * pitch + (size_t)x0 * 4u;
+    for (int x = 0; x < width; x += 2) {
+      const uint8_t *c = p + (size_t)x * 4u;
+      const int key = ((c[2] >> 4) << 8) | ((c[1] >> 4) << 4) | (c[0] >> 4);
+      hist[key]++;
+      sampled++;
+    }
+  }
+  if (!sampled) return 0;
+  int best = 0;
+  for (int i = 0; i < 4096; i++)
+    if (hist[i] > best) best = hist[i];
+  /* Share of the strip taken by its most common colour, in percent. */
+  return (int)((long long)best * 100 / (long long)sampled);
+}
+
+static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
+                             int frame_h)
+{
+  if (s_style == kBezelNone || !dst) return;
+  if (frame_w <= FF6_AUTHENTIC_W || frame_h <= 0) {
+    PublishGlBezel(0, 0.0f);   /* 4:3: nothing for the GL layer either */
+    return;
+  }
+
+  const int extra = (frame_w - FF6_AUTHENTIC_W) / 2;
+  if (extra <= 0) return;
+  if (!BuildPanels(extra, frame_h)) return;
+
+  /* Both or nothing. One panel beside a strip of live picture reads as a
+   * mistake; a scene that fills either margin is showing real widescreen, so
+   * the pair steps aside and the picture has the frame to itself. */
+  const int paint = s_paint;
+  PublishGlBezel(paint, (float)extra / (float)frame_w);
+
+  static int was = -1;
+  if (paint != was) {
+    was = paint;
+    fprintf(stderr, "[qol] bezel: frame %d %s (share %d%%/%d%%)\n", s_calls, paint
+            ? "margins empty - panels on"
+            : "scene fills a margin - panels paused", s_share_l, s_share_r);
+  }
+  if (!paint) return;
 
   for (int y = 0; y < frame_h; y++) {
-    uint8_t *row = f + (size_t)y * row_bytes;
-    memcpy(row, s_left + (size_t)y * (size_t)extra, panel_bytes);
-    memcpy(row + right_off, s_right + (size_t)y * (size_t)extra, panel_bytes);
+    uint8_t *row = dst + (size_t)y * pitch;
+    memcpy(row, s_left + (size_t)y * (size_t)extra, (size_t)extra * 4u);
+    memcpy(row + (size_t)(frame_w - extra) * 4u,
+           s_right + (size_t)y * (size_t)extra, (size_t)extra * 4u);
   }
-  return 0;   /* let the host present the field, as it always does */
 }

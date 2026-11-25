@@ -20,9 +20,10 @@
  * its own falls back to BezelImage, then to the other side (mirrored), then to
  * the slate panel — a missing file never leaves a black gap.
  *
- * See qol_bezel.c for what each style is, and for why the panels are painted
- * into the field's backdrop rather than composed into a finished frame.
- * docs/BEZEL_ART.md carries the geometry art should be drawn at.
+ * Panels are drawn in the post-present pass, on the finished frame, and only
+ * where the game left the margin empty: a scene that renders real content into
+ * the wide columns keeps its picture and the panels step aside for it. See
+ * qol_bezel.c. docs/BEZEL_ART.md carries the geometry art should be drawn at.
  */
 
 #include <stddef.h>
@@ -31,9 +32,8 @@
 /* Read qol.ini and drop any cached panels. Call from after_config. */
 void QolBezelAfterConfig(void);
 
-/* Host draw_frame hook. Paints the margin columns of the PPU field in place
- * and always returns 0, so the host runs its normal present path (copy, frame
- * dumps, OSD, debug capture) over a field that already carries the panels. */
+/* Host draw_frame hook, kept so the descriptor shape stays the same: it draws
+ * nothing and returns 0, which sends the host down its normal present path. */
 int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
                       int frame_w, int frame_h, double alpha);
 
