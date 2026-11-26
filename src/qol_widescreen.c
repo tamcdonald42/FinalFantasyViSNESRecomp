@@ -96,6 +96,35 @@ static int Owner(void)
   return (int)g_snes->ram[FF6_INT_OWNER_ADDR];
 }
 
+/* Only these banks are ever installed at $1503 once the game is running.
+ * Anything else is boot-time garbage: on a cold start the byte reads $00, then
+ * $7E, before the first NMI handler is written. Trusting it flipped the width
+ * 384 -> 256 -> 384 five times inside the first 62 frames, which the player
+ * sees as the art resizing itself on the title screen. */
+static int OwnerKnown(int owner) {
+  switch (owner) {
+    case 0xC0: case 0xC1: case 0xC2: case 0xC3: case 0xEE: return 1;
+    default: return 0;
+  }
+}
+
+/* A known owner still has to hold for kOwnerDwell frames before the frame
+ * width follows it, so a one-frame stub cannot resize the picture. */
+#define kOwnerDwell 12
+static int OwnerSettled(void) {
+  static int settled = -1, raw_was = -1, seen_at;
+  const int now = snes_frame_counter;
+  const int raw = Owner();
+  if (!OwnerKnown(raw)) { raw_was = -1; return settled; }
+  if (raw == settled) { raw_was = raw; return settled; }
+  if (raw != raw_was) { raw_was = raw; seen_at = now; return settled; }
+  /* Dwell counts SNES frames, not calls: this hook is entered many times per
+   * frame, so a call-counting dwell expired inside a single frame and still
+   * let a menu blip resize the picture for one frame. */
+  if (now - seen_at >= kOwnerDwell) settled = raw;
+  return settled;
+}
+
 void QolWidescreenAfterConfig(void)
 {
   QolIniEnsureDefaults();
@@ -126,17 +155,23 @@ void QolWidescreenPrepareFrame(int drawable_w, int drawable_h,
 
   /* The whole switch. Off hands the host the same 256 the port always asked
    * for, so g_ws_extra stays 0 and the host never activates its wide path. */
-  *frame_w = s_enabled ? (256 + 2 * FF6_WS_EXTRA) : 256;
+  /* A pillarboxed scene gets a 256-wide FRAME, not a 384 frame with the
+   * picture centred inside it. Centring kept the extra columns live, so the
+   * battle engine -- which lays its windows out for a 256-wide screen -- could
+   * put a fragment of a menu box in the margin. That band then stopped reading
+   * as empty, the side panels stepped aside by the both-or-nothing rule, and
+   * the player saw the panels vanish with a stray window in the void beside a
+   * black gap. A real 256 frame cannot show anything outside the picture, and
+   * the presenter fills the space beside it with art. */
+  const int wide = s_enabled && OwnerSettled() == (int)FF6_OWNER_FIELD;
+  *frame_w = wide ? (256 + 2 * FF6_WS_EXTRA) : 256;
   *frame_h = 224;
 
-  if (!s_enabled || !g_ppu) return;
+  if (!wide || !g_ppu) return;
 
   /* The host calls PpuSetExtraSpace(extra) on every frame in
-   * PreparePpuFrame, which restores the full margin on both sides. Narrowing
-   * to a pillarbox therefore has to be re-applied per frame; widening needs
-   * no call. */
-  if (Owner() != (int)FF6_OWNER_FIELD)
-    PpuSetExtraSpaceCentered(g_ppu, (uint16_t)g_ws_extra);
+   * PreparePpuFrame, which restores the full margin on both sides. */
+  PpuSetExtraSpaceCentered(g_ppu, (uint16_t)g_ws_extra);
 }
 
 void QolWidescreenBeforeFrame(void)
@@ -159,11 +194,13 @@ void QolWidescreenBeforeFrame(void)
 
   if (!s_enabled) return;
 
-  int owner = Owner();
+  static unsigned long s_tick;
+  s_tick++;
+  int owner = OwnerSettled();
   if (owner != s_reported_owner) {
     s_reported_owner = owner;
-    fprintf(stderr, "[qol] ws owner now $%02X (%s)\n", owner & 0xFF,
+    fprintf(stderr, "[qol] ws owner now $%02X (%s) @tick %lu\n", owner & 0xFF,
             owner == (int)FF6_OWNER_FIELD ? "field: wide"
-                                          : "not field: pillarboxed");
+                                          : "not field: pillarboxed", s_tick);
   }
 }

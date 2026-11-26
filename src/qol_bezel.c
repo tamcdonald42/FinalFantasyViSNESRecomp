@@ -170,6 +170,10 @@ static int       s_share_l, s_share_r;
  * flicker seen on the title screen). A genuinely wide scene holds far longer
  * than this, so it still takes over, only a fifth of a second later. */
 #define kBezelDwellFrames 12
+/* The border verdict moves the picture edge by 8 columns, so it changes far
+ * more slowly than the panel verdict: at 12 frames the title screen flipped
+ * 64 <-> 72 px several times a second and read as the art resizing itself. */
+#define kBezelBorderDwell 60
 /* Share of a margin that must be one colour for it to count as backdrop.
  * Measured on the title screen: its glow sits at 92-93%, a genuinely wide
  * scene at 82%, an untouched margin at 100%. 94 cut through the gloss and
@@ -559,7 +563,7 @@ int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
    * re-decodes the art every frame and shifts the picture edge as it goes. */
   const int border_want = edge_l >= kBezelFlatPercent && edge_r >= kBezelFlatPercent;
   if (border_want != s_border_free) {
-    if (++s_border_run >= kBezelDwellFrames) {
+    if (++s_border_run >= kBezelBorderDwell) {
       s_border_free = border_want;
       s_border_run = 0;
     }
@@ -609,8 +613,28 @@ static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
                              int frame_h)
 {
   if (s_style == kBezelNone || !dst) return;
+  {
+    static int w_was = -1;
+    if (frame_w != w_was) {
+      w_was = frame_w;
+      fprintf(stderr, "[qol] bezel: frame width %d @frame %d\n", frame_w, s_calls);
+    }
+  }
   if (frame_w <= FF6_AUTHENTIC_W || frame_h <= 0) {
-    PublishGlBezel(0, 0.0f);   /* 4:3: nothing for the GL layer either */
+    /* A 4:3 scene is presented pillarboxed, so the picture IS the whole
+     * frame and the space beside it is the presenter's, not the game's:
+     * art there can never cover live pixels. Handing the GL layer 'not
+     * visible' instead left that band black and made the panels vanish in
+     * every battle; the stray menu fragment the user saw was a leftover in
+     * it. Margin 0 means 'no inner strip, fill from the window edge to the
+     * picture edge'. */
+    if (s_style != kBezelNone) {
+      static int said;
+      if (!said) { said = 1; fprintf(stderr,
+          "[qol] bezel: 4:3 frame %d wide @frame %d - art fills the pillarbox band\n",
+          frame_w, s_calls); }
+      PublishGlBezel(1, 0.0f);
+    }
     return;
   }
 
@@ -630,8 +654,8 @@ static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
   static int span_was = -1;
   if (paint && span != span_was) {
     span_was = span;
-    fprintf(stderr, "[qol] bezel: panels %d px wide (frame edge to picture edge)%s\n",
-            span, s_border_free ? ", border covered" : "");
+    fprintf(stderr, "[qol] bezel: panels %d px wide (frame edge to picture edge)%s"
+            " @frame %d\n", span, s_border_free ? ", border covered" : "", s_calls);
   }
   if (paint != was) {
     was = paint;
