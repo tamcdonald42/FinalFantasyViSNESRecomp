@@ -103,6 +103,14 @@ static int       s_art_sent;
 
 /* The authentic frame width. Anything wider is margin. */
 #define FF6_AUTHENTIC_W 256
+/* The PPU never draws the outer 8 columns of its 256. In a 4:3 frame they sit
+ * at the screen edge and nobody notices; beside art they read as a black gap
+ * between the game and the panels - which is exactly how the player reports
+ * it. The panels therefore reach 8 columns into the frame, but only while
+ * those columns really are empty: a scene that paints them keeps its
+ * picture. Measured from the cartridge: its own frame has first non-black
+ * column 8 and last 247 in the intro. */
+#define FF6_BORDER_X 8
 
 /* ARGB8888 in bytes B,G,R,A on little-endian, i.e. a uint32 of 0xAARRGGBB. */
 #define ARGB(a, r, g, b) \
@@ -153,6 +161,7 @@ static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
 
 static int       s_margin_free_l;   /* verdict for the frame being presented */
 static int       s_margin_free_r;
+static int       s_border_free;     /* the PPU border columns are empty */
 static int       s_share_l, s_share_r;
 /* How many consecutive frames must agree before the panels follow a new
  * verdict. The opening's logo flash wanders into the margins for two or three
@@ -488,6 +497,7 @@ void QolBezelAfterConfig(void)
   }
 
   s_margin_free_l = s_margin_free_r = 0;
+  s_border_free = 0;
   FreePanels();
   s_custom_have_l = s_custom_have_r = 0;
   /* The presenter calls this on every frame; keep the pointer even when the
@@ -517,6 +527,7 @@ int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
    * cut off halfway down the screen. */
   (void)dst; (void)pitch; (void)alpha;
   s_margin_free_l = s_margin_free_r = 0;
+  s_border_free = 0;
   if (s_style == kBezelNone || !field) return 0;
   if (frame_w <= FF6_AUTHENTIC_W || frame_h <= 0) return 0;
   const int extra = (frame_w - FF6_AUTHENTIC_W) / 2;
@@ -532,6 +543,13 @@ int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
   s_share_l = share_l; s_share_r = share_r;
   s_margin_free_l = share_l >= kBezelFlatPercent;
   s_margin_free_r = share_r >= kBezelFlatPercent;
+  /* The 8 columns just inside the picture, where the PPU's border lives. */
+  const int edge_l = MarginShare(field, (size_t)frame_w * 4u, extra,
+                                 FF6_BORDER_X, frame_h);
+  const int edge_r = MarginShare(field, (size_t)frame_w * 4u,
+                                 frame_w - extra - FF6_BORDER_X,
+                                 FF6_BORDER_X, frame_h);
+  s_border_free = edge_l >= kBezelFlatPercent && edge_r >= kBezelFlatPercent;
   const int want = s_margin_free_l && s_margin_free_r;
   if (want != s_paint) {
     if (++s_paint_run >= kBezelDwellFrames) {
@@ -582,15 +600,23 @@ static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
 
   const int extra = (frame_w - FF6_AUTHENTIC_W) / 2;
   if (extra <= 0) return;
-  if (!BuildPanels(extra, frame_h)) return;
+  /* Tight against the picture: cover the PPU border when it is empty. */
+  const int span = extra + (s_border_free ? FF6_BORDER_X : 0);
+  if (!BuildPanels(span, frame_h)) return;
 
   /* Both or nothing. One panel beside a strip of live picture reads as a
    * mistake; a scene that fills either margin is showing real widescreen, so
    * the pair steps aside and the picture has the frame to itself. */
   const int paint = s_paint;
-  PublishGlBezel(paint, (float)extra / (float)frame_w);
+  PublishGlBezel(paint, (float)span / (float)frame_w);
 
   static int was = -1;
+  static int span_was = -1;
+  if (paint && span != span_was) {
+    span_was = span;
+    fprintf(stderr, "[qol] bezel: panels %d px wide (frame edge to picture edge)%s\n",
+            span, s_border_free ? ", border covered" : "");
+  }
   if (paint != was) {
     was = paint;
     fprintf(stderr, "[qol] bezel: frame %d %s (share %d%%/%d%%)\n", s_calls, paint
@@ -601,8 +627,8 @@ static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
 
   for (int y = 0; y < frame_h; y++) {
     uint8_t *row = dst + (size_t)y * pitch;
-    memcpy(row, s_left + (size_t)y * (size_t)extra, (size_t)extra * 4u);
-    memcpy(row + (size_t)(frame_w - extra) * 4u,
-           s_right + (size_t)y * (size_t)extra, (size_t)extra * 4u);
+    memcpy(row, s_left + (size_t)y * (size_t)span, (size_t)span * 4u);
+    memcpy(row + (size_t)(frame_w - span) * 4u,
+           s_right + (size_t)y * (size_t)span, (size_t)span * 4u);
   }
 }
