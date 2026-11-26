@@ -96,6 +96,12 @@ static int       s_art_sent;
 #include <string.h>
 
 #include "qol_ini.h"
+#include "desktop/display_aspect.h"   /* SnesDisplayViewport */
+
+/* Presenter hook (desktop/opengl.c). Declared here rather than by including
+ * opengl.h, which drags in the GL loader this file has no business with. */
+void snesrecomp_opengl_set_viewport(void (*compute)(int, int, int, int,
+                                                   SnesDisplayViewport *));
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_STATIC
@@ -183,6 +189,7 @@ static int       s_share_l, s_share_r;
 static int       s_paint = 1;      /* committed verdict: panels on? */
 static int       s_paint_run;      /* frames spent agreeing with a new one */
 static int       s_calls;
+static double    s_art_aspect = 0.353;  /* panel art w/h; 64x224 panels are 0.286 */
 static int       s_custom_have_l;   /* custom mode: which sides loaded */
 static int       s_custom_have_r;
 
@@ -375,6 +382,44 @@ static unsigned char *LoadNative(const char *image, int *w, int *h)
 
 /* ── panel cache ────────────────────────────────────────────────────────── */
 
+/* ── present-layer geometry ────────────────────────────────────────────────
+ * The presenter draws the frame into `vp` and then fills [0, vp->x] and
+ * [vp->right, drawable] with art, so the band is whatever the window leaves
+ * over. Measured on the player's 1920x1080 window, a 4:3 scene left a band of
+ * 240x1080 (ratio 0.222) for art that is 0.353 wide-per-tall: cover-scaling
+ * cropped a third of the panel away, all round, which is exactly what he
+ * reported. Fit the LAYOUT to the art instead of the art to the layout:
+ * choose a picture height such that picture + two art bands fills the window
+ * width exactly. Nothing is then stretched and nothing is cropped; the only
+ * cost is a letterbox bar above and below, which reads as framing, not as a
+ * defect. Wide frames are left alone: their bands are the frame's own margins
+ * and the art was authored to match them. */
+void QolBezelAdjustViewport(int frame_w, int frame_h, int drawable_w,
+                            int drawable_h, SnesDisplayViewport *vp) {
+  (void)frame_h;
+  if (!vp || drawable_w <= 0 || drawable_h <= 0) return;
+  if (s_style == kBezelNone || !s_paint) return;
+  if (frame_w > FF6_AUTHENTIC_W) return;          /* wide: margins already fit */
+  if (!(s_art_aspect > 0.05) || vp->height <= 0 || vp->width <= 0) return;
+  const double pa = (double)vp->width / (double)vp->height;   /* picture shape */
+  if (!(pa > 0.2)) return;
+  double h = (double)drawable_h;
+  double total = (pa + 2.0 * s_art_aspect) * h;
+  if (total > (double)drawable_w) {
+    h = (double)drawable_w / (pa + 2.0 * s_art_aspect);
+    total = (double)drawable_w;
+  }
+  if (h < 32.0) return;
+  const int bw = (int)(s_art_aspect * h + 0.5);
+  const int ih = (int)(h + 0.5);
+  const int iw = (int)(pa * h + 0.5);
+  vp->width = iw;
+  vp->height = ih;
+  vp->x = (int)(((double)drawable_w - (double)(iw + 2 * bw)) / 2.0) + bw;
+  vp->y = (drawable_h - ih) / 2;
+  if (vp->x < 0) vp->x = 0;
+}
+
 static int BuildPanels(int w, int h)
 {
   if (s_style == kBezelNone || w <= 0 || h <= 0) return 0;
@@ -418,6 +463,10 @@ static int BuildPanels(int w, int h)
     if (!s_art_l && s_art_r) {
       s_art_l = LoadNative(rs, &s_art_lw, &s_art_lh);
     }
+    /* The art's width:height ratio drives the band geometry below. Taken from
+     * the file, never assumed: the panels on this machine are 237x672. */
+    if (s_art_l && s_art_lh > 0)      s_art_aspect = (double)s_art_lw / (double)s_art_lh;
+    else if (s_art_r && s_art_rh > 0) s_art_aspect = (double)s_art_rw / (double)s_art_rh;
     if (have_l && have_r) {
       fprintf(stderr, "[qol] bezel: custom panels %dx%d, opacity %d%%%s\n",
               w, h, s_opacity,
@@ -462,6 +511,9 @@ static int BuildPanels(int w, int h)
 
 void QolBezelAfterConfig(void)
 {
+  /* Hand the presenter our layout rule. It is a no-op until the first frame
+   * has decided whether the panels are up, so installing it here is safe. */
+  snesrecomp_opengl_set_viewport(QolBezelAdjustViewport);
   char v[512];
 
   s_style = kBezelNone;
