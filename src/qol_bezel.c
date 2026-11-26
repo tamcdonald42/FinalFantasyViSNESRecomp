@@ -162,6 +162,7 @@ static void BezelPostPresent(uint8_t *dst, size_t pitch, int frame_w,
 static int       s_margin_free_l;   /* verdict for the frame being presented */
 static int       s_margin_free_r;
 static int       s_border_free;     /* the PPU border columns are empty */
+static int       s_border_run;      /* frames the border verdict has disagreed */
 static int       s_share_l, s_share_r;
 /* How many consecutive frames must agree before the panels follow a new
  * verdict. The opening's logo flash wanders into the margins for two or three
@@ -527,7 +528,11 @@ int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
    * cut off halfway down the screen. */
   (void)dst; (void)pitch; (void)alpha;
   s_margin_free_l = s_margin_free_r = 0;
-  s_border_free = 0;
+  /* s_border_free is NOT reset here. The margin flags are raw per-frame
+   * observations, but the border verdict is settled state: clearing it every
+   * frame restarted the dwell run, so a scene whose border columns drift in
+   * and out of flatness rebuilt the panels 1,963 times in 12,600 frames and
+   * shifted the picture edge at 60 Hz. */
   if (s_style == kBezelNone || !field) return 0;
   if (frame_w <= FF6_AUTHENTIC_W || frame_h <= 0) return 0;
   const int extra = (frame_w - FF6_AUTHENTIC_W) / 2;
@@ -549,7 +554,18 @@ int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
   const int edge_r = MarginShare(field, (size_t)frame_w * 4u,
                                  frame_w - extra - FF6_BORDER_X,
                                  FF6_BORDER_X, frame_h);
-  s_border_free = edge_l >= kBezelFlatPercent && edge_r >= kBezelFlatPercent;
+  /* Dwell, like the margin verdict: a scene whose border columns drift in
+   * and out of flatness would otherwise rebuild the panels at 60 Hz, which
+   * re-decodes the art every frame and shifts the picture edge as it goes. */
+  const int border_want = edge_l >= kBezelFlatPercent && edge_r >= kBezelFlatPercent;
+  if (border_want != s_border_free) {
+    if (++s_border_run >= kBezelDwellFrames) {
+      s_border_free = border_want;
+      s_border_run = 0;
+    }
+  } else {
+    s_border_run = 0;
+  }
   const int want = s_margin_free_l && s_margin_free_r;
   if (want != s_paint) {
     if (++s_paint_run >= kBezelDwellFrames) {
