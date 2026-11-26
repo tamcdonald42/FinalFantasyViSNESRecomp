@@ -78,9 +78,76 @@
 #define FF6_OWNER_FIELD    0xC0u
 
 static int          s_enabled;                 /* player's choice */
+/* ── pad chord ──────────────────────────────────────────────────────────────
+ * qol.ini: `EncountersPad` / `WidescreenPad` — a '+' separated list of pad
+ * buttons, or `None`. Stick clicks (L3/R3), shoulders and triggers are not SNES
+ * buttons, so a chord built from them never reaches the game and cannot
+ * disturb play. Polled every frame from the host's raw held-button mask and
+ * fired on the rising edge, so holding it down toggles once.
+ *
+ *   L3 R3 sticks   L1 R1 shoulders   A B X Y face   Up Down Left Right d-pad
+ *   Select Start Guide
+ */
+typedef struct QolPadChord { unsigned mask; unsigned was; } QolPadChord;
+
+static int s_pad_bad_reported;
+
+static unsigned QolPadButtonBit(const char *name) {
+  static const struct { const char *n; int bit; } kMap[] = {
+    {"a", SDL_CONTROLLER_BUTTON_A}, {"b", SDL_CONTROLLER_BUTTON_B},
+    {"x", SDL_CONTROLLER_BUTTON_X}, {"y", SDL_CONTROLLER_BUTTON_Y},
+    {"back", SDL_CONTROLLER_BUTTON_BACK}, {"select", SDL_CONTROLLER_BUTTON_BACK},
+    {"guide", SDL_CONTROLLER_BUTTON_GUIDE}, {"start", SDL_CONTROLLER_BUTTON_START},
+    {"l3", SDL_CONTROLLER_BUTTON_LEFTSTICK},
+    {"leftstick", SDL_CONTROLLER_BUTTON_LEFTSTICK},
+    {"r3", SDL_CONTROLLER_BUTTON_RIGHTSTICK},
+    {"rightstick", SDL_CONTROLLER_BUTTON_RIGHTSTICK},
+    {"l1", SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
+    {"leftshoulder", SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
+    {"r1", SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
+    {"rightshoulder", SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
+    {"up", SDL_CONTROLLER_BUTTON_DPAD_UP}, {"down", SDL_CONTROLLER_BUTTON_DPAD_DOWN},
+    {"left", SDL_CONTROLLER_BUTTON_DPAD_LEFT},
+    {"right", SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
+  };
+  for (size_t i = 0; i < sizeof(kMap) / sizeof(kMap[0]); ++i)
+    if (strcasecmp(name, kMap[i].n) == 0) return 1u << kMap[i].bit;
+  return 0u;   /* triggers are axes in SDL2, not buttons: named nowhere on purpose */
+}
+
+static unsigned QolPadParseChord(const char *spec) {
+  if (!spec || !*spec || strcasecmp(spec, "none") == 0) return 0u;
+  unsigned mask = 0u;
+  char buf[128];
+  snprintf(buf, sizeof buf, "%s", spec);
+  for (char *tok = strtok(buf, "+ ,"); tok; tok = strtok(NULL, "+ ,")) {
+    const unsigned b = QolPadButtonBit(tok);
+    if (b) { mask |= b; continue; }
+    if (!s_pad_bad_reported) {
+      s_pad_bad_reported = 1;
+      fprintf(stderr, "[qol] pad chord: '%s' is not a pad button "
+                      "(L3 R3 L1 R1 A B X Y Select Start d-pad)\n", tok);
+    }
+  }
+  return mask;
+}
+
+static int QolPadChordFired(QolPadChord *ch) {
+  if (!ch->mask) return 0;
+  const unsigned held = snesrecomp_pad_held_buttons(0) & 0x1FFFFFu;
+  const int down = (held & ch->mask) == ch->mask;
+  const int fired = down && !ch->was;
+  ch->was = (unsigned)down;
+  return fired;
+}
+
 static SDL_Scancode s_toggle_key = SDL_SCANCODE_F10;
+static QolPadChord  s_pad;               /* optional pad chord */
 static int          s_key_was_down;
 static int          s_reported_owner = -1;
+
+
+
 
 static SDL_Scancode ParseKey(const char *val, SDL_Scancode fallback)
 {
@@ -133,6 +200,8 @@ void QolWidescreenAfterConfig(void)
   if (QolIniGet("Widescreen", val, sizeof val))
     s_enabled = (strcasecmp(val, "on") == 0 || strcasecmp(val, "true") == 0 ||
                  strcmp(val, "1") == 0);
+  if (QolIniGet("WidescreenPad", val, sizeof val))
+    s_pad.mask = QolPadParseChord(val);
   if (QolIniGet("WidescreenKey", val, sizeof val))
     s_toggle_key = ParseKey(val, SDL_SCANCODE_F10);
 
@@ -179,6 +248,7 @@ void QolWidescreenBeforeFrame(void)
   /* Hotkey. Only when a window exists: a headless/scripted run has no player
    * to press anything, and SDL's keyboard state is not meaningful there. */
   if (g_window && SDL_WasInit(SDL_INIT_VIDEO)) {
+    const int pad_fired = QolPadChordFired(&s_pad);
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
     if (keys) {
       int down = (s_toggle_key != SDL_SCANCODE_UNKNOWN && keys[s_toggle_key]) ? 1 : 0;
@@ -189,6 +259,12 @@ void QolWidescreenBeforeFrame(void)
         fprintf(stderr, "[qol] widescreen=%s\n", s_enabled ? "on" : "off");
       }
       s_key_was_down = down;
+      if (pad_fired) {
+        s_enabled = !s_enabled;
+        QolIniSet("Widescreen", s_enabled ? "on" : "off");
+        snes_osd_push(s_enabled ? "Widescreen ON" : "Widescreen OFF", 1500);
+        fprintf(stderr, "[qol] widescreen=%s (pad)\n", s_enabled ? "on" : "off");
+      }
     }
   }
 
