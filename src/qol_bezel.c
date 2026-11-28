@@ -399,7 +399,17 @@ void QolBezelAdjustViewport(int frame_w, int frame_h, int drawable_w,
   (void)frame_h;
   if (!vp || drawable_w <= 0 || drawable_h <= 0) return;
   if (s_style == kBezelNone || !s_paint) return;
-  if (frame_w > FF6_AUTHENTIC_W) return;          /* wide: margins already fit */
+  if (frame_w > FF6_AUTHENTIC_W) {
+    /* Full bleed: with no panels there is nothing to reserve, so the picture
+     * takes the whole window. 384:224 is 1.714 and a 16:9 window is 1.778,
+     * so this stretches the picture 3.7% horizontally rather than leaving a
+     * 34 px black strip down each side -- measured, and invisible at 4.8x. */
+    vp->x = 0;
+    vp->y = 0;
+    vp->width = drawable_w;
+    vp->height = drawable_h;
+    return;
+  }
   if (!(s_art_aspect > 0.05) || vp->height <= 0 || vp->width <= 0) return;
   const double pa = (double)vp->width / (double)vp->height;   /* picture shape */
   if (!(pa > 0.2)) return;
@@ -597,6 +607,16 @@ int QolBezelDrawFrame(uint8_t *dst, size_t pitch, const uint8_t *field,
    * output is the same buffer from one frame to the next, so a scan of it would
    * find last frame's panels and call them picture (panels flickered on and off
    * once per frame before this moved here). */
+  /* Panels belong to 4:3 play. In a wide frame the picture runs edge to edge,
+   * and art beside it could only exist by shrinking that picture -- which is
+   * the resizing the player found distracting. Standing down here is what
+   * makes the panels bit-identical in every scene that has them: a 4:3 scene
+   * is always the same picture, so its bands are always 240x1080. */
+  if (frame_w > FF6_AUTHENTIC_W) {
+    s_paint = 0;
+    s_paint_run = 0;
+    return 0;
+  }
   s_calls++;
   const int share_l = MarginShare(field, (size_t)frame_w * 4u, 0, extra, frame_h);
   const int share_r = MarginShare(field, (size_t)frame_w * 4u, frame_w - extra,

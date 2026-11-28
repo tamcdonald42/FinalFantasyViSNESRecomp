@@ -6,36 +6,50 @@ scaling surprises.
 
 ## The geometry
 
-Widescreen on gives a 384x224 frame. The game always occupies the middle 256
-columns, full height:
+Panels are a **4:3 feature**. With widescreen off the picture is always 256x224,
+so the space beside it is always the same and the panels never move. With
+widescreen on the picture runs edge to edge and there are no panels at all:
+art can only sit beside a wide picture by shrinking it, and a picture that
+changes size every time the scene changes shape is what reads as the bezel
+'resizing itself'.
+
+So the space to design for is a 4:3 window:
 
 ```
-0                                                              383
-+----------------+--------------------------------+----------------+
-|   left panel   |          the game              |  right panel   |
-|    64 x 224    |          256 x 224             |    64 x 224    |
-+----------------+--------------------------------+----------------+
-   x 0 .. 63          x 64 .. 319                     x 320 .. 383
+0                     b                                  1919
++---------------------+----------------------------------+---------------------+
+|     left panel      |        the game 4:3 picture      |     right panel     |
+|     381 x 1080      |                                  |     381 x 1080      |
++---------------------+----------------------------------+---------------------+
 ```
 
-- **Left panel:** x 0–63 — its right edge touches the picture.
-- **Right panel:** x 320–383 — its left edge touches the picture.
-- **Panel shape:** 64x224, a 1:3.5 strip. Tall and narrow; design vertically.
+- **Panel shape:** 381x1080 on a 1080-tall window — that is **0.353 wide per
+  unit of height**, not the 0.286 of a 64x224 strip. Measured from the
+  presenter on a 1920x1080 window, not derived on paper.
+- The picture then fills exactly the width that is left, and is letterboxed
+  above and below when it cannot.
 
 ## Sizes to author at
 
-The module scales a panel with nearest-neighbour sampling, so integer multiples
-of 64x224 stay crisp and everything else gets slightly soft:
+0.353 is the number to hit. Any multiple of **79x224** works:
 
 | size | use |
 |---|---|
-| 64x224 | 1x — exact, matches the frame on a 1x window |
-| 192x672 | 3x — recommended; the shipped default window is 3x |
-| 256x896 | 4x — for 4K windows |
+| 79x224 | 1x — exact at a 1x window |
+| 158x448 | 2x |
+| 237x672 | 3x — recommended for a 1080-tall window |
+| 316x896 | 4x — for 4K windows |
 
-Landscape pictures will be squashed. If you have a wide piece of art, crop the
-part you want rather than handing over the whole thing.
+What happens if the art is a different shape, measured on this project's own
+art (which is 0.286, a 64x224 strip):
 
+| fix | cost |
+|---|---|
+| crop to 0.353 | loses ~19% of the panel's height |
+| stretch to 0.353 | ~19% horizontal distortion, visible on faces |
+| pad to 0.353 | a mirrored edge strip, which reads as tiling |
+
+None of the three is invisible. Authoring at 0.353 avoids the question.
 ## Two ways to supply art
 
 `qol.ini`, next to the exe:
